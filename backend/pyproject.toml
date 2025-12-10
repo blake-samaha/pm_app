@@ -1,0 +1,29 @@
+[project]
+name = "pm-app-backend"
+version = "0.1.0"
+description = "Backend for Automated Project Management Tool"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.29.0",
+    "sqlalchemy>=2.0.29",
+    "psycopg2-binary>=2.9.9",
+    "python-multipart>=0.0.9",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "google-auth>=2.29.0",
+    "requests>=2.31.0",
+    "sqlmodel>=0.0.16",
+    "pydantic-settings>=2.0.0",
+    "firebase-admin>=6.5.0",
+    "httpx>=0.27.0",
+    "structlog>=24.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
