@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra env vars like NEXT_PUBLIC_* from frontend
 
 
 @lru_cache()
