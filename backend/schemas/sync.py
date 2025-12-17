@@ -3,40 +3,29 @@ from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel
 
-class SyncResult(BaseModel):
-    project_id: UUID
-    jira_synced: bool
-    jira_items_synced: int
-    jira_items_created: int
-    jira_items_updated: int
-    precursive_synced: bool
-    financials_updated: bool
-    errors: List[str]
-    synced_at: datetime
-
 class JiraSyncResult(BaseModel):
-    project_id: UUID
-    items_synced: int
-    items_created: int
-    items_updated: int
-    errors: List[str]
-    synced_at: datetime
+    success: bool
+    actions_count: int = 0
+    message: Optional[str] = None
+    error: Optional[str] = None
 
 class PrecursiveSyncResult(BaseModel):
+    success: bool
+    financials_updated: bool = False
+    risks_count: int = 0
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+class SyncResult(BaseModel):
     project_id: UUID
-    synced: bool
-    financials_updated: bool
-    project_name: Optional[str] = None
-    client_name: Optional[str] = None
-    errors: List[str]
-    synced_at: datetime
+    timestamp: datetime
+    jira: JiraSyncResult
+    precursive: PrecursiveSyncResult
 
 class SyncStatus(BaseModel):
     project_id: UUID
     last_synced_at: Optional[datetime] = None
     jira_configured: bool
     precursive_configured: bool
-    last_jira_items_count: Optional[int] = None
-    last_precursive_sync_success: Optional[bool] = None
     jira_project_key: Optional[str] = None
     jira_project_name: Optional[str] = None

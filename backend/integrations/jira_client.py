@@ -299,6 +299,20 @@ class JiraClient:
             return sprints
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
+            
+    async def get_active_sprint_goal(self, board_id: int) -> Optional[str]:
+        """
+        Get the goal of the active sprint for a board.
+        Returns None if no active sprint or no goal set.
+        """
+        try:
+            sprints = await self.get_board_sprints(board_id, state="active")
+            if sprints and sprints[0].goal:
+                return sprints[0].goal
+            return None
+        except IntegrationError:
+            # Swallow errors for sprint goal fetch as it's secondary data
+            return None
     
     async def get_sprint_issues(
         self, 

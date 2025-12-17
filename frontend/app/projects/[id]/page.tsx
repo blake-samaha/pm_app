@@ -9,10 +9,12 @@ import { FinancialsCard } from "@/components/project/FinancialsCard";
 import { Timeline } from "@/components/project/Timeline";
 import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
+import { RiskMatrix } from "@/components/project/RiskMatrix"; // Imported RiskMatrix
+import { useRisks } from "@/hooks/useRisks"; // Import useRisks to pass data to Matrix
 import { SyncButton } from "@/components/project/SyncButton";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { TeamSection } from "@/components/project/TeamSection";
-import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
@@ -43,6 +45,7 @@ export default function ProjectDetailsPage() {
     const [activeTab, setActiveTab] = useState("work");
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
+    const { data: risks } = useRisks(projectId); // Fetch risks here for the Matrix
     const {
         data: syncStatus,
         isLoading: statusLoading,
@@ -216,6 +219,16 @@ export default function ProjectDetailsPage() {
                                 </div>
                             </TabsTrigger>
                             <TabsTrigger 
+                                isActive={activeTab === "risks"} 
+                                onClick={() => setActiveTab("risks")}
+                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <ShieldAlert className={`h-4 w-4 ${activeTab === "risks" ? "text-indigo-600" : ""}`} />
+                                    <span className={activeTab === "risks" ? "text-indigo-600" : ""}>Risks</span>
+                                </div>
+                            </TabsTrigger>
+                            <TabsTrigger 
                                 isActive={activeTab === "financials"} 
                                 onClick={() => setActiveTab("financials")}
                                 className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
@@ -258,7 +271,7 @@ export default function ProjectDetailsPage() {
                         <div className="space-y-8">
                             <Timeline project={project} />
                             
-                            {/* Sync Status Card - kept in Work view as it's relevant to Jira sync */}
+                            {/* Sync Status Card */}
                             <div>
                                 {statusLoading && (
                                     <div className="flex items-center justify-center rounded-lg border border-slate-200 bg-white p-4">
@@ -309,7 +322,28 @@ export default function ProjectDetailsPage() {
                                 )}
                             </div>
                             
+                            {/* Removed sidebar RiskList */}
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* Risks View - NEW TAB */}
+                <TabsContent isActive={activeTab === "risks"}>
+                    <div className="grid gap-8 lg:grid-cols-3">
+                        <div className="space-y-8 lg:col-span-2">
+                            {/* Detailed Risk List */}
                             <RiskList projectId={project.id} />
+                        </div>
+                        <div className="space-y-8">
+                            {/* Risk Matrix Heatmap */}
+                            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                                <div className="border-b border-slate-100 px-6 py-4">
+                                    <h3 className="font-semibold text-slate-900">Risk Heatmap</h3>
+                                </div>
+                                <div className="p-4">
+                                    <RiskMatrix risks={risks || []} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </TabsContent>

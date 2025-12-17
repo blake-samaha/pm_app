@@ -2,7 +2,7 @@
 
 import { useRisks } from "@/hooks/useRisks";
 import { Risk, RiskImpact, RiskProbability } from "@/types/actions-risks";
-import { Loader2, ShieldAlert, Activity, ArrowRight, Search } from "lucide-react";
+import { Loader2, ShieldAlert, Activity, ArrowRight, Search, LayoutGrid, List } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { useState, useMemo } from "react";
+// Removed RiskMatrix import as we are moving it to a separate tab
 
 interface RiskListProps {
     projectId: string;
@@ -71,6 +72,7 @@ const calculateRiskScore = (risk: Risk) => {
 export const RiskList = ({ projectId }: RiskListProps) => {
     const { data: risks, isLoading, isError, error, refetch } = useRisks(projectId);
     const [searchQuery, setSearchQuery] = useState("");
+    // Removed viewMode state
 
     const filteredRisks = useMemo(() => {
         if (!risks) return [];
@@ -117,13 +119,15 @@ export const RiskList = ({ projectId }: RiskListProps) => {
             <CardHeader className="border-b border-slate-100 bg-white px-6 py-4 flex-shrink-0">
                 <div className="flex flex-col space-y-4">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center text-lg font-semibold text-slate-900">
-                            <Activity className="mr-2 h-5 w-5 text-indigo-600" />
-                            Risk Register
-                        </CardTitle>
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600">
-                            {filteredRisks.length}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                            <CardTitle className="flex items-center text-lg font-semibold text-slate-900">
+                                <Activity className="mr-2 h-5 w-5 text-indigo-600" />
+                                Risk Register
+                            </CardTitle>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600">
+                                {filteredRisks.length}
+                            </span>
+                        </div>
                     </div>
                     {hasRisks && (
                         <div className="relative">
@@ -139,7 +143,6 @@ export const RiskList = ({ projectId }: RiskListProps) => {
                 </div>
             </CardHeader>
             
-            {/* Added bg-slate-100/50 for subtle contrast against the white cards */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100/50 min-h-[300px]">
                 {!hasRisks ? (
                     <div className="flex flex-col items-center justify-center h-full py-8 text-center">
@@ -213,7 +216,6 @@ export const RiskList = ({ projectId }: RiskListProps) => {
                                     </DialogHeader>
                                     
                                     <div className="space-y-6 py-4">
-                                        {/* Risk Score Indicator in Modal */}
                                         <div className="rounded-xl bg-slate-50 p-5 border border-slate-100 flex items-center justify-between shadow-sm">
                                             <div>
                                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Risk Score</p>
