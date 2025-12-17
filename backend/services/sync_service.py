@@ -519,15 +519,17 @@ class SyncService:
 
     # ... helpers ...
     def _map_jira_status(self, status: Optional[str]) -> ActionStatus:
-        """Map Jira status to ActionStatus, defaulting to TO_DO if None or unknown."""
+        """Map Jira status to ActionStatus, defaulting to NO_STATUS if None or unknown."""
         if not status:
-            return ActionStatus.TO_DO
+            return ActionStatus.NO_STATUS
         s = status.lower()
         if s in ['done', 'complete', 'closed', 'resolved']:
             return ActionStatus.COMPLETE
         elif s in ['in progress', 'in review', 'qa']:
             return ActionStatus.IN_PROGRESS
-        return ActionStatus.TO_DO
+        elif s in ['to do', 'backlog', 'open', 'new', 'created']:
+            return ActionStatus.TO_DO
+        return ActionStatus.NO_STATUS
     
     def _map_jira_priority(self, priority: Optional[str]) -> Priority:
         """Map Jira priority to Priority, defaulting to MEDIUM if None or unknown."""

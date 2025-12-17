@@ -1,7 +1,8 @@
 export enum ActionStatus {
   TO_DO = "To Do",
   IN_PROGRESS = "In Progress",
-  COMPLETE = "Complete"
+  COMPLETE = "Complete",
+  NO_STATUS = "No Status"
 }
 
 export enum Priority {

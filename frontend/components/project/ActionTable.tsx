@@ -2,7 +2,7 @@
 
 import { useActions } from "@/hooks/useActions";
 import { ActionItem, ActionStatus, Priority } from "@/types/actions-risks";
-import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search, ExternalLink, ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,12 +22,14 @@ const statusIcons = {
     [ActionStatus.TO_DO]: Circle,
     [ActionStatus.IN_PROGRESS]: Clock,
     [ActionStatus.COMPLETE]: CheckCircle2,
+    [ActionStatus.NO_STATUS]: HelpCircle,
 };
 
 const statusColors = {
     [ActionStatus.TO_DO]: "text-slate-400",
     [ActionStatus.IN_PROGRESS]: "text-blue-500",
     [ActionStatus.COMPLETE]: "text-emerald-500",
+    [ActionStatus.NO_STATUS]: "text-slate-300",
 };
 
 const priorityColors = {

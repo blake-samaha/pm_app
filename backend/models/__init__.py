@@ -16,6 +16,7 @@ class ActionStatus(str, Enum):
     TO_DO = "To Do"
     IN_PROGRESS = "In Progress"
     COMPLETE = "Complete"
+    NO_STATUS = "No Status"
 
 
 class Priority(str, Enum):
