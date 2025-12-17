@@ -126,6 +126,12 @@ class ProjectService:
         # Clients need to be assigned
         return self.repository.user_has_access(project_id, user.id)
     
+    def get_project_users(self, project_id: UUID) -> List[User]:
+        """Get all users assigned to a project."""
+        # Verify project exists
+        self.get_project_by_id(project_id)
+        return self.repository.get_project_users(project_id)
+    
     def publish_project(self, project_id: UUID, user: User) -> Project:
         """Publish a project."""
         if user.role != UserRole.COGNITER:

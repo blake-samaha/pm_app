@@ -4,6 +4,8 @@ import { useUpdateProject } from "@/hooks/useProjects";
 import { HealthStatus, Project, ReportingCycle } from "@/types";
 import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { uploadLogo } from "@/lib/api";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
@@ -19,7 +21,10 @@ export const EditProjectModal = ({
     onClose,
 }: EditProjectModalProps) => {
     const updateProject = useUpdateProject();
-    const [activeTab, setActiveTab] = useState<"general" | "health" | "sprint" | "visibility">("general");
+    const [activeTab, setActiveTab] = useState<"general" | "branding" | "health" | "sprint" | "visibility">("general");
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         name: project.name,
@@ -29,6 +34,7 @@ export const EditProjectModal = ({
         health_status_override: project.health_status_override || "",
         is_published: project.is_published,
         sprint_goals: project.sprint_goals || "",
+        client_logo_url: project.client_logo_url || "",
     });
 
     // Reset form data when project changes or modal opens
@@ -42,12 +48,38 @@ export const EditProjectModal = ({
                 health_status_override: project.health_status_override || "",
                 is_published: project.is_published,
                 sprint_goals: project.sprint_goals || "",
+                client_logo_url: project.client_logo_url || "",
             });
+            setLogoFile(null);
+            setLogoUrl(null);
         }
     }, [project, isOpen]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Determine final logo URL
+        let finalLogoUrl: string | null = formData.client_logo_url || null;
+        
+        // If a new URL was provided, use it
+        if (logoUrl) {
+            finalLogoUrl = logoUrl;
+        }
+        
+        // If a file was selected, upload it first
+        if (logoFile) {
+            try {
+                setIsUploading(true);
+                finalLogoUrl = await uploadLogo(logoFile);
+            } catch (error: any) {
+                toast.error("Failed to upload logo", {
+                    description: error.response?.data?.detail || "Please try again.",
+                });
+                setIsUploading(false);
+                return;
+            }
+            setIsUploading(false);
+        }
 
         // Filter out empty strings for optional enums to send null instead
         const payload: any = {
@@ -55,6 +87,7 @@ export const EditProjectModal = ({
             reporting_cycle: formData.reporting_cycle || null,
             health_status_override: formData.health_status_override || null,
             sprint_goals: formData.sprint_goals || null,
+            client_logo_url: finalLogoUrl,
         };
 
         updateProject.mutate(
@@ -64,6 +97,8 @@ export const EditProjectModal = ({
                     toast.success("Project updated", {
                         description: "Your changes have been saved.",
                     });
+                    setLogoFile(null);
+                    setLogoUrl(null);
                     onClose();
                 },
                 onError: (error: any) => {
@@ -96,10 +131,10 @@ export const EditProjectModal = ({
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b px-6">
+                <div className="flex border-b px-6 overflow-x-auto">
                     <button
                         onClick={() => setActiveTab("general")}
-                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                             activeTab === "general"
                                 ? "border-blue-600 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -108,8 +143,18 @@ export const EditProjectModal = ({
                         General
                     </button>
                     <button
+                        onClick={() => setActiveTab("branding")}
+                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                            activeTab === "branding"
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Branding
+                    </button>
+                    <button
                         onClick={() => setActiveTab("health")}
-                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                             activeTab === "health"
                                 ? "border-blue-600 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -205,6 +250,28 @@ export const EditProjectModal = ({
                         </div>
                     )}
 
+                    {activeTab === "branding" && (
+                        <div className="space-y-4">
+                            <div className="rounded-md bg-purple-50 p-4">
+                                <p className="text-sm text-purple-700">
+                                    Add a client logo to personalize this project. You can upload an image or provide a URL to an existing logo.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Client Logo
+                                </label>
+                                <ImageUpload
+                                    currentUrl={formData.client_logo_url || null}
+                                    onUrlChange={setLogoUrl}
+                                    onFileSelect={setLogoFile}
+                                    selectedFile={logoFile}
+                                    disabled={updateProject.isPending || isUploading}
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === "health" && (
                         <div className="space-y-4">
                             <div className="rounded-md bg-blue-50 p-4">
@@ -291,11 +358,11 @@ export const EditProjectModal = ({
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={updateProject.isPending}>
-                            {updateProject.isPending && (
+                        <Button type="submit" disabled={updateProject.isPending || isUploading}>
+                            {(updateProject.isPending || isUploading) && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             )}
-                            Save Changes
+                            {isUploading ? "Uploading..." : "Save Changes"}
                         </Button>
                     </div>
                 </form>

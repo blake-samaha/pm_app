@@ -1,6 +1,6 @@
 """User repository."""
-from typing import Optional
-from sqlmodel import Session, select
+from typing import Optional, List
+from sqlmodel import Session, select, or_
 
 from models import User, UserRole, AuthProvider
 from repositories.base import BaseRepository
@@ -22,6 +22,40 @@ class UserRepository(BaseRepository[User]):
         statement = select(User).where(User.role == role)
         return list(self.session.exec(statement).all())
     
+    def search(
+        self, 
+        search: Optional[str] = None, 
+        role: Optional[UserRole] = None
+    ) -> List[User]:
+        """
+        Search users by name or email with optional role filtering.
+        
+        Args:
+            search: Optional search string for name or email (case-insensitive)
+            role: Optional role filter
+            
+        Returns:
+            List of matching users
+        """
+        statement = select(User)
+        
+        if search:
+            search_pattern = f"%{search}%"
+            statement = statement.where(
+                or_(
+                    User.name.ilike(search_pattern),
+                    User.email.ilike(search_pattern)
+                )
+            )
+        
+        if role:
+            statement = statement.where(User.role == role)
+        
+        # Order by name for consistent results
+        statement = statement.order_by(User.name)
+        
+        return list(self.session.exec(statement).all())
+    
     def create_user(
         self, 
         email: str, 
@@ -34,7 +68,24 @@ class UserRepository(BaseRepository[User]):
             email=email,
             name=name,
             role=role,
-            auth_provider=auth_provider
+            auth_provider=auth_provider,
+            is_pending=False
+        )
+        return self.create(user)
+    
+    def create_pending_user(
+        self, 
+        email: str, 
+        name: str, 
+        role: UserRole
+    ) -> User:
+        """Create a pending (placeholder) user for invitation."""
+        user = User(
+            email=email,
+            name=name,
+            role=role,
+            auth_provider=AuthProvider.EMAIL,  # Will be updated on registration
+            is_pending=True
         )
         return self.create(user)
     

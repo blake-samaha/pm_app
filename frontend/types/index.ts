@@ -16,6 +16,25 @@ export enum HealthStatus {
   RED = "Red"
 }
 
+export enum UserRole {
+  COGNITER = "Cogniter",
+  CLIENT = "Client"
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  is_pending?: boolean;
+}
+
+export interface InviteUserResponse {
+  user: User;
+  was_created: boolean;
+  message: string;
+}
+
 export interface Project {
   id: string;
   name: string;

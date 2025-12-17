@@ -3,11 +3,12 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List
 from uuid import UUID
 
-from schemas import ProjectCreate, ProjectRead, ProjectUpdate
+from schemas import ProjectCreate, ProjectRead, ProjectUpdate, UserRead, InviteUserRequest, InviteUserResponse
 from dependencies import (
     CurrentUser,
     CogniterUser,
-    ProjectServiceDep
+    ProjectServiceDep,
+    UserServiceDep
 )
 from exceptions import (
     ResourceNotFoundError,
@@ -154,6 +155,22 @@ async def unpublish_project(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
+@router.get("/{project_id}/users", response_model=List[UserRead])
+async def get_project_users(
+    project_id: UUID,
+    current_user: CogniterUser,  # Only Cogniters can view project users
+    project_service: ProjectServiceDep
+):
+    """
+    Get all users assigned to a project.
+    Only Cogniters can access this endpoint.
+    """
+    try:
+        return project_service.get_project_users(project_id)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
 @router.post("/{project_id}/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def assign_user_to_project(
     project_id: UUID,
@@ -188,3 +205,57 @@ async def remove_user_from_project(
         project_service.remove_user_from_project(project_id, user_id, current_user)
     except AuthorizationError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.post("/{project_id}/invite", response_model=InviteUserResponse)
+async def invite_user_to_project(
+    project_id: UUID,
+    invite_data: InviteUserRequest,
+    current_user: CogniterUser,
+    project_service: ProjectServiceDep,
+    user_service: UserServiceDep
+):
+    """
+    Invite a user to a project by email.
+    - If the email exists: assigns the user directly
+    - If the email doesn't exist: creates a placeholder user and assigns them
+    
+    Only Cogniters can invite users.
+    """
+    # Verify project exists
+    try:
+        project_service.get_project_by_id(project_id)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    
+    email = invite_data.email.lower().strip()
+    
+    # Check if user exists
+    existing_user = user_service.get_user_by_email(email)
+    
+    if existing_user:
+        # User exists - just assign them
+        try:
+            project_service.assign_user_to_project(project_id, existing_user.id, current_user)
+            return InviteUserResponse(
+                user=existing_user,
+                was_created=False,
+                message=f"{existing_user.name} has been assigned to the project."
+            )
+        except DuplicateResourceError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{existing_user.name} is already assigned to this project."
+            )
+    else:
+        # Create placeholder user and assign
+        try:
+            new_user = user_service.create_pending_user(email)
+            project_service.assign_user_to_project(project_id, new_user.id, current_user)
+            return InviteUserResponse(
+                user=new_user,
+                was_created=True,
+                message=f"Invitation created for {email}. They will have access once they register."
+            )
+        except DuplicateResourceError as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

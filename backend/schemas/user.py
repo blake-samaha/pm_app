@@ -22,9 +22,22 @@ class UserRead(BaseModel):
     email: str
     name: str
     role: UserRole
+    is_pending: bool = False
     
     class Config:
         from_attributes = True
+
+
+class InviteUserRequest(BaseModel):
+    """Schema for inviting a user by email."""
+    email: str
+
+
+class InviteUserResponse(BaseModel):
+    """Response after inviting/assigning a user."""
+    user: UserRead
+    was_created: bool  # True if a new placeholder user was created
+    message: str
 
 
 class UserUpdate(BaseModel):

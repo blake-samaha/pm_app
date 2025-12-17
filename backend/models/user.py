@@ -20,6 +20,10 @@ class User(SQLModel, table=True):
     role: UserRole
     auth_provider: AuthProvider
     
+    # Pending users are placeholders created via invitation
+    # They become active when the user registers with that email
+    is_pending: bool = Field(default=False)
+    
     # Relationships
     projects: List["Project"] = Relationship(back_populates="users", link_model=UserProjectLink)
     comments: List["Comment"] = Relationship(back_populates="user")

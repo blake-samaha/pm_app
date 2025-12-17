@@ -11,19 +11,33 @@ import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
 import { SyncButton } from "@/components/project/SyncButton";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
+import { TeamSection } from "@/components/project/TeamSection";
 import { ArrowLeft, Loader2, ExternalLink, Settings } from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
+import { API_URL } from "@/lib/api";
 import { useState } from "react";
 import { EditProjectModal } from "@/components/project/EditProjectModal";
 import { HealthStatus } from "@/types";
+
+/**
+ * Get the full URL for a logo, handling both local uploads and external URLs.
+ */
+const getLogoUrl = (url: string | undefined | null): string | null => {
+    if (!url) return null;
+    if (url.startsWith("/uploads/")) {
+        return `${API_URL}${url}`;
+    }
+    return url;
+};
 
 export default function ProjectDetailsPage() {
     const params = useParams();
     const { user } = useAuthStore();
     const projectId = params.id as string;
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [logoError, setLogoError] = useState(false);
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
     const {
@@ -83,6 +97,23 @@ export default function ProjectDetailsPage() {
                             >
                                 <ArrowLeft className="h-6 w-6" />
                             </Link>
+                            {/* Project Logo */}
+                            {(() => {
+                                const logoUrl = getLogoUrl(project.client_logo_url);
+                                const showLogo = logoUrl && !logoError;
+                                return showLogo ? (
+                                    <img
+                                        src={logoUrl}
+                                        alt={`${project.name} logo`}
+                                        className="h-12 w-12 rounded-lg object-cover bg-gray-50 shadow-sm"
+                                        onError={() => setLogoError(true)}
+                                    />
+                                ) : (
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 text-xl font-bold text-gray-500 shadow-sm">
+                                        {project.name.charAt(0).toUpperCase()}
+                                    </div>
+                                );
+                            })()}
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900 truncate">
                                     {project.name}
@@ -225,6 +256,9 @@ export default function ProjectDetailsPage() {
                         </div>
                         <FinancialsCard project={project} />
                         <RiskList projectId={project.id} />
+                        {user?.role === "Cogniter" && (
+                            <TeamSection projectId={project.id} />
+                        )}
                     </div>
                 </div>
             </main>

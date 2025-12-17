@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+export { API_URL };
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -20,4 +22,22 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+/**
+ * Upload a logo file to the server.
+ * @param file The image file to upload
+ * @returns The URL path to the uploaded file
+ */
+export async function uploadLogo(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await api.post<{ url: string }>('/uploads/logo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return data.url;
+}
 

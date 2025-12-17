@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useCreateProject } from "@/hooks/useProjects";
 import { ProjectType, ReportingCycle } from "@/types";
 import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { uploadLogo } from "@/lib/api";
 import { toast } from "sonner";
 
 interface CreateProjectModalProps {
@@ -16,17 +19,51 @@ export const CreateProjectModal = ({
     onClose,
 }: CreateProjectModalProps) => {
     const createProject = useCreateProject();
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const resetForm = () => {
+        setLogoFile(null);
+        setLogoUrl(null);
+        setIsUploading(false);
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
+        
+        // Determine final logo URL
+        let finalLogoUrl: string | null = logoUrl;
+        
+        // If a file was selected, upload it first
+        if (logoFile) {
+            try {
+                setIsUploading(true);
+                finalLogoUrl = await uploadLogo(logoFile);
+            } catch (error: any) {
+                toast.error("Failed to upload logo", {
+                    description: error.response?.data?.detail || "Please try again.",
+                });
+                setIsUploading(false);
+                return;
+            }
+            setIsUploading(false);
+        }
+
         const data = {
             name: formData.get("name") as string,
             precursive_url: formData.get("precursive_url") as string,
             jira_url: formData.get("jira_url") as string,
             type: formData.get("type") as string,
             reporting_cycle: formData.get("reporting_cycle") as string,
+            client_logo_url: finalLogoUrl,
         };
 
         createProject.mutate(data, {
@@ -34,6 +71,7 @@ export const CreateProjectModal = ({
                 toast.success("Project created", {
                     description: `"${data.name}" has been created successfully.`,
                 });
+                resetForm();
                 onClose();
             },
             onError: (error: any) => {
@@ -56,7 +94,7 @@ export const CreateProjectModal = ({
                         Create New Project
                     </h2>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="text-gray-400 hover:text-gray-500"
                     >
                         <X className="h-6 w-6" />
@@ -161,15 +199,28 @@ export const CreateProjectModal = ({
                         </div>
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Client Logo
+                        </label>
+                        <ImageUpload
+                            currentUrl={null}
+                            onUrlChange={setLogoUrl}
+                            onFileSelect={setLogoFile}
+                            selectedFile={logoFile}
+                            disabled={createProject.isPending || isUploading}
+                        />
+                    </div>
+
                     <div className="mt-6 flex justify-end space-x-3">
-                        <Button type="button" variant="outline" onClick={onClose}>
+                        <Button type="button" variant="outline" onClick={handleClose}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={createProject.isPending}>
-                            {createProject.isPending && (
+                        <Button type="submit" disabled={createProject.isPending || isUploading}>
+                            {(createProject.isPending || isUploading) && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             )}
-                            Create Project
+                            {isUploading ? "Uploading..." : "Create Project"}
                         </Button>
                     </div>
                 </form>

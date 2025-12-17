@@ -58,6 +58,15 @@ class ProjectRepository(BaseRepository[Project]):
         )
         return self.session.exec(statement).first() is not None
     
+    def get_project_users(self, project_id: UUID) -> List[User]:
+        """Get all users assigned to a project."""
+        statement = (
+            select(User)
+            .join(UserProjectLink)
+            .where(UserProjectLink.project_id == project_id)
+        )
+        return list(self.session.exec(statement).all())
+    
     def precursive_url_exists(self, url: str) -> bool:
         """Check if Precursive URL already exists."""
         return self.get_by_precursive_url(url) is not None

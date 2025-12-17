@@ -7,7 +7,7 @@ import uuid
 from models import ActionStatus, Priority, RiskProbability, RiskImpact, RiskStatus
 
 from schemas.auth import GoogleLoginRequest, Token
-from schemas.user import UserRead, UserCreate
+from schemas.user import UserRead, UserCreate, InviteUserRequest, InviteUserResponse
 from schemas.project import ProjectBase, ProjectCreate, ProjectRead, ProjectUpdate
 from schemas.sync import SyncResult, SyncStatus, JiraSyncResult, PrecursiveSyncResult
 
@@ -75,6 +75,8 @@ __all__ = [
     # User
     "UserRead",
     "UserCreate",
+    "InviteUserRequest",
+    "InviteUserResponse",
     # Project
     "ProjectBase",
     "ProjectCreate",

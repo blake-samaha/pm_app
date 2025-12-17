@@ -6,15 +6,17 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy import text
 from database import create_db_and_tables, engine
 from config import get_settings
 import models  # Import to register all models with SQLModel
-from routers import auth, projects, actions, risks, sync
+from routers import auth, projects, actions, risks, sync, uploads, users
 from exceptions import (
     PMAppException,
     ResourceNotFoundError,
@@ -138,6 +140,11 @@ async def lifespan(app: FastAPI):
     # Create database tables
     create_db_and_tables()
     logger.info("Database tables initialized")
+    
+    # Create upload directories
+    upload_dir = Path("uploads")
+    (upload_dir / "logos").mkdir(parents=True, exist_ok=True)
+    logger.info("Upload directories initialized")
     
     # Log integration status
     log_integration_status()
@@ -311,6 +318,11 @@ app.include_router(projects.router)
 app.include_router(actions.router)
 app.include_router(risks.router)
 app.include_router(sync.router)
+app.include_router(uploads.router)
+app.include_router(users.router)
+
+# Mount static files for serving uploaded content
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 # ============================================================================
