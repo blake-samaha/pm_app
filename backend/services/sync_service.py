@@ -554,12 +554,36 @@ class SyncService:
         if "mitigated" in val: return RiskStatus.MITIGATED
         return RiskStatus.OPEN
 
+    def _strip_timezone(self, date_str: str) -> str:
+        """
+        Strip timezone information from an ISO format date/datetime string.
+        
+        Handles:
+        - 'Z' suffix (UTC)
+        - Positive offsets like '+05:00' or '+0500'
+        - Negative offsets like '-05:00' or '-0500'
+        
+        Args:
+            date_str: ISO format date or datetime string
+            
+        Returns:
+            String with timezone information removed
+        """
+        # Remove 'Z' suffix
+        clean_str = date_str.replace('Z', '')
+        
+        # Use regex to strip timezone offset (±HH:MM or ±HHMM)
+        # Match pattern: optional 'T' followed by time, then +/- offset at the end
+        clean_str = re.sub(r'([+-]\d{2}:?\d{2})$', '', clean_str)
+        
+        return clean_str
+
     def _parse_date_string(self, date_str: str) -> date:
         """
         Parse a date string to a date object.
         
         Handles both date-only strings (e.g., "2025-06-11") and 
-        datetime strings (e.g., "2025-06-11T00:00:00Z").
+        datetime strings (e.g., "2025-06-11T00:00:00Z", "2025-06-11T00:00:00-05:00").
         
         Args:
             date_str: ISO format date or datetime string
@@ -570,8 +594,7 @@ class SyncService:
         Raises:
             ValueError: If the string cannot be parsed
         """
-        # Remove timezone suffix if present
-        clean_str = date_str.replace('Z', '').split('+')[0]
+        clean_str = self._strip_timezone(date_str)
         
         # Check if it's a date-only string (no 'T' separator)
         if 'T' not in clean_str:
@@ -585,7 +608,7 @@ class SyncService:
         Parse a date or datetime string to a datetime object.
         
         Handles both date-only strings (e.g., "2025-10-09") and 
-        datetime strings (e.g., "2025-10-09T14:30:00Z").
+        datetime strings (e.g., "2025-10-09T14:30:00Z", "2025-10-09T14:30:00-05:00").
         
         Args:
             date_str: ISO format date or datetime string
@@ -596,8 +619,7 @@ class SyncService:
         Raises:
             ValueError: If the string cannot be parsed
         """
-        # Remove timezone suffix if present
-        clean_str = date_str.replace('Z', '').split('+')[0]
+        clean_str = self._strip_timezone(date_str)
         
         # Check if it's a date-only string (no 'T' separator)
         if 'T' not in clean_str:
