@@ -12,7 +12,7 @@ import { RiskList } from "@/components/project/RiskList";
 import { SyncButton } from "@/components/project/SyncButton";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { TeamSection } from "@/components/project/TeamSection";
-import { ArrowLeft, Loader2, ExternalLink, Settings } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users } from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
@@ -20,6 +20,8 @@ import { API_URL } from "@/lib/api";
 import { useState } from "react";
 import { EditProjectModal } from "@/components/project/EditProjectModal";
 import { HealthStatus } from "@/types";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Get the full URL for a logo, handling both local uploads and external URLs.
@@ -38,6 +40,7 @@ export default function ProjectDetailsPage() {
     const projectId = params.id as string;
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [logoError, setLogoError] = useState(false);
+    const [activeTab, setActiveTab] = useState("work");
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
     const {
@@ -52,8 +55,37 @@ export default function ProjectDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <div className="min-h-screen bg-slate-50 pb-12">
+                <div className="bg-white shadow-sm border-b border-slate-200">
+                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                        <div className="flex flex-col gap-6">
+                            <div className="flex items-center space-x-4">
+                                <Skeleton className="h-12 w-12 rounded-lg" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-8 w-64" />
+                                    <Skeleton className="h-4 w-48" />
+                                </div>
+                            </div>
+                            <div className="flex space-x-6">
+                                <Skeleton className="h-8 w-32" />
+                                <Skeleton className="h-8 w-32" />
+                                <Skeleton className="h-8 w-32" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <main className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid gap-8 lg:grid-cols-3">
+                        <div className="space-y-8 lg:col-span-2">
+                            <Skeleton className="h-48 w-full rounded-xl" />
+                            <Skeleton className="h-96 w-full rounded-xl" />
+                        </div>
+                        <div className="space-y-8">
+                            <Skeleton className="h-64 w-full rounded-xl" />
+                            <Skeleton className="h-64 w-full rounded-xl" />
+                        </div>
+                    </div>
+                </main>
             </div>
         );
     }
@@ -82,18 +114,17 @@ export default function ProjectDetailsPage() {
         : "bg-white";
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="min-h-screen bg-slate-50 pb-12">
             {/* Header */}
             <header className={`${headerBg} shadow-sm transition-colors duration-300`}>
                 <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    {/* Grid Layout: Left (Info), Center (Health), Right (Actions) */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 items-center">
-                        
+                    {/* Top Row: Navigation & Actions */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         {/* Left: Project Info */}
                         <div className="flex items-center space-x-4">
                             <Link
                                 href="/"
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-slate-400 hover:text-slate-600"
                             >
                                 <ArrowLeft className="h-6 w-6" />
                             </Link>
@@ -105,35 +136,35 @@ export default function ProjectDetailsPage() {
                                     <img
                                         src={logoUrl}
                                         alt={`${project.name} logo`}
-                                        className="h-12 w-12 rounded-lg object-cover bg-gray-50 shadow-sm"
+                                        className="h-12 w-12 rounded-lg object-cover bg-slate-50 shadow-sm ring-1 ring-slate-900/5"
                                         onError={() => setLogoError(true)}
                                     />
                                 ) : (
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 text-xl font-bold text-gray-500 shadow-sm">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 text-xl font-bold text-slate-500 shadow-sm ring-1 ring-slate-900/5">
                                         {project.name.charAt(0).toUpperCase()}
                                     </div>
                                 );
                             })()}
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900 truncate">
+                                <h1 className="text-2xl font-bold text-slate-900 truncate">
                                     {project.name}
                                 </h1>
-                                <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                                <div className="mt-1 flex items-center space-x-4 text-sm text-slate-500">
                                     <a
                                         href={project.jira_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center hover:text-blue-600"
+                                        className="flex items-center hover:text-blue-600 transition-colors"
                                     >
                                         Jira Board{" "}
                                         <ExternalLink className="ml-1 h-3 w-3" />
                                     </a>
-                                    <span>•</span>
+                                    <span className="text-slate-300">•</span>
                                     <a
                                         href={project.precursive_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center hover:text-blue-600"
+                                        className="flex items-center hover:text-blue-600 transition-colors"
                                     >
                                         Precursive{" "}
                                         <ExternalLink className="ml-1 h-3 w-3" />
@@ -142,125 +173,164 @@ export default function ProjectDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Center: Hero Health Indicator */}
-                        <div className="flex flex-col items-center justify-center">
-                            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Overall Health
-                            </p>
-                            <HealthIndicator
-                                status={currentHealth}
-                                label={currentHealth}
-                                size="xl"
-                                variant="solid"
-                            />
-                        </div>
-
                         {/* Right: Actions */}
-                        <div className="flex items-center justify-end space-x-6">
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center mr-4">
+                                <p className="mr-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                                    Health
+                                </p>
+                                <HealthIndicator
+                                    status={currentHealth}
+                                    label={currentHealth}
+                                    size="md"
+                                    variant="solid"
+                                />
+                            </div>
+                            
                             {user?.role === "Cogniter" && (
                                 <>
+                                    <SyncButton projectId={project.id} />
                                     <button
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                        className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
                                         title="Project Settings"
                                     >
                                         <Settings className="h-5 w-5" />
                                     </button>
-                                    <SyncButton projectId={project.id} />
                                 </>
                             )}
                         </div>
+                    </div>
+
+                    {/* Bottom Row: Tabs */}
+                    <div className="mt-2 overflow-x-auto pb-1">
+                        <TabsList className="bg-transparent p-0 space-x-6 min-w-max">
+                            <TabsTrigger 
+                                isActive={activeTab === "work"} 
+                                onClick={() => setActiveTab("work")}
+                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <CheckSquare className={`h-4 w-4 ${activeTab === "work" ? "text-indigo-600" : ""}`} />
+                                    <span className={activeTab === "work" ? "text-indigo-600" : ""}>Work & Sprints</span>
+                                </div>
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                isActive={activeTab === "financials"} 
+                                onClick={() => setActiveTab("financials")}
+                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <DollarSign className={`h-4 w-4 ${activeTab === "financials" ? "text-indigo-600" : ""}`} />
+                                    <span className={activeTab === "financials" ? "text-indigo-600" : ""}>Financials</span>
+                                </div>
+                            </TabsTrigger>
+                            <TabsTrigger 
+                                isActive={activeTab === "team"} 
+                                onClick={() => setActiveTab("team")}
+                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <Users className={`h-4 w-4 ${activeTab === "team" ? "text-indigo-600" : ""}`} />
+                                    <span className={activeTab === "team" ? "text-indigo-600" : ""}>Team</span>
+                                </div>
+                            </TabsTrigger>
+                        </TabsList>
                     </div>
                 </div>
             </header>
 
             <main className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="grid gap-8 lg:grid-cols-3">
-                    {/* Left Column (2/3 width) */}
-                    <div className="space-y-8 lg:col-span-2">
-                        <Timeline project={project} />
-                        <SprintGoalsCard
-                            sprintGoals={project.sprint_goals}
-                            projectId={project.id}
-                            canEdit={user?.role === "Cogniter"}
-                        />
-                        <ActionTable projectId={project.id} />
-                    </div>
+                {/* Work & Sprints View */}
+                <TabsContent isActive={activeTab === "work"}>
+                    <div className="grid gap-8 lg:grid-cols-3">
+                        {/* Left Column (2/3 width) */}
+                        <div className="space-y-8 lg:col-span-2">
+                            <SprintGoalsCard
+                                sprintGoals={project.sprint_goals}
+                                projectId={project.id}
+                                canEdit={user?.role === "Cogniter"}
+                            />
+                            <ActionTable projectId={project.id} />
+                        </div>
 
-                    {/* Right Column (1/3 width) */}
-                    <div className="space-y-8">
-                        <div>
-                            {statusLoading && (
-                                <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-4">
-                                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                                </div>
-                            )}
-                            {statusError && (
-                                <ApiErrorDisplay
-                                    title="Sync status unavailable"
-                                    error={getErrorMessage(statusErrorObj)}
-                                    onRetry={() => refetchStatus()}
-                                />
-                            )}
-                            {!statusLoading && !statusError && syncStatus && (
-                                <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">Last synced</span>
-                                        <span className="text-sm text-gray-600">
-                                            {syncStatus.last_synced_at
-                                                ? new Date(syncStatus.last_synced_at).toLocaleString()
-                                                : "Never"}
-                                        </span>
+                        {/* Right Column (1/3 width) */}
+                        <div className="space-y-8">
+                            <Timeline project={project} />
+                            
+                            {/* Sync Status Card - kept in Work view as it's relevant to Jira sync */}
+                            <div>
+                                {statusLoading && (
+                                    <div className="flex items-center justify-center rounded-lg border border-slate-200 bg-white p-4">
+                                        <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">Jira configured</span>
-                                        <div className="flex items-center space-x-2">
-                                            {syncStatus.jira_project_key && (
-                                                <span 
-                                                    className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
-                                                    title={syncStatus.jira_project_name || syncStatus.jira_project_key}
-                                                >
-                                                    {syncStatus.jira_project_name ? (
-                                                        <>
-                                                            {syncStatus.jira_project_name} 
-                                                            <span className="opacity-75 ml-1">({syncStatus.jira_project_key})</span>
-                                                        </>
-                                                    ) : (
-                                                        syncStatus.jira_project_key
-                                                    )}
-                                                </span>
-                                            )}
-                                            <span className="text-sm text-gray-600">
-                                                {syncStatus.jira_configured ? "Yes" : "No"}
+                                )}
+                                {statusError && (
+                                    <ApiErrorDisplay
+                                        title="Sync status unavailable"
+                                        error={getErrorMessage(statusErrorObj)}
+                                        onRetry={() => refetchStatus()}
+                                    />
+                                )}
+                                {!statusLoading && !statusError && syncStatus && (
+                                    <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-slate-700">Last synced</span>
+                                            <span className="text-sm text-slate-600">
+                                                {syncStatus.last_synced_at
+                                                    ? new Date(syncStatus.last_synced_at).toLocaleString()
+                                                    : "Never"}
                                             </span>
                                         </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-slate-700">Jira configured</span>
+                                            <div className="flex items-center space-x-2">
+                                                {syncStatus.jira_project_key && (
+                                                    <span 
+                                                        className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+                                                        title={syncStatus.jira_project_name || syncStatus.jira_project_key}
+                                                    >
+                                                        {syncStatus.jira_project_name ? (
+                                                            <>
+                                                                {syncStatus.jira_project_name} 
+                                                                <span className="opacity-75 ml-1">({syncStatus.jira_project_key})</span>
+                                                            </>
+                                                        ) : (
+                                                            syncStatus.jira_project_key
+                                                        )}
+                                                    </span>
+                                                )}
+                                                <span className="text-sm text-slate-600">
+                                                    {syncStatus.jira_configured ? "Yes" : "No"}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">Precursive configured</span>
-                                        <span className="text-sm text-gray-600">
-                                            {syncStatus.precursive_configured ? "Yes" : "No"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-700">Precursive last success</span>
-                                        <span className="text-sm text-gray-600">
-                                            {syncStatus.last_precursive_sync_success === undefined
-                                                ? "Unknown"
-                                                : syncStatus.last_precursive_sync_success
-                                                    ? "Yes"
-                                                    : "No"}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                            
+                            <RiskList projectId={project.id} />
                         </div>
-                        <FinancialsCard project={project} />
-                        <RiskList projectId={project.id} />
-                        {user?.role === "Cogniter" && (
-                            <TeamSection projectId={project.id} />
-                        )}
                     </div>
-                </div>
+                </TabsContent>
+
+                {/* Financials View */}
+                <TabsContent isActive={activeTab === "financials"}>
+                    <div className="grid gap-8 lg:grid-cols-2">
+                        <FinancialsCard project={project} />
+                        {/* Placeholder for future financial widgets */}
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 flex items-center justify-center text-slate-400">
+                            <p>Detailed budget breakdown coming soon</p>
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* Team View */}
+                <TabsContent isActive={activeTab === "team"}>
+                    <div className="max-w-4xl">
+                        <TeamSection projectId={project.id} />
+                    </div>
+                </TabsContent>
             </main>
 
             <EditProjectModal 
