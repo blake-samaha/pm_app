@@ -20,13 +20,15 @@ Based on the gap analysis between the current implementation and `docs/Automated
 **Priority:** Medium
 **Goal:** Display the current sprint's focus.
 
-- [ ] **Backend Support:**
+- [x] **Backend Support:**
     - Add `sprint_goals` field (Text/Markdown) to the `Project` model.
     - Update `ProjectUpdate` schema.
-- [ ] **Frontend Component:**
-    - Create a `SprintGoals` card component.
-    - Display this component on the Project Details page (likely near the Action Register).
-    - Allow manual editing of this text area in the "Edit Project" flow (since this data might not easily map from Jira/Precursive automatically).
+    - Add `jira_board_id` field for sprint API access.
+    - Integrate sprint goal sync into Jira sync flow.
+- [x] **Frontend Component:**
+    - Create a `SprintGoalsCard` component.
+    - Display this component on the Project Details page (after Timeline, before Action Register).
+    - Allow manual editing of sprint goals in the "Edit Project" modal (Sprint tab).
 
 ## 3. Client Logo Upload
 **Priority:** Low/Medium

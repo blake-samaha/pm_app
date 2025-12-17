@@ -160,6 +160,20 @@ class SyncService:
                     project.jira_project_name = project_name
                 self.session.add(project)
                 self.session.commit()
+            
+            # Sync sprint goals from active sprint
+            try:
+                sprint_goal = await self.sync_sprint_goals(project)
+                if sprint_goal is not None:
+                    project.sprint_goals = sprint_goal
+                # Also store board_id for future use
+                board_id = self._extract_jira_board_id(project.jira_url)
+                if board_id and project.jira_board_id != board_id:
+                    project.jira_board_id = board_id
+                self.session.add(project)
+                self.session.commit()
+            except IntegrationError as e:
+                errors.append(f"Sprint goals sync failed: {str(e)}")
                 
         except IntegrationError as e:
             return JiraSyncResult(
@@ -456,6 +470,57 @@ class SyncService:
             "Expected format like https://company.atlassian.net/browse/PROJ or "
             "https://company.atlassian.net/jira/software/projects/PROJ/boards/1"
         )
+    
+    def _extract_jira_board_id(self, jira_url: str) -> Optional[int]:
+        """
+        Extract the Jira board ID from a URL.
+        
+        Supported formats:
+        - https://company.atlassian.net/jira/software/projects/PROJ/boards/123
+        - https://company.atlassian.net/jira/software/c/projects/PROJ/boards/123
+        
+        Args:
+            jira_url: The Jira URL to parse
+            
+        Returns:
+            The board ID as an integer, or None if not found
+        """
+        if not jira_url:
+            return None
+        
+        match = re.search(r'/boards/(\d+)', jira_url)
+        return int(match.group(1)) if match else None
+    
+    async def sync_sprint_goals(self, project: Project) -> Optional[str]:
+        """
+        Fetch the active sprint goal from Jira.
+        
+        Args:
+            project: The project to sync sprint goals for
+            
+        Returns:
+            The active sprint's goal text, or None if no active sprint or no goal
+        """
+        if not project.jira_url:
+            return None
+        
+        board_id = self._extract_jira_board_id(project.jira_url)
+        if not board_id:
+            logger.debug("No board ID found in Jira URL", jira_url=project.jira_url)
+            return None
+        
+        try:
+            sprints = await self.jira.get_board_sprints(board_id, state="active")
+            if sprints and sprints[0].goal:
+                logger.info("Found active sprint goal", 
+                           board_id=board_id, 
+                           sprint_name=sprints[0].name,
+                           goal_preview=sprints[0].goal[:50] if sprints[0].goal else None)
+                return sprints[0].goal
+            return None
+        except IntegrationError as e:
+            logger.warning("Failed to fetch sprint goals", board_id=board_id, error=str(e))
+            return None
     
     def _create_action_from_jira(self, jira_issue: JiraIssue, project_id: UUID) -> ActionItem:
         """Create a new ActionItem from a Jira issue."""

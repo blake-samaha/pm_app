@@ -10,6 +10,7 @@ import { Timeline } from "@/components/project/Timeline";
 import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
 import { SyncButton } from "@/components/project/SyncButton";
+import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { ArrowLeft, Loader2, ExternalLink, Settings } from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
@@ -147,6 +148,11 @@ export default function ProjectDetailsPage() {
                     {/* Left Column (2/3 width) */}
                     <div className="space-y-8 lg:col-span-2">
                         <Timeline project={project} />
+                        <SprintGoalsCard
+                            sprintGoals={project.sprint_goals}
+                            projectId={project.id}
+                            canEdit={user?.role === "Cogniter"}
+                        />
                         <ActionTable projectId={project.id} />
                     </div>
 

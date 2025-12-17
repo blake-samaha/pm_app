@@ -29,6 +29,10 @@ export interface Project {
   
   // Sync Data
   last_synced_at?: string;
+  jira_board_id?: number;
+  
+  // Sprint data (from Jira)
+  sprint_goals?: string;
   
   // Financials
   total_budget?: number;

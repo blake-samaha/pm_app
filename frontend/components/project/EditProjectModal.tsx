@@ -19,7 +19,7 @@ export const EditProjectModal = ({
     onClose,
 }: EditProjectModalProps) => {
     const updateProject = useUpdateProject();
-    const [activeTab, setActiveTab] = useState<"general" | "health" | "visibility">("general");
+    const [activeTab, setActiveTab] = useState<"general" | "health" | "sprint" | "visibility">("general");
 
     const [formData, setFormData] = useState({
         name: project.name,
@@ -28,6 +28,7 @@ export const EditProjectModal = ({
         reporting_cycle: project.reporting_cycle || "",
         health_status_override: project.health_status_override || "",
         is_published: project.is_published,
+        sprint_goals: project.sprint_goals || "",
     });
 
     // Reset form data when project changes or modal opens
@@ -40,6 +41,7 @@ export const EditProjectModal = ({
                 reporting_cycle: project.reporting_cycle || "",
                 health_status_override: project.health_status_override || "",
                 is_published: project.is_published,
+                sprint_goals: project.sprint_goals || "",
             });
         }
     }, [project, isOpen]);
@@ -52,6 +54,7 @@ export const EditProjectModal = ({
             ...formData,
             reporting_cycle: formData.reporting_cycle || null,
             health_status_override: formData.health_status_override || null,
+            sprint_goals: formData.sprint_goals || null,
         };
 
         updateProject.mutate(
@@ -113,6 +116,16 @@ export const EditProjectModal = ({
                         }`}
                     >
                         Health
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("sprint")}
+                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                            activeTab === "sprint"
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700"
+                        }`}
+                    >
+                        Sprint
                     </button>
                     <button
                         onClick={() => setActiveTab("visibility")}
@@ -217,6 +230,34 @@ export const EditProjectModal = ({
                                         </option>
                                     ))}
                                 </select>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "sprint" && (
+                        <div className="space-y-4">
+                            <div className="rounded-md bg-indigo-50 p-4">
+                                <p className="text-sm text-indigo-700">
+                                    Sprint goals are automatically synced from your active Jira sprint. 
+                                    You can also manually override them here.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Current Sprint Goals
+                                </label>
+                                <textarea
+                                    value={formData.sprint_goals}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, sprint_goals: e.target.value })
+                                    }
+                                    rows={5}
+                                    placeholder="Enter the goals for the current sprint..."
+                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    This will be displayed on the project details page.
+                                </p>
                             </div>
                         </div>
                     )}

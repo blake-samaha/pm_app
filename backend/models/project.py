@@ -1,6 +1,6 @@
 from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime, date
-from uuid import UUID
+from uuid import UUID, uuid4
 from sqlmodel import Field, SQLModel, Relationship
 from enum import Enum
 
@@ -44,6 +44,10 @@ class ProjectBase(SQLModel):
     precursive_id: Optional[str] = None
     jira_project_key: Optional[str] = None # Extracted Jira Project Key (e.g. PROJ)
     jira_project_name: Optional[str] = None # Fetched Jira Project Name
+    jira_board_id: Optional[int] = None  # Extracted Jira board ID for sprint access
+    
+    # Sprint data (cached from Jira)
+    sprint_goals: Optional[str] = None  # Active sprint goal from Jira
     
     # Financials (cached from Precursive)
     total_budget: Optional[float] = None
@@ -58,7 +62,7 @@ class ProjectBase(SQLModel):
     client_name: Optional[str] = None
 
 class Project(ProjectBase, table=True):
-    id: Optional[UUID] = Field(default=None, primary_key=True)
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     health_status: HealthStatus = Field(default=HealthStatus.GREEN)
     last_synced_at: Optional[datetime] = None
     
