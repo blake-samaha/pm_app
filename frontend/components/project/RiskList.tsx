@@ -2,9 +2,10 @@
 
 import { useRisks } from "@/hooks/useRisks";
 import { Risk, RiskImpact, RiskProbability } from "@/types/actions-risks";
-import { Loader2, ShieldAlert, Activity, ArrowRight, Search, LayoutGrid, List, X } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, ShieldAlert, Activity, ArrowRight, Search, LayoutGrid, List, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -22,6 +23,8 @@ interface RiskListProps {
     filterByProbability?: RiskProbability | null;
     filterByImpact?: RiskImpact | null;
 }
+
+const ITEMS_PER_PAGE = 25;
 
 const impactConfig = {
     [RiskImpact.HIGH]: {
@@ -74,9 +77,15 @@ const calculateRiskScore = (risk: Risk) => {
 export const RiskList = ({ projectId, filterByProbability, filterByImpact }: RiskListProps) => {
     const { data: risks, isLoading, isError, error, refetch } = useRisks(projectId);
     const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
     // Removed viewMode state
 
     const filteredRisks = useMemo(() => {
+        // Reset to first page when filters change
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+
         if (!risks) return [];
         
         let filtered = risks;
@@ -109,6 +118,13 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
             return scoreB - scoreA;
         });
     }, [filteredRisks]);
+
+    // Pagination Logic
+    const totalPages = Math.ceil(sortedRisks.length / ITEMS_PER_PAGE);
+    const paginatedRisks = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return sortedRisks.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [sortedRisks, currentPage]);
 
     if (isLoading) {
         return (
@@ -150,6 +166,33 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
                                 </span>
                             )}
                         </div>
+
+                        {/* Top Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center space-x-1 bg-slate-50 rounded-md p-0.5 border border-slate-100">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="h-7 w-7 p-0 hover:bg-white hover:shadow-sm"
+                                >
+                                    <ChevronLeft className="h-3.5 w-3.5 text-slate-600" />
+                                </Button>
+                                <span className="text-[10px] font-semibold text-slate-600 px-2 min-w-[3rem] text-center">
+                                    {currentPage} / {totalPages}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="h-7 w-7 p-0 hover:bg-white hover:shadow-sm"
+                                >
+                                    <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     {hasRisks && (
                         <div className="relative">
@@ -180,7 +223,7 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
                         <p className="text-sm">No risks match your search.</p>
                     </div>
                 ) : (
-                    sortedRisks.map((risk) => {
+                    paginatedRisks.map((risk) => {
                         const style = impactConfig[risk.impact];
                         const { percentage, colorClass } = calculateRiskScore(risk);
                         
@@ -277,6 +320,36 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
                     })
                 )}
             </div>
+            {totalPages > 1 && (
+                <CardFooter className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3 mt-auto flex-shrink-0">
+                    <div className="text-xs text-slate-500">
+                        Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}</strong> to <strong>{Math.min(currentPage * ITEMS_PER_PAGE, sortedRisks.length)}</strong> of <strong>{sortedRisks.length}</strong> risks
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="h-8 w-8 p-0"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="text-xs font-medium text-slate-700">
+                            Page {currentPage} of {totalPages}
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="h-8 w-8 p-0"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardFooter>
+            )}
         </Card>
     );
 };

@@ -2,11 +2,12 @@
 
 import { useActions } from "@/hooks/useActions";
 import { ActionItem, ActionStatus, Priority } from "@/types/actions-risks";
-import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search, ExternalLink } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { useState, useMemo } from "react";
 import { useProject } from "@/hooks/useProjects"; // Import useProject to get Jira URL context
@@ -14,6 +15,8 @@ import { useProject } from "@/hooks/useProjects"; // Import useProject to get Ji
 interface ActionTableProps {
     projectId: string;
 }
+
+const ITEMS_PER_PAGE = 25;
 
 const statusIcons = {
     [ActionStatus.TO_DO]: Circle,
@@ -55,6 +58,9 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
         dueDates: [],
         search: "",
     });
+    
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Helper to construct Jira Issue URL
     const getJiraIssueUrl = (jiraId: string) => {
@@ -76,6 +82,11 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
     }, [actions]);
 
     const filteredActions = useMemo(() => {
+        // Reset to first page when filters change
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+
         if (!actions) return [];
         
         const now = new Date();
@@ -121,6 +132,13 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
         });
     }, [actions, filters]);
 
+    // Pagination Logic
+    const totalPages = Math.ceil(filteredActions.length / ITEMS_PER_PAGE);
+    const paginatedActions = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredActions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredActions, currentPage]);
+
     const toggleFilter = (type: keyof FilterState, value: string) => {
         setFilters(prev => {
             const current = prev[type] as string[];
@@ -164,7 +182,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
     return (
         <Card className="overflow-hidden border-slate-200 shadow-sm">
             <CardHeader className="border-b border-slate-100 bg-white px-6 py-5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center space-x-4">
                         <CardTitle className="text-lg font-semibold text-slate-900">
                             Action Register
@@ -179,15 +197,45 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                             </button>
                         )}
                     </div>
-                    {/* Global Search remains useful for quick title/ID lookup */}
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input
-                            placeholder="Search..."
-                            value={filters.search}
-                            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                            className="pl-9 w-[200px]"
-                        />
+                    
+                    <div className="flex items-center gap-3">
+                        {/* Top Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center space-x-1 mr-2 bg-slate-50 rounded-md p-0.5 border border-slate-100">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className="h-7 w-7 p-0 hover:bg-white hover:shadow-sm"
+                                >
+                                    <ChevronLeft className="h-3.5 w-3.5 text-slate-600" />
+                                </Button>
+                                <span className="text-[10px] font-semibold text-slate-600 px-2 min-w-[3rem] text-center">
+                                    {currentPage} / {totalPages}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className="h-7 w-7 p-0 hover:bg-white hover:shadow-sm"
+                                >
+                                    <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Search */}
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                            <Input
+                                placeholder="Search..."
+                                value={filters.search}
+                                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                                className="pl-9 w-[200px]"
+                            />
+                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -342,8 +390,8 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
-                        {filteredActions.length > 0 ? (
-                            filteredActions.map((action, index) => {
+                        {paginatedActions.length > 0 ? (
+                            paginatedActions.map((action, index) => {
                                 const StatusIcon = statusIcons[action.status];
                                 const isPastDue =
                                     action.due_date &&
@@ -351,6 +399,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                     action.status !== ActionStatus.COMPLETE;
                                 
                                 const jiraUrl = getJiraIssueUrl(action.jira_id || "");
+                                const absoluteIndex = (currentPage - 1) * ITEMS_PER_PAGE + index + 1;
 
                                 return (
                                     <tr
@@ -358,17 +407,17 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                         className={`group transition-colors hover:bg-slate-50/50`}
                                     >
                                         {/* Row Number */}
-                                        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-400 font-medium">
-                                            {index + 1}
+                                        <td className="whitespace-nowrap px-4 py-2.5 text-sm text-slate-400 font-medium">
+                                            {absoluteIndex}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4">
+                                        <td className="whitespace-nowrap px-6 py-2.5">
                                             <div className="flex items-center" title={action.status}>
                                                 <StatusIcon
                                                     className={`h-5 w-5 ${statusColors[action.status]}`}
                                                 />
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-2.5">
                                             {jiraUrl ? (
                                                 <a 
                                                     href={jiraUrl}
@@ -395,7 +444,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+                                        <td className="whitespace-nowrap px-6 py-2.5 text-sm text-slate-600">
                                             {action.assignee ? (
                                                 <div className="flex items-center">
                                                     <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600 border border-slate-200">
@@ -407,14 +456,14 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                                 <span className="text-slate-400 italic">Unassigned</span>
                                             )}
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4">
+                                        <td className="whitespace-nowrap px-6 py-2.5">
                                             <span
                                                 className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${priorityColors[action.priority]}`}
                                             >
                                                 {action.priority}
                                             </span>
                                         </td>
-                                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                                        <td className="whitespace-nowrap px-6 py-2.5 text-sm">
                                             {action.due_date ? (
                                                 <span className={isPastDue ? "font-medium text-red-600" : "text-slate-500"}>
                                                     {new Date(action.due_date).toLocaleDateString()}
@@ -445,6 +494,36 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                     </tbody>
                 </table>
             </div>
+            {totalPages > 1 && (
+                <CardFooter className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-6 py-3">
+                    <div className="text-xs text-slate-500">
+                        Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}</strong> to <strong>{Math.min(currentPage * ITEMS_PER_PAGE, filteredActions.length)}</strong> of <strong>{filteredActions.length}</strong> actions
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="h-8 w-8 p-0"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="text-xs font-medium text-slate-700">
+                            Page {currentPage} of {totalPages}
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="h-8 w-8 p-0"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardFooter>
+            )}
         </Card>
     );
 };

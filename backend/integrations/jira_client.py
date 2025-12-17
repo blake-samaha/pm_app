@@ -20,7 +20,8 @@ class JiraProject:
 @dataclass
 class JiraIssue:
     """Jira issue data."""
-    key: str
+    id: str  # Internal Jira issue ID
+    key: str  # Public issue key like "PROJ-123"
     summary: str
     status: str
     issue_type: str
@@ -237,7 +238,8 @@ class JiraClient:
 
                 issues.append(
                     JiraIssue(
-                        key=issue["key"],
+                        id=issue["id"],  # Internal Jira issue ID
+                        key=issue["key"],  # Public issue key like "PROJ-123"
                         summary=fields.get("summary", ""),
                         status=fields.get("status", {}).get("name", "Unknown"),
                         issue_type=fields.get("issuetype", {}).get("name", "Unknown"),
@@ -377,7 +379,8 @@ class JiraClient:
 
                 issues.append(
                     JiraIssue(
-                        key=issue["key"],
+                        id=issue["id"],  # Internal Jira issue ID
+                        key=issue["key"],  # Public issue key like "PROJ-123"
                         summary=fields.get("summary", ""),
                         status=fields.get("status", {}).get("name", "Unknown"),
                         issue_type=fields.get("issuetype", {}).get("name", "Unknown"),

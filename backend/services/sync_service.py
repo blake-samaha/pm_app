@@ -245,19 +245,23 @@ class SyncService:
             # Update DB
             for issue in issues:
                 try:
-                    # Check existence
+                    # Check existence using jira_key (indexed field) for better query performance
                     existing = self.session.exec(
                         select(ActionItem).where(
                             ActionItem.project_id == project.id,
-                            ActionItem.jira_id == issue.key
+                            ActionItem.jira_key == issue.key
                         )
                     ).first()
                     
                     if existing:
+                        # Update existing action item
                         existing.title = issue.summary or existing.title
                         existing.status = self._map_jira_status(issue.status)
                         existing.assignee = issue.assignee
                         existing.priority = self._map_jira_priority(issue.priority)
+                        # Ensure jira_id and jira_key are set correctly (for backward compatibility)
+                        existing.jira_id = issue.id
+                        existing.jira_key = issue.key
                         if issue.due_date:
                             try:
                                 # Parse as datetime (at midnight) to match model type
@@ -277,7 +281,8 @@ class SyncService:
                         
                         new_action = ActionItem(
                             project_id=project.id,
-                            jira_id=issue.key,
+                            jira_id=issue.id,  # Internal Jira issue ID
+                            jira_key=issue.key,  # Public issue key like "PROJ-123" (indexed)
                             title=issue.summary or "Untitled",
                             status=self._map_jira_status(issue.status),
                             assignee=issue.assignee,

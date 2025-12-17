@@ -144,7 +144,7 @@ export default function ProjectDetailsPage() {
                 {/* Top Health Border Strip */}
                 <div className={`absolute top-0 left-0 right-0 h-1.5 ${currentStyle.border}`} />
                 
-                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pt-8">
+                <div className="mx-auto max-w-screen-2xl px-4 py-4 sm:px-6 lg:px-8 pt-6">
                     {/* Top Row: Navigation & Actions */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         {/* Left: Project Info */}
@@ -278,12 +278,12 @@ export default function ProjectDetailsPage() {
                 </div>
             </header>
 
-            <main className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <main className="mx-auto mt-6 max-w-screen-2xl px-4 sm:px-6 lg:px-8">
                 {/* Work & Sprints View */}
                 <TabsContent isActive={activeTab === "work"}>
-                    <div className="grid gap-8 lg:grid-cols-3">
-                        {/* Left Column (2/3 width) */}
-                        <div className="space-y-8 lg:col-span-2">
+                    <div className="grid gap-6 lg:grid-cols-12">
+                        {/* Left Column (Main Content) */}
+                        <div className="space-y-6 lg:col-span-8 xl:col-span-9">
                             <SprintGoalsCard
                                 sprintGoals={project.sprint_goals}
                                 projectId={project.id}
@@ -292,8 +292,8 @@ export default function ProjectDetailsPage() {
                             <ActionTable projectId={project.id} />
                         </div>
 
-                        {/* Right Column (1/3 width) */}
-                        <div className="space-y-8">
+                        {/* Right Column (Sidebar) */}
+                        <div className="space-y-6 lg:col-span-4 xl:col-span-3">
                             <Timeline project={project} />
                             
                             {/* Sync Status Card */}
@@ -354,8 +354,8 @@ export default function ProjectDetailsPage() {
 
                 {/* Risks View - NEW TAB */}
                 <TabsContent isActive={activeTab === "risks"}>
-                    <div className="grid gap-8 lg:grid-cols-3">
-                        <div className="space-y-8 lg:col-span-2">
+                    <div className="grid gap-6 lg:grid-cols-12">
+                        <div className="space-y-6 lg:col-span-8 xl:col-span-9">
                             {/* Detailed Risk List */}
                             <RiskList 
                                 projectId={project.id}
@@ -363,7 +363,7 @@ export default function ProjectDetailsPage() {
                                 filterByImpact={matrixFilter?.impact}
                             />
                         </div>
-                        <div className="space-y-8">
+                        <div className="space-y-6 lg:col-span-4 xl:col-span-3">
                             {/* Risk Matrix Heatmap */}
                             <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-8">
                                 <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-white">
@@ -399,7 +399,7 @@ export default function ProjectDetailsPage() {
 
                 {/* Financials View */}
                 <TabsContent isActive={activeTab === "financials"}>
-                    <div className="grid gap-8 lg:grid-cols-2">
+                    <div className="grid gap-6 lg:grid-cols-2">
                         <FinancialsCard project={project} />
                         {/* Placeholder for future financial widgets */}
                         <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 flex items-center justify-center text-slate-400">
@@ -410,7 +410,7 @@ export default function ProjectDetailsPage() {
 
                 {/* Team View */}
                 <TabsContent isActive={activeTab === "team"}>
-                    <div className="max-w-4xl">
+                    <div className="w-full">
                         <TeamSection projectId={project.id} />
                     </div>
                 </TabsContent>
