@@ -28,8 +28,8 @@ def ensure_upload_dirs():
 
 @router.post("/logo")
 async def upload_logo(
+    current_user: CogniterUser,
     file: UploadFile = File(...),
-    current_user: CogniterUser = None,
 ) -> dict:
     """
     Upload a project logo image.
@@ -77,7 +77,7 @@ async def upload_logo(
             filename=filename,
             size=len(content),
             content_type=file.content_type,
-            user_id=str(current_user.id) if current_user else None
+            user_id=str(current_user.id)
         )
         
         # Return the URL path (relative to static mount)
@@ -94,7 +94,7 @@ async def upload_logo(
 @router.delete("/logo/{filename}")
 async def delete_logo(
     filename: str,
-    current_user: CogniterUser = None,
+    current_user: CogniterUser,
 ) -> dict:
     """
     Delete a previously uploaded logo.
@@ -116,7 +116,7 @@ async def delete_logo(
         logger.info(
             "Logo deleted",
             filename=safe_filename,
-            user_id=str(current_user.id) if current_user else None
+            user_id=str(current_user.id)
         )
         return {"message": "File deleted successfully"}
     except Exception as e:

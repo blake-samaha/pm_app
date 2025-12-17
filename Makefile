@@ -26,3 +26,23 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 
+# Run backend tests
+test-backend:
+	cd backend && uv run pytest tests/ -v
+
+# Run with coverage report
+test-backend-cov:
+	cd backend && uv run pytest tests/ --cov=. --cov-report=html --cov-report=term
+
+# Run only unit tests
+test-unit:
+	cd backend && uv run pytest tests/unit/ -v
+
+# Run only integration tests
+test-integration:
+	cd backend && uv run pytest tests/integration/ -v
+
+# Run a specific test file
+test-file:
+	cd backend && uv run pytest $(FILE) -v
+

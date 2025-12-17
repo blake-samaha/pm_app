@@ -16,7 +16,10 @@ class UserService:
     
     def get_user_by_id(self, user_id: str) -> User:
         """Get user by ID."""
-        user = self.repository.get_by_id(user_id)
+        from uuid import UUID
+        # Convert string UUID to UUID object for database query
+        uuid_obj = UUID(user_id) if isinstance(user_id, str) else user_id
+        user = self.repository.get_by_id(uuid_obj)
         if not user:
             raise ResourceNotFoundError(f"User with ID {user_id} not found")
         return user
