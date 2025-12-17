@@ -39,8 +39,8 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
 
   return (
     <Link href={`/projects/${project.id}`} className="block">
-      <Card className={`group relative overflow-hidden transition-all hover:shadow-md border-t-8 ${statusBorderColors[status]}`}>
-        <CardContent className="p-6">
+      <Card className={`group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5 border-t-4 ${statusBorderColors[status]}`}>
+        <CardContent className="p-5">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
               {showLogo ? (

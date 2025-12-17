@@ -52,14 +52,18 @@ export const Timeline = ({ project }: TimelineProps) => {
                 {isValidRange ? (
                     <div className="space-y-6">
                         {/* Dates Row */}
-                        <div className="flex justify-between text-sm text-gray-600">
+                        <div className="flex justify-between items-end">
                             <div>
-                                <span className="block text-xs uppercase text-gray-400 font-medium">Start</span>
-                                <span className="font-semibold text-gray-900">{format(startDate, 'MMM d, yyyy')}</span>
+                                <span className="block text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Start Date</span>
+                                <span className="text-sm font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                    {format(startDate, 'MMM d, yyyy')}
+                                </span>
                             </div>
                             <div className="text-right">
-                                <span className="block text-xs uppercase text-gray-400 font-medium">Target End</span>
-                                <span className="font-semibold text-gray-900">{format(endDate, 'MMM d, yyyy')}</span>
+                                <span className="block text-[10px] uppercase text-slate-400 font-bold tracking-widest mb-1">Target End</span>
+                                <span className="text-sm font-bold text-slate-900 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                    {format(endDate, 'MMM d, yyyy')}
+                                </span>
                             </div>
                         </div>
 

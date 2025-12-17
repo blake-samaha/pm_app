@@ -41,28 +41,28 @@ export const FinancialsCard = ({ project }: FinancialsCardProps) => {
                         />
 
                         {/* Metrics Grid */}
-                        <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-6">
+                        <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-6 text-center">
                             <div>
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     Total
                                 </p>
-                                <p className="mt-1 text-sm font-semibold text-slate-900">
+                                <p className="mt-1 text-lg font-bold text-slate-900">
                                     {formatter.format(project.total_budget!)}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     Spent
                                 </p>
-                                <p className="mt-1 text-sm font-semibold text-slate-900">
+                                <p className="mt-1 text-lg font-bold text-slate-900">
                                     {formatter.format(project.spent_budget || 0)}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                     Remaining
                                 </p>
-                                <p className={`mt-1 text-sm font-semibold ${
+                                <p className={`mt-1 text-lg font-bold ${
                                     (project.remaining_budget || 0) < 0 ? "text-red-600" : "text-emerald-600"
                                 }`}>
                                     {formatter.format(project.remaining_budget || 0)}

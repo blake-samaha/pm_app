@@ -73,9 +73,9 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
     return (
         <>
             <Card className="overflow-hidden">
-                <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-gray-50 py-4">
+                <CardHeader className="border-b bg-gradient-to-r from-slate-50/80 to-slate-100/50 py-4">
                     <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center text-lg font-semibold text-gray-800">
+                        <CardTitle className="flex items-center text-lg font-bold text-slate-800">
                             <Users className="mr-2 h-5 w-5 text-slate-600" />
                             Team
                         </CardTitle>
@@ -83,7 +83,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                             size="sm"
                             variant="outline"
                             onClick={() => setIsModalOpen(true)}
-                            className="h-8"
+                            className="h-8 bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
                         >
                             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                             Add Member
@@ -93,60 +93,60 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                 <CardContent className="p-0">
                     {isLoading ? (
                         <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                         </div>
                     ) : isError ? (
                         <div className="py-8 text-center text-sm text-red-500">
                             Failed to load team members
                         </div>
                     ) : !users || users.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <div className="rounded-full bg-gray-100 p-3">
-                                <Users className="h-6 w-6 text-gray-400" />
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                            <div className="rounded-full bg-slate-50 p-4 border border-slate-100">
+                                <Users className="h-6 w-6 text-slate-300" />
                             </div>
-                            <p className="mt-3 text-sm font-medium text-gray-500">
+                            <p className="mt-4 text-sm font-semibold text-slate-900">
                                 No team members assigned
                             </p>
-                            <p className="mt-1 text-xs text-gray-400">
+                            <p className="mt-1 text-xs text-slate-500">
                                 Add members to give them access to this project.
                             </p>
                         </div>
                     ) : (
-                        <ul className="divide-y divide-gray-100">
+                        <ul className="divide-y divide-slate-100">
                             {users.map((user) => (
                                 <li
                                     key={user.id}
-                                    className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+                                    className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors"
                                 >
-                                    <div className="flex items-center space-x-3">
+                                    <div className="flex items-center space-x-4">
                                         <div
-                                            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarColor(user.email)}`}
+                                            className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ring-2 ring-white ${getAvatarColor(user.email)}`}
                                         >
                                             {getInitials(user.name)}
                                         </div>
                                         <div>
                                             <div className="flex items-center space-x-2">
-                                                <p className="text-sm font-medium text-gray-900">
+                                                <p className="text-sm font-semibold text-slate-900">
                                                     {user.name}
                                                 </p>
                                                 {user.is_pending && (
-                                                    <span className="flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
-                                                        <Clock className="mr-0.5 h-2.5 w-2.5" />
+                                                    <span className="flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-100">
+                                                        <Clock className="mr-1 h-2.5 w-2.5" />
                                                         Pending
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-slate-500 font-medium">
                                                 {user.email}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-3">
                                         <span
-                                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                            className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
                                                 user.role === UserRole.COGNITER
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : "bg-gray-100 text-gray-600"
+                                                    ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                                    : "bg-slate-100 text-slate-600 border border-slate-200"
                                             }`}
                                         >
                                             {user.role}
@@ -154,7 +154,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                                         <button
                                             onClick={() => handleRemoveUser(user)}
                                             disabled={removeUser.isPending}
-                                            className="rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors disabled:opacity-50"
+                                            className="rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
                                             title="Remove from project"
                                         >
                                             {removeUser.isPending ? (

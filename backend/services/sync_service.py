@@ -266,6 +266,15 @@ class SyncService:
                                 logger.warning("Invalid due_date format", due_date=issue.due_date, issue_key=issue.key)
                         self.session.add(existing)
                     else:
+                        # Parse due_date with error handling to match update behavior
+                        due_date = None
+                        if issue.due_date:
+                            try:
+                                due_date = datetime.strptime(issue.due_date, "%Y-%m-%d")
+                            except ValueError:
+                                logger.warning("Invalid due_date format for new action", due_date=issue.due_date, issue_key=issue.key)
+                                # Continue without due_date instead of skipping the action
+                        
                         new_action = ActionItem(
                             project_id=project.id,
                             jira_id=issue.key,
@@ -273,7 +282,7 @@ class SyncService:
                             status=self._map_jira_status(issue.status),
                             assignee=issue.assignee,
                             priority=self._map_jira_priority(issue.priority),
-                            due_date=datetime.strptime(issue.due_date, "%Y-%m-%d") if issue.due_date else None
+                            due_date=due_date
                         )
                         self.session.add(new_action)
                 except Exception as e:
@@ -445,6 +454,15 @@ class SyncService:
                                 existing_risk.date_identified = datetime.now()
                         self.session.add(existing_risk)
                     else:
+                        # Parse date_identified with error handling to match update behavior
+                        date_identified = datetime.now()
+                        if risk_data.date_identified:
+                            try:
+                                date_identified = datetime.strptime(risk_data.date_identified, "%Y-%m-%d")
+                            except ValueError:
+                                logger.warning("Invalid date_identified format for new risk", date_identified=risk_data.date_identified, risk_summary=risk_data.summary)
+                                # Use current date as fallback instead of failing
+                        
                         new_risk = Risk(
                             project_id=project.id,
                             title=risk_data.summary,
@@ -455,7 +473,7 @@ class SyncService:
                             mitigation_plan=risk_data.mitigation_plan,
                             category=risk_data.category,
                             impact_rationale=risk_data.impact_rationale,
-                            date_identified=datetime.strptime(risk_data.date_identified, "%Y-%m-%d") if risk_data.date_identified else datetime.now()
+                            date_identified=date_identified
                         )
                         self.session.add(new_risk)
                 
@@ -530,5 +548,13 @@ class SyncService:
         return RiskImpact.MEDIUM
 
     def _map_risk_status(self, status: str) -> RiskStatus:
-        return RiskStatus.OPEN # simplified
+        """Map Precursive risk status to RiskStatus enum."""
+        if not status:
+            return RiskStatus.OPEN
+        s = status.lower()
+        if s in ['closed', 'resolved']:
+            return RiskStatus.CLOSED
+        elif s in ['mitigated', 'mitigation']:
+            return RiskStatus.MITIGATED
+        return RiskStatus.OPEN
 

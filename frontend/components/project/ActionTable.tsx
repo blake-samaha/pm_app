@@ -33,10 +33,13 @@ const priorityColors = {
     [Priority.LOW]: "bg-emerald-100 text-emerald-800",
 };
 
+type DueDateFilter = "overdue" | "due_today" | "due_this_week" | "due_this_month" | "no_due_date";
+
 type FilterState = {
     statuses: ActionStatus[];
     priorities: Priority[];
     assignees: string[];
+    dueDates: DueDateFilter[];
     search: string;
 };
 
@@ -49,6 +52,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
         statuses: [],
         priorities: [],
         assignees: [],
+        dueDates: [],
         search: "",
     });
 
@@ -74,6 +78,12 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
     const filteredActions = useMemo(() => {
         if (!actions) return [];
         
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (7 - today.getDay())); // End of current week (Sunday)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+        
         return actions.filter((action) => {
             const matchesSearch = 
                 action.title.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -86,7 +96,28 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
             const matchesAssignee = filters.assignees.length === 0 || 
                 (action.assignee && filters.assignees.includes(action.assignee));
 
-            return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+            // Due date filtering
+            const matchesDueDate = filters.dueDates.length === 0 || (() => {
+                if (!action.due_date) {
+                    return filters.dueDates.includes("no_due_date");
+                }
+                
+                const dueDate = new Date(action.due_date);
+                const isOverdue = dueDate < today && action.status !== ActionStatus.COMPLETE;
+                const isDueToday = dueDate.getTime() === today.getTime();
+                const isDueThisWeek = dueDate >= today && dueDate <= endOfWeek;
+                const isDueThisMonth = dueDate >= today && dueDate <= endOfMonth;
+                
+                return filters.dueDates.some(filter => {
+                    if (filter === "overdue") return isOverdue;
+                    if (filter === "due_today") return isDueToday;
+                    if (filter === "due_this_week") return isDueThisWeek;
+                    if (filter === "due_this_month") return isDueThisMonth;
+                    return false;
+                });
+            })();
+
+            return matchesSearch && matchesStatus && matchesPriority && matchesAssignee && matchesDueDate;
         });
     }, [actions, filters]);
 
@@ -105,11 +136,12 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
             statuses: [],
             priorities: [],
             assignees: [],
+            dueDates: [],
             search: "",
         });
     };
 
-    const hasFilters = filters.statuses.length > 0 || filters.priorities.length > 0 || filters.assignees.length > 0 || filters.search;
+    const hasFilters = filters.statuses.length > 0 || filters.priorities.length > 0 || filters.assignees.length > 0 || filters.dueDates.length > 0 || filters.search;
 
     if (isLoading) {
         return (
@@ -164,6 +196,10 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                 <table className="min-w-full divide-y divide-slate-100">
                     <thead className="bg-slate-50/50">
                         <tr>
+                            {/* Row Number Column */}
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 w-12">
+                                #
+                            </th>
                             {/* Status Filter */}
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                                 <div className="flex items-center space-x-2">
@@ -267,14 +303,47 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                 </div>
                             </th>
 
+                            {/* Due Date Filter */}
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                                Due Date
+                                <div className="flex items-center space-x-2">
+                                    <span>Due Date</span>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button className={`p-1 rounded-md hover:bg-slate-200 transition-colors ${filters.dueDates.length > 0 ? 'text-blue-600 bg-blue-50' : ''}`}>
+                                                <Filter className="h-3 w-3" />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-56 p-3" align="start">
+                                            <div className="space-y-2">
+                                                <h4 className="font-medium text-xs text-slate-500 mb-2 uppercase">Filter by Due Date</h4>
+                                                {[
+                                                    { value: "overdue", label: "Overdue" },
+                                                    { value: "due_today", label: "Due Today" },
+                                                    { value: "due_this_week", label: "Due This Week" },
+                                                    { value: "due_this_month", label: "Due This Month" },
+                                                    { value: "no_due_date", label: "No Due Date" },
+                                                ].map((option) => (
+                                                    <div key={option.value} className="flex items-center space-x-2">
+                                                        <Checkbox 
+                                                            id={`dueDate-${option.value}`} 
+                                                            checked={filters.dueDates.includes(option.value as DueDateFilter)}
+                                                            onCheckedChange={() => toggleFilter('dueDates', option.value)}
+                                                        />
+                                                        <label htmlFor={`dueDate-${option.value}`} className="text-sm text-slate-700 cursor-pointer select-none">
+                                                            {option.label}
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
                             </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
                         {filteredActions.length > 0 ? (
-                            filteredActions.map((action) => {
+                            filteredActions.map((action, index) => {
                                 const StatusIcon = statusIcons[action.status];
                                 const isPastDue =
                                     action.due_date &&
@@ -288,6 +357,10 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                         key={action.id}
                                         className={`group transition-colors hover:bg-slate-50/50`}
                                     >
+                                        {/* Row Number */}
+                                        <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-400 font-medium">
+                                            {index + 1}
+                                        </td>
                                         <td className="whitespace-nowrap px-6 py-4">
                                             <div className="flex items-center" title={action.status}>
                                                 <StatusIcon
@@ -301,12 +374,12 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                                     href={jiraUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group/link flex items-start"
+                                                    className="group/link flex items-start cursor-pointer"
                                                 >
-                                                    <span className="text-sm font-medium text-slate-900 group-hover/link:text-blue-600 transition-colors mr-1">
+                                                    <span className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all mr-1">
                                                         {action.title}
                                                     </span>
-                                                    <ExternalLink className="h-3 w-3 text-slate-400 opacity-0 group-hover/link:opacity-100 transition-opacity mt-1 flex-shrink-0" />
+                                                    <ExternalLink className="h-3 w-3 text-blue-500 opacity-70 group-hover/link:opacity-100 transition-opacity mt-1 flex-shrink-0" />
                                                 </a>
                                             ) : (
                                                 <div className="text-sm font-medium text-slate-900">
@@ -355,7 +428,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                             })
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                                     <div className="flex flex-col items-center justify-center">
                                         <Search className="mb-2 h-8 w-8 text-slate-300" />
                                         <p>No actions found matching your filters.</p>

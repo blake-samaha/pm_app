@@ -2,7 +2,7 @@
 
 import { useRisks } from "@/hooks/useRisks";
 import { Risk, RiskImpact, RiskProbability } from "@/types/actions-risks";
-import { Loader2, ShieldAlert, Activity, ArrowRight, Search, LayoutGrid, List } from "lucide-react";
+import { Loader2, ShieldAlert, Activity, ArrowRight, Search, LayoutGrid, List, X } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +19,8 @@ import { useState, useMemo } from "react";
 
 interface RiskListProps {
     projectId: string;
+    filterByProbability?: RiskProbability | null;
+    filterByImpact?: RiskImpact | null;
 }
 
 const impactConfig = {
@@ -69,22 +71,36 @@ const calculateRiskScore = (risk: Risk) => {
     return { score, percentage, colorClass };
 };
 
-export const RiskList = ({ projectId }: RiskListProps) => {
+export const RiskList = ({ projectId, filterByProbability, filterByImpact }: RiskListProps) => {
     const { data: risks, isLoading, isError, error, refetch } = useRisks(projectId);
     const [searchQuery, setSearchQuery] = useState("");
     // Removed viewMode state
 
     const filteredRisks = useMemo(() => {
         if (!risks) return [];
-        if (!searchQuery.trim()) return risks;
         
-        const query = searchQuery.toLowerCase();
-        return risks.filter(risk => 
-            risk.description.toLowerCase().includes(query) ||
-            risk.mitigation_plan?.toLowerCase().includes(query) ||
-            risk.status.toLowerCase().includes(query)
-        );
-    }, [risks, searchQuery]);
+        let filtered = risks;
+        
+        // Apply matrix filter if set
+        if (filterByProbability) {
+            filtered = filtered.filter(risk => risk.probability === filterByProbability);
+        }
+        if (filterByImpact) {
+            filtered = filtered.filter(risk => risk.impact === filterByImpact);
+        }
+        
+        // Apply search filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(risk => 
+                risk.description.toLowerCase().includes(query) ||
+                risk.mitigation_plan?.toLowerCase().includes(query) ||
+                risk.status.toLowerCase().includes(query)
+            );
+        }
+        
+        return filtered;
+    }, [risks, searchQuery, filterByProbability, filterByImpact]);
 
     const sortedRisks = useMemo(() => {
         return [...filteredRisks].sort((a, b) => {
@@ -127,6 +143,12 @@ export const RiskList = ({ projectId }: RiskListProps) => {
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-600">
                                 {filteredRisks.length}
                             </span>
+                            {(filterByProbability || filterByImpact) && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 border border-indigo-200">
+                                    Filtered
+                                    <X className="h-3 w-3" />
+                                </span>
+                            )}
                         </div>
                     </div>
                     {hasRisks && (

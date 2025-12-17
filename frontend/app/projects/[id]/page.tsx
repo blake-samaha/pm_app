@@ -11,10 +11,11 @@ import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
 import { RiskMatrix } from "@/components/project/RiskMatrix"; // Imported RiskMatrix
 import { useRisks } from "@/hooks/useRisks"; // Import useRisks to pass data to Matrix
+import { RiskImpact, RiskProbability } from "@/types/actions-risks";
 import { SyncButton } from "@/components/project/SyncButton";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { TeamSection } from "@/components/project/TeamSection";
-import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users, ShieldAlert, X } from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
@@ -46,6 +47,7 @@ export default function ProjectDetailsPage() {
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
     const { data: risks } = useRisks(projectId); // Fetch risks here for the Matrix
+    const [matrixFilter, setMatrixFilter] = useState<{ probability: RiskProbability; impact: RiskImpact } | null>(null);
     const {
         data: syncStatus,
         isLoading: statusLoading,
@@ -355,16 +357,40 @@ export default function ProjectDetailsPage() {
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="space-y-8 lg:col-span-2">
                             {/* Detailed Risk List */}
-                            <RiskList projectId={project.id} />
+                            <RiskList 
+                                projectId={project.id}
+                                filterByProbability={matrixFilter?.probability}
+                                filterByImpact={matrixFilter?.impact}
+                            />
                         </div>
                         <div className="space-y-8">
                             {/* Risk Matrix Heatmap */}
-                            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                                <div className="border-b border-slate-100 px-6 py-4">
+                            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-8">
+                                <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-white">
                                     <h3 className="font-semibold text-slate-900">Risk Heatmap</h3>
+                                    {matrixFilter && (
+                                        <button
+                                            onClick={() => setMatrixFilter(null)}
+                                            className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors"
+                                        >
+                                            <X className="h-3 w-3" />
+                                            Clear filter
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="p-4">
-                                    <RiskMatrix risks={risks || []} />
+                                <div className="p-6 flex items-center justify-center">
+                                    <RiskMatrix 
+                                        risks={risks || []}
+                                        selectedCell={matrixFilter}
+                                        onCellClick={(probability, impact) => {
+                                            // Toggle: if clicking the same cell, clear filter
+                                            if (matrixFilter?.probability === probability && matrixFilter?.impact === impact) {
+                                                setMatrixFilter(null);
+                                            } else {
+                                                setMatrixFilter({ probability, impact });
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>
