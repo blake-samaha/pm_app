@@ -26,5 +26,18 @@ export interface Project {
   health_status: HealthStatus;
   health_status_override?: HealthStatus;
   is_published: boolean;
+  
+  // Sync Data
+  last_synced_at?: string;
+  
+  // Financials
+  total_budget?: number;
+  spent_budget?: number;
+  remaining_budget?: number;
+  currency?: string;
+  
+  // Timeline
+  start_date?: string;
+  end_date?: string;
+  client_name?: string;
 }
-

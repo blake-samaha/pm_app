@@ -4,6 +4,7 @@ import { useRisks } from "@/hooks/useRisks";
 import { RiskImpact } from "@/types/actions-risks";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 
 interface RiskListProps {
     projectId: string;
@@ -16,13 +17,23 @@ const impactColors = {
 };
 
 export const RiskList = ({ projectId }: RiskListProps) => {
-    const { data: risks, isLoading } = useRisks(projectId);
+    const { data: risks, isLoading, isError, error, refetch } = useRisks(projectId);
 
     if (isLoading) {
         return (
             <div className="flex h-32 items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <ApiErrorDisplay
+                title="Failed to load risks"
+                error={(error as any)?.response?.data ?? error ?? "Unknown error"}
+                onRetry={() => refetch()}
+            />
         );
     }
 

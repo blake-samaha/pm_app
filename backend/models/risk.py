@@ -1,6 +1,7 @@
 """Risk model."""
 from typing import Optional, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
+from datetime import datetime
 import uuid
 
 from models import RiskProbability, RiskImpact, RiskStatus
@@ -14,7 +15,11 @@ class Risk(SQLModel, table=True):
     
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     project_id: uuid.UUID = Field(foreign_key="project.id")
+    title: str = Field(default="")
     description: str
+    category: Optional[str] = None
+    impact_rationale: Optional[str] = None
+    date_identified: Optional[datetime] = None
     probability: RiskProbability
     impact: RiskImpact
     status: RiskStatus = Field(default=RiskStatus.OPEN)
@@ -22,4 +27,3 @@ class Risk(SQLModel, table=True):
     
     # Relationships
     project: "Project" = Relationship(back_populates="risks")
-

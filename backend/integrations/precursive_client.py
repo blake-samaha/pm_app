@@ -1,25 +1,23 @@
-"""Precursive/Salesforce API client for fetching project and financial data."""
-import httpx
-from typing import Optional
+"""Mock Precursive client for development."""
+import json
+import os
 from dataclasses import dataclass
+from typing import Optional, List, Dict, Any
 from datetime import datetime
-
 from config import Settings
 from exceptions import IntegrationError
 
-
 @dataclass
 class SalesforceToken:
-    """Salesforce OAuth token data."""
+    """Mock Salesforce OAuth token data."""
     access_token: str
     instance_url: str
     token_type: str
     issued_at: datetime
 
-
 @dataclass
 class PrecursiveProject:
-    """Precursive project data from Salesforce."""
+    """Precursive project data."""
     id: str
     name: str
     status: str
@@ -29,10 +27,9 @@ class PrecursiveProject:
     end_date: Optional[str]
     client_name: Optional[str]
 
-
 @dataclass 
 class PrecursiveFinancials:
-    """Financial data from Precursive/Salesforce."""
+    """Financial data."""
     project_id: str
     total_budget: Optional[float]
     spent_budget: Optional[float]
@@ -41,326 +38,109 @@ class PrecursiveFinancials:
     margin_percentage: Optional[float]
     currency: str
 
+@dataclass
+class PrecursiveRisk:
+    """Risk data."""
+    summary: str
+    description: str
+    category: Optional[str]
+    impact_rationale: Optional[str]
+    date_identified: Optional[str]
+    probability: str
+    impact: str
+    status: str
+    mitigation_plan: Optional[str]
 
 class PrecursiveClient:
-    """Client for interacting with Precursive data via Salesforce API."""
+    """Mock client that reads from local JSON data."""
     
     def __init__(self, settings: Settings):
-        # OAuth credentials
-        self.client_id = settings.precursive_client_id
-        self.client_secret = settings.precursive_client_secret
-        self.instance_url = settings.precursive_instance_url.rstrip("/") if settings.precursive_instance_url else ""
-        
-        # Username/Password flow credentials (alternative)
-        self.username = settings.precursive_username
-        self.password = settings.precursive_password
-        self.security_token = settings.precursive_security_token
-        
-        self._token: Optional[SalesforceToken] = None
-        self._client: Optional[httpx.AsyncClient] = None
+        self.settings = settings
+        # Resolve path relative to this file
+        self.data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mock_precursive.json")
+        self._data = self._load_data()
+    
+    def _load_data(self) -> Dict[str, Any]:
+        try:
+            with open(self.data_path, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {"projects": []}
     
     @property
     def is_configured(self) -> bool:
-        """Check if Salesforce credentials are configured."""
-        # Check OAuth flow
-        oauth_configured = bool(
-            self.client_id and 
-            self.client_secret and 
-            self.instance_url
-        )
-        
-        # Check Username/Password flow
-        password_configured = bool(
-            self.username and 
-            self.password and 
-            self.instance_url
-        )
-        
-        return oauth_configured or password_configured
-    
-    @property
-    def _uses_password_flow(self) -> bool:
-        """Check if using username/password authentication."""
-        return bool(self.username and self.password)
-    
-    async def _get_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client with authentication."""
-        if self._client is None or self._client.is_closed:
-            # Ensure we have a valid token
-            if self._token is None:
-                await self._authenticate()
-            
-            self._client = httpx.AsyncClient(
-                base_url=self._token.instance_url,
-                timeout=30.0,
-                headers={
-                    "Authorization": f"Bearer {self._token.access_token}",
-                    "Content-Type": "application/json",
-                }
-            )
-        return self._client
+        """Always return True for mock."""
+        return True
     
     async def close(self):
-        """Close the HTTP client."""
-        if self._client and not self._client.is_closed:
-            await self._client.aclose()
-    
-    async def _authenticate(self):
-        """Authenticate with Salesforce and get access token."""
-        if not self.is_configured:
-            raise IntegrationError(
-                "Precursive/Salesforce is not configured. "
-                "Set PRECURSIVE_INSTANCE_URL and either OAuth or Username/Password credentials."
-            )
-        
-        login_url = "https://login.salesforce.com/services/oauth2/token"
-        
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                if self._uses_password_flow:
-                    # Username/Password flow
-                    response = await client.post(
-                        login_url,
-                        data={
-                            "grant_type": "password",
-                            "client_id": self.client_id or "3MVG9pRzvMkjMb6l9rMJ3vFmKhA3qCFnRLrP.NDc5EoJLjPaV_3kYKwO8ongpLBz3VvGVy0S.O.EvfQCU0Waw",  # Default connected app
-                            "client_secret": self.client_secret or "",
-                            "username": self.username,
-                            "password": f"{self.password}{self.security_token}",
-                        }
-                    )
-                else:
-                    # Client credentials flow (for server-to-server)
-                    response = await client.post(
-                        login_url,
-                        data={
-                            "grant_type": "client_credentials",
-                            "client_id": self.client_id,
-                            "client_secret": self.client_secret,
-                        }
-                    )
-                
-                if response.status_code != 200:
-                    error_data = response.json() if response.content else {}
-                    error_msg = error_data.get("error_description", response.text)
-                    raise IntegrationError(
-                        f"Salesforce authentication failed: {error_msg}"
-                    )
-                
-                data = response.json()
-                self._token = SalesforceToken(
-                    access_token=data["access_token"],
-                    instance_url=data.get("instance_url", self.instance_url),
-                    token_type=data.get("token_type", "Bearer"),
-                    issued_at=datetime.now(),
-                )
-        except httpx.ConnectError as e:
-            raise IntegrationError(f"Cannot connect to Salesforce: {str(e)}")
-        except httpx.TimeoutException:
-            raise IntegrationError("Salesforce authentication timed out")
+        pass
     
     async def test_connection(self) -> dict:
-        """
-        Test the Salesforce connection and return user info.
-        Raises IntegrationError if connection fails.
-        """
-        if not self.is_configured:
-            raise IntegrationError(
-                "Precursive/Salesforce is not configured. "
-                "Set PRECURSIVE_INSTANCE_URL and credentials."
-            )
-        
-        try:
-            client = await self._get_client()
-            response = await client.get("/services/data/v59.0/sobjects/")
-            
-            if response.status_code == 401:
-                # Token expired, try to re-authenticate
-                self._token = None
-                self._client = None
-                await self._authenticate()
-                client = await self._get_client()
-                response = await client.get("/services/data/v59.0/sobjects/")
-            
-            if response.status_code != 200:
-                raise IntegrationError(
-                    f"Salesforce connection failed: {response.status_code} - {response.text}"
-                )
-            
             return {
                 "status": "connected",
-                "instance_url": self._token.instance_url if self._token else "unknown",
-                "api_version": "v59.0",
-            }
-        except httpx.HTTPError as e:
-            raise IntegrationError(f"Salesforce API error: {str(e)}")
-    
-    async def get_precursive_projects(self, limit: int = 100) -> list[PrecursiveProject]:
-        """
-        Fetch Precursive projects from Salesforce.
-        
-        Note: This queries the preempt__PrecursiveProject__c custom object.
-        """
-        if not self.is_configured:
-            raise IntegrationError("Precursive/Salesforce is not configured.")
-        
-        try:
-            client = await self._get_client()
-            
-            # SOQL query for Precursive projects
-            query = """
-                SELECT Id, Name, preempt__Status__c, preempt__DeliveryPhase__c,
-                       preempt__ProjectType__c, preempt__StartDate__c, 
-                       preempt__EndDate__c, preempt__Account__r.Name
-                FROM preempt__PrecursiveProject__c
-                ORDER BY CreatedDate DESC
-                LIMIT {limit}
-            """.format(limit=limit).strip().replace("\n", " ")
-            
-            response = await client.get(
-                "/services/data/v59.0/query/",
-                params={"q": query}
-            )
-            
-            if response.status_code == 400:
-                # Object might not exist or different field names
-                error_data = response.json()
-                raise IntegrationError(
-                    f"Salesforce query error: {error_data.get('message', response.text)}"
-                )
-            elif response.status_code != 200:
-                raise IntegrationError(
-                    f"Failed to fetch Precursive projects: {response.status_code}"
-                )
-            
-            data = response.json()
-            projects = []
-            
-            for record in data.get("records", []):
-                account = record.get("preempt__Account__r") or {}
-                projects.append(PrecursiveProject(
-                    id=record["Id"],
-                    name=record.get("Name", "Unknown"),
-                    status=record.get("preempt__Status__c", "Unknown"),
-                    delivery_phase=record.get("preempt__DeliveryPhase__c"),
-                    project_type=record.get("preempt__ProjectType__c"),
-                    start_date=record.get("preempt__StartDate__c"),
-                    end_date=record.get("preempt__EndDate__c"),
-                    client_name=account.get("Name"),
-                ))
-            
-            return projects
-        except httpx.HTTPError as e:
-            raise IntegrationError(f"Salesforce API error: {str(e)}")
-    
-    async def get_project_financials(self, project_id: str) -> PrecursiveFinancials:
-        """
-        Fetch financial data for a Precursive project.
-        
-        Note: Field names may vary based on your Salesforce configuration.
-        """
-        if not self.is_configured:
-            raise IntegrationError("Precursive/Salesforce is not configured.")
-        
-        try:
-            client = await self._get_client()
-            
-            # SOQL query for project financials
-            query = f"""
-                SELECT Id, preempt__TotalBudget__c, preempt__SpentBudget__c,
-                       preempt__RemainingBudget__c, preempt__Revenue__c,
-                       preempt__MarginPercentage__c, CurrencyIsoCode
-                FROM preempt__PrecursiveProject__c
-                WHERE Id = '{project_id}'
-            """.strip().replace("\n", " ")
-            
-            response = await client.get(
-                "/services/data/v59.0/query/",
-                params={"q": query}
-            )
-            
-            if response.status_code != 200:
-                raise IntegrationError(
-                    f"Failed to fetch project financials: {response.status_code}"
-                )
-            
-            data = response.json()
-            records = data.get("records", [])
-            
-            if not records:
-                raise IntegrationError(f"Project {project_id} not found in Salesforce")
-            
-            record = records[0]
-            return PrecursiveFinancials(
-                project_id=record["Id"],
-                total_budget=record.get("preempt__TotalBudget__c"),
-                spent_budget=record.get("preempt__SpentBudget__c"),
-                remaining_budget=record.get("preempt__RemainingBudget__c"),
-                revenue=record.get("preempt__Revenue__c"),
-                margin_percentage=record.get("preempt__MarginPercentage__c"),
-                currency=record.get("CurrencyIsoCode", "USD"),
-            )
-        except httpx.HTTPError as e:
-            raise IntegrationError(f"Salesforce API error: {str(e)}")
+            "type": "mock",
+            "project_count": len(self._data.get("projects", []))
+        }
     
     async def get_project_by_url(self, precursive_url: str) -> Optional[PrecursiveProject]:
-        """
-        Fetch a Precursive project by its Salesforce URL.
-        
-        Extracts the record ID from the URL and fetches the project.
-        """
-        if not self.is_configured:
-            raise IntegrationError("Precursive/Salesforce is not configured.")
-        
-        # Extract record ID from URL
-        # URL format: https://cognite.lightning.force.com/lightning/r/preempt__PrecursiveProject__c/a2XSZ000000p3a92AA/view
-        import re
-        match = re.search(r'/([a-zA-Z0-9]{15,18})(?:/|$)', precursive_url)
-        
-        if not match:
-            raise IntegrationError(f"Could not extract Salesforce ID from URL: {precursive_url}")
-        
-        record_id = match.group(1)
-        
-        try:
-            client = await self._get_client()
-            
-            query = f"""
-                SELECT Id, Name, preempt__Status__c, preempt__DeliveryPhase__c,
-                       preempt__ProjectType__c, preempt__StartDate__c, 
-                       preempt__EndDate__c, preempt__Account__r.Name
-                FROM preempt__PrecursiveProject__c
-                WHERE Id = '{record_id}'
-            """.strip().replace("\n", " ")
-            
-            response = await client.get(
-                "/services/data/v59.0/query/",
-                params={"q": query}
-            )
-            
-            if response.status_code != 200:
-                raise IntegrationError(
-                    f"Failed to fetch project: {response.status_code}"
-                )
-            
-            data = response.json()
-            records = data.get("records", [])
-            
-            if not records:
-                return None
-            
-            record = records[0]
-            account = record.get("preempt__Account__r") or {}
-            return PrecursiveProject(
-                id=record["Id"],
-                name=record.get("Name", "Unknown"),
-                status=record.get("preempt__Status__c", "Unknown"),
-                delivery_phase=record.get("preempt__DeliveryPhase__c"),
-                project_type=record.get("preempt__ProjectType__c"),
-                start_date=record.get("preempt__StartDate__c"),
-                end_date=record.get("preempt__EndDate__c"),
-                client_name=account.get("Name"),
-            )
-        except httpx.HTTPError as e:
-            raise IntegrationError(f"Salesforce API error: {str(e)}")
+        """Find project by URL in mock data."""
+        # For simplicity in testing, if URL is empty or just a placeholder, return the first project
+        if not precursive_url or "precursive" not in precursive_url.lower():
+             # If we have projects, return the first one as a fallback for testing ease
+             if self._data.get("projects"):
+                 p = self._data["projects"][0]
+                 return self._map_project(p)
+             return None
 
+        for p in self._data.get("projects", []):
+            if p.get("precursive_url") == precursive_url:
+                return self._map_project(p)
+        return None
+        
+    def _map_project(self, p: Dict[str, Any]) -> PrecursiveProject:
+        return PrecursiveProject(
+            id=p["id"],
+            name=p["name"],
+            status=p["status"],
+            delivery_phase=p.get("delivery_phase"),
+            project_type=p.get("project_type"),
+            start_date=p.get("start_date"),
+            end_date=p.get("end_date"),
+            client_name=p.get("client_name")
+        )
+
+    async def get_project_financials(self, project_id: str) -> PrecursiveFinancials:
+        """Get financials from mock data."""
+        for p in self._data.get("projects", []):
+            if p["id"] == project_id:
+                fin = p.get("financials", {})
+                return PrecursiveFinancials(
+                    project_id=project_id,
+                    total_budget=fin.get("total_budget"),
+                    spent_budget=fin.get("spent_budget"),
+                    remaining_budget=fin.get("remaining_budget"),
+                    revenue=fin.get("revenue"),
+                    margin_percentage=fin.get("margin_percentage"),
+                    currency=fin.get("currency", "USD")
+                )
+        # Return empty/zero financials if not found, to avoid breaking flow
+        return PrecursiveFinancials(project_id, 0, 0, 0, 0, 0, "USD")
+
+    async def get_project_risks(self, project_id: str) -> List[PrecursiveRisk]:
+        """Get risks from mock data."""
+        risks = []
+        for p in self._data.get("projects", []):
+            if p["id"] == project_id:
+                for r in p.get("risks", []):
+                    risks.append(PrecursiveRisk(
+                        summary=r["summary"],
+                        description=r["description"],
+                        category=r.get("category"),
+                        impact_rationale=r.get("impact_rationale"),
+                        date_identified=r.get("date_identified"),
+                        probability=r["probability"],
+                        impact=r["impact"],
+                        status=r["status"],
+                        mitigation_plan=r.get("mitigation_plan")
+                    ))
+        return risks

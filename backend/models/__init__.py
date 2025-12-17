@@ -56,6 +56,7 @@ class RiskImpact(str, Enum):
 class RiskStatus(str, Enum):
     OPEN = "Open"
     CLOSED = "Closed"
+    MITIGATED = "Mitigated"
 
 
 # Import all models (order matters for relationships)

@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlmodel import Session, select
 
 from config import Settings
-from models import Project, ActionItem, ActionStatus, Priority, HealthStatus
+from models import Project, ActionItem, ActionStatus, Priority, HealthStatus, Risk, RiskProbability, RiskImpact, RiskStatus
 from integrations import JiraClient, PrecursiveClient
 from integrations.jira_client import JiraIssue
 from integrations.precursive_client import PrecursiveProject, PrecursiveFinancials
@@ -52,6 +52,13 @@ class SyncService:
         project = self.session.get(Project, project_id)
         if not project:
             raise ResourceNotFoundError(f"Project {project_id} not found")
+
+        # Enforce Precursive is required for full syncs
+        if not self.precursive.is_configured:
+            raise IntegrationError(
+                "Precursive integration is required for full sync. "
+                "Set PRECURSIVE_INSTANCE_URL and credentials."
+            )
         
         errors: list[str] = []
         jira_synced = False
@@ -136,6 +143,24 @@ class SyncService:
         try:
             project_key = self._extract_jira_project_key(project.jira_url)
             logger.info("Extracted Jira project key", key=project_key)
+            
+            # Fetch full project details from Jira to get the name
+            try:
+                jira_project_details = await self.jira.get_project(project_key)
+                project_name = jira_project_details.name
+                logger.info("Fetched Jira project details", name=project_name)
+            except IntegrationError as e:
+                logger.warning("Failed to fetch Jira project details", error=str(e))
+                project_name = None
+
+            # Update project with extracted key and fetched name
+            if project.jira_project_key != project_key or project.jira_project_name != project_name:
+                project.jira_project_key = project_key
+                if project_name:
+                    project.jira_project_name = project_name
+                self.session.add(project)
+                self.session.commit()
+                
         except IntegrationError as e:
             return JiraSyncResult(
                 project_id=project.id,
@@ -289,6 +314,63 @@ class SyncService:
         except IntegrationError as e:
             logger.warning("Failed to fetch financials", error=str(e))
             errors.append(f"Financials sync failed: {str(e)}")
+
+        # Sync Risks
+        try:
+            if project.precursive_id:
+                risks = await self.precursive.get_project_risks(project.precursive_id)
+                logger.info("Fetched risks from Precursive", count=len(risks))
+                
+                for risk_data in risks:
+                    # Check if risk exists by title
+                    existing_risk = self.session.exec(
+                        select(Risk).where(
+                            Risk.project_id == project.id,
+                            Risk.title == risk_data.summary
+                        )
+                    ).first()
+                    
+                    if existing_risk:
+                        # Update existing
+                        existing_risk.description = risk_data.description
+                        existing_risk.probability = self._map_risk_probability(risk_data.probability)
+                        existing_risk.impact = self._map_risk_impact(risk_data.impact)
+                        existing_risk.status = self._map_risk_status(risk_data.status)
+                        existing_risk.mitigation_plan = risk_data.mitigation_plan
+                        existing_risk.category = risk_data.category
+                        existing_risk.impact_rationale = risk_data.impact_rationale
+                        if risk_data.date_identified:
+                            try:
+                                existing_risk.date_identified = datetime.fromisoformat(risk_data.date_identified)
+                            except ValueError:
+                                pass # Ignore invalid dates
+                        self.session.add(existing_risk)
+                    else:
+                        # Create new
+                        date_identified = None
+                        if risk_data.date_identified:
+                            try:
+                                date_identified = datetime.fromisoformat(risk_data.date_identified)
+                            except ValueError:
+                                pass
+
+                        new_risk = Risk(
+                            project_id=project.id,
+                            title=risk_data.summary,
+                            description=risk_data.description,
+                            probability=self._map_risk_probability(risk_data.probability),
+                            impact=self._map_risk_impact(risk_data.impact),
+                            status=self._map_risk_status(risk_data.status),
+                            mitigation_plan=risk_data.mitigation_plan,
+                            category=risk_data.category,
+                            impact_rationale=risk_data.impact_rationale,
+                            date_identified=date_identified
+                        )
+                        self.session.add(new_risk)
+                        
+        except Exception as e:
+            logger.error("Failed to sync risks", error=str(e))
+            errors.append(f"Risk sync failed: {str(e)}")
         
         self.session.add(project)
         self.session.commit()
@@ -332,6 +414,8 @@ class SyncService:
             precursive_configured=self.precursive.is_configured,
             last_jira_items_count=len(action_count) if action_count else None,
             last_precursive_sync_success=project.precursive_id is not None,
+            jira_project_key=project.jira_project_key,
+            jira_project_name=project.jira_project_name,
         )
     
     # =========================================================================
@@ -456,3 +540,20 @@ class SyncService:
         else:
             return HealthStatus.GREEN
 
+    def _map_risk_probability(self, value: str) -> RiskProbability:
+        val = value.lower()
+        if "high" in val: return RiskProbability.HIGH
+        if "medium" in val: return RiskProbability.MEDIUM
+        return RiskProbability.LOW
+
+    def _map_risk_impact(self, value: str) -> RiskImpact:
+        val = value.lower()
+        if "high" in val: return RiskImpact.HIGH
+        if "medium" in val: return RiskImpact.MEDIUM
+        return RiskImpact.LOW
+
+    def _map_risk_status(self, value: str) -> RiskStatus:
+        val = value.lower()
+        if "closed" in val: return RiskStatus.CLOSED
+        if "mitigated" in val: return RiskStatus.MITIGATED
+        return RiskStatus.OPEN

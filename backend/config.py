@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from typing import List, Optional
 
@@ -19,12 +19,10 @@ class Settings(BaseSettings):
     # Optional: Path to service account JSON file (for local development without ADC)
     firebase_service_account_path: Optional[str] = None
     
-    # Jira Integration (OAuth 2.0)
-    jira_base_url: str = ""
-    jira_client_id: str = ""
-    jira_client_secret: str = ""
-    # Cloud ID is needed for OAuth - get from /oauth/token/accessible-resources
-    jira_cloud_id: str = ""
+    # Jira Integration (API Token)
+    jira_base_url: str = ""  # e.g., https://your-domain.atlassian.net
+    jira_email: str = ""  # Your Atlassian account email
+    jira_api_token: str = ""  # API token from https://id.atlassian.com/manage-profile/security/api-tokens
     
     # Precursive/Salesforce Integration (OAuth)
     precursive_client_id: str = ""
@@ -42,10 +40,12 @@ class Settings(BaseSettings):
     # Environment
     environment: str = "development"
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        extra = "ignore"  # Ignore extra env vars like NEXT_PUBLIC_* from frontend
+    # Pydantic v2 settings config
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore",  # Ignore extra env vars like NEXT_PUBLIC_* from frontend
+    )
 
 
 @lru_cache()

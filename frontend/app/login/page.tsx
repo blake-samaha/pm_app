@@ -36,37 +36,52 @@ export default function LoginPage() {
      * and storing the resulting JWT token.
      */
     const completeLogin = async (firebaseUser: any) => {
-        const idToken = await firebaseUser.getIdToken();
-        
-        // Send token to backend for verification and JWT creation
-        const response = await api.post("/auth/login", { token: idToken });
-        const { access_token } = response.data;
+        try {
+            // Now we can set loading since the sensitive interaction is done
+            setLoading(true);
+            
+            const idToken = await firebaseUser.getIdToken();
+            
+            // Send token to backend for verification and JWT creation
+            const response = await api.post("/auth/login", { token: idToken });
+            const { access_token } = response.data;
 
-        // Set token in localStorage for API interceptor
-        localStorage.setItem("accessToken", access_token);
+            // Set token in localStorage for API interceptor
+            localStorage.setItem("accessToken", access_token);
 
-        // Get user info from backend
-        const userResponse = await api.get("/auth/me");
-        const user = userResponse.data;
+            // Get user info from backend
+            const userResponse = await api.get("/auth/me");
+            const user = userResponse.data;
 
-        // Store in Zustand
-        setAuth(user, access_token);
-        router.push("/");
+            // Store in Zustand
+            setAuth(user, access_token);
+            router.push("/");
+        } catch (err: any) {
+            console.error("Login completion failed", err);
+            setError("Failed to complete login. Please try again.");
+            setLoading(false);
+        }
     };
 
     /**
      * Handle Google Sign-In
      */
     const handleGoogleSignIn = async () => {
-        setLoading(true);
+        // Clear previous errors
         setError(null);
         setSuccess(null);
-
+        
+        // CRITICAL: Do NOT set loading=true here. 
+        // Updating state triggers a re-render which can cause the browser to 
+        // lose the "trusted user event" context, leading to "Popup blocked".
+        
         try {
             const result = await signInWithPopup(auth, googleProvider);
+            // Login successful on Firebase side, now sync with backend
             await completeLogin(result.user);
         } catch (err: any) {
             console.error("Google login failed", err);
+            setLoading(false);
             
             if (err.code === "auth/popup-closed-by-user") {
                 setError("Sign-in was cancelled. Please try again.");
@@ -79,8 +94,6 @@ export default function LoginPage() {
             }
             
             localStorage.removeItem("accessToken");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -136,7 +149,6 @@ export default function LoginPage() {
             }
             
             localStorage.removeItem("accessToken");
-        } finally {
             setLoading(false);
         }
     };

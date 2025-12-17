@@ -384,7 +384,11 @@ async def health_check():
         finally:
             await precursive_client.close()
     else:
-        health_status["services"]["precursive"] = {"status": "not_configured"}
+        health_status["status"] = "degraded"
+        health_status["services"]["precursive"] = {
+            "status": "error",
+            "error": "Precursive integration required but not configured",
+        }
     
     # Set appropriate HTTP status code
     status_code = 200 if health_status["status"] == "healthy" else 503

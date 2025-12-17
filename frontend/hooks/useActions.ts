@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { ActionItem } from "@/types/actions-risks";
+import { useAuthStore } from "@/store/authStore";
 
 export const useActions = (projectId: string) => {
+    const { isAuthenticated } = useAuthStore();
     return useQuery({
         queryKey: ["actions", projectId],
         queryFn: async () => {
@@ -11,7 +13,7 @@ export const useActions = (projectId: string) => {
             );
             return data;
         },
-        enabled: !!projectId,
+        enabled: !!projectId && isAuthenticated,
     });
 };
 

@@ -43,7 +43,11 @@ class ActionItemRead(ActionItemBase):
 # Risk Schemas
 class RiskBase(BaseModel):
     """Base risk schema."""
+    title: str
     description: str
+    category: Optional[str] = None
+    impact_rationale: Optional[str] = None
+    date_identified: Optional[datetime] = None
     probability: RiskProbability
     impact: RiskImpact
     status: RiskStatus = RiskStatus.OPEN

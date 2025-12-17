@@ -43,7 +43,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
           </div>
           
           <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-            <span>{project.reporting_cycle || "Weekly"}</span>
+            <span>{project.reporting_cycle ?? "Reporting cycle not provided"}</span>
             <span className={project.is_published ? "text-green-600" : "text-gray-400"}>
               {project.is_published ? "Published" : "Draft"}
             </span>

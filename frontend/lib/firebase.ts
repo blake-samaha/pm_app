@@ -5,6 +5,8 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     sendPasswordResetEmail,
+    signInWithRedirect,
+    getRedirectResult,
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -34,6 +36,8 @@ export {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     sendPasswordResetEmail,
+    signInWithRedirect,
+    getRedirectResult,
 };
 
 export default app;

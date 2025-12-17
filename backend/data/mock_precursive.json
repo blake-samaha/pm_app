@@ -1,0 +1,58 @@
+{
+  "projects": [
+    {
+      "id": "a2XSZ000000p3a92AA",
+      "name": "[Hanwha Ocean] Base Implementation Services",
+      "precursive_url": "https://cognite.lightning.force.com/lightning/r/preempt__PrecursiveProject__c/a2XSZ000000p3a92AA/view",
+      "client_name": "Hanwha Ocean",
+      "status": "Active",
+      "delivery_phase": "Delivery",
+      "project_type": "Conventional",
+      "start_date": "2025-06-11",
+      "end_date": "2026-03-21",
+      "financials": {
+        "total_budget": 396950.00,
+        "spent_budget": 115591.50,
+        "remaining_budget": 198800.00,
+        "revenue": 198150.00,
+        "margin_percentage": 41.66,
+        "currency": "USD"
+      },
+      "risks": [
+        {
+          "summary": "Additional Custom Extractor",
+          "description": "Potential need to develop custom extractor for SCM. This has to do with the way in which HO has set up their system. They are trying to figure out the best way to connect without needing to use a custom extractor.",
+          "category": "Schedule",
+          "impact_rationale": "I didn't put the impact as major, as we have the flexibility to modify the delivery.",
+          "date_identified": "2025-10-09",
+          "probability": "Medium",
+          "impact": "Medium",
+          "status": "Open",
+          "mitigation_plan": "Discuss with product team to evaluate custom extractor requirements."
+        },
+        {
+          "summary": "Delays to Hanwha databases being ready for connection",
+          "description": "AVEVA and ProArcd have had different difficulties. Connecting to API or defining metadata for RDL population. We have enough work for next week, but will run out if they do not deliver. This has been communicated to Hanwha.",
+          "category": "Schedule",
+          "impact_rationale": "We are nearing a time where the delivery team will not have other work they can work on.",
+          "date_identified": "2025-08-21",
+          "probability": "High",
+          "impact": "Medium",
+          "status": "Open",
+          "mitigation_plan": "Monitor progress closely and escalate if delays persist beyond next week."
+        },
+        {
+          "summary": "p6 licensing issue",
+          "description": "Currently on cloud P6 and in order to pull out data automatically we will need the peripheral license as well as read only licenses of P6 for everyone.",
+          "category": "Time",
+          "date_identified": "2025-09-26",
+          "probability": "High",
+          "impact": "Low",
+          "status": "Open",
+          "mitigation_plan": "Request necessary licenses from IT."
+        }
+      ]
+    }
+  ]
+}
+

@@ -4,6 +4,7 @@ import { useActions } from "@/hooks/useActions";
 import { ActionStatus, Priority } from "@/types/actions-risks";
 import { Loader2, CheckCircle2, Circle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 
 interface ActionTableProps {
     projectId: string;
@@ -28,13 +29,23 @@ const priorityColors = {
 };
 
 export const ActionTable = ({ projectId }: ActionTableProps) => {
-    const { data: actions, isLoading } = useActions(projectId);
+    const { data: actions, isLoading, isError, error, refetch } = useActions(projectId);
 
     if (isLoading) {
         return (
             <div className="flex h-32 items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <ApiErrorDisplay
+                title="Failed to load actions"
+                error={(error as any)?.response?.data ?? error ?? "Unknown error"}
+                onRetry={() => refetch()}
+            />
         );
     }
 
@@ -59,6 +70,9 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                #
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                                 Status
                             </th>
@@ -77,7 +91,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                        {actions.map((action) => {
+                        {actions.map((action, index) => {
                             const StatusIcon = statusIcons[action.status];
                             const isPastDue =
                                 action.due_date &&
@@ -89,6 +103,9 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                     key={action.id}
                                     className={`hover:bg-gray-50 ${isPastDue ? "bg-red-50" : ""}`}
                                 >
+                                    <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
+                                        {index + 1}
+                                    </td>
                                     <td className="whitespace-nowrap px-6 py-4">
                                         <div className="flex items-center">
                                             <StatusIcon

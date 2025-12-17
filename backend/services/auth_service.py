@@ -64,10 +64,13 @@ class AuthService:
         firebase_user_data = self._verify_firebase_token(token)
         
         email = firebase_user_data.get("email")
-        name = firebase_user_data.get("name") or email.split("@")[0]  # Fallback for email/password users
         
+        # Check for email BEFORE using it
         if not email:
             raise AuthenticationError("Email not found in Firebase token")
+        
+        # Now safe to use email for fallback name
+        name = firebase_user_data.get("name") or email.split("@")[0]
         
         # Detect auth provider from Firebase token
         firebase_info = firebase_user_data.get("firebase", {})

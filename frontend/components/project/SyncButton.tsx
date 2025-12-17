@@ -15,14 +15,26 @@ export const SyncButton = ({ projectId }: SyncButtonProps) => {
     const handleSync = async () => {
         setSyncing(true);
         try {
-            await api.post(`/sync/${projectId}`);
-            toast.success("Sync started", {
-                description: "Data synchronization is running in the background.",
-            });
+            const response = await api.post(`/sync/${projectId}`);
+            const errors: string[] = response.data?.errors || [];
+
+            if (errors.length > 0) {
+                toast.error("Sync completed with errors", {
+                    description: errors.join("; "),
+                });
+            } else {
+                toast.success("Sync started", {
+                    description: "Data synchronization is running in the background.",
+                });
+            }
         } catch (err) {
             console.error("Sync failed", err);
+            const message =
+                (err as any)?.response?.data?.detail ||
+                (err as any)?.message ||
+                "Unable to trigger data sync. Please try again.";
             toast.error("Sync failed", {
-                description: "Unable to trigger data sync. Please try again.",
+                description: message,
             });
         } finally {
             setSyncing(false);

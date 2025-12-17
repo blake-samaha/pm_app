@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useProject } from "@/hooks/useProjects";
+import { useSyncStatus } from "@/hooks/useSync";
 import { useAuthStore } from "@/store/authStore";
 import { HealthIndicator } from "@/components/project/HealthIndicator";
 import { FinancialsCard } from "@/components/project/FinancialsCard";
@@ -10,26 +10,29 @@ import { Timeline } from "@/components/project/Timeline";
 import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
 import { SyncButton } from "@/components/project/SyncButton";
-import { ArrowLeft, Loader2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Settings } from "lucide-react";
 import Link from "next/link";
+import ApiErrorDisplay from "@/components/ApiErrorDisplay";
+import { getErrorMessage } from "@/lib/error";
+import { useState } from "react";
+import { EditProjectModal } from "@/components/project/EditProjectModal";
 
 export default function ProjectDetailsPage() {
     const params = useParams();
-    const router = useRouter();
-    const { user, isAuthenticated } = useAuthStore();
+    const { user } = useAuthStore();
     const projectId = params.id as string;
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    const { data: project, isLoading, error } = useProject(projectId);
+    const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
+    const {
+        data: syncStatus,
+        isLoading: statusLoading,
+        isError: statusError,
+        error: statusErrorObj,
+        refetch: refetchStatus,
+    } = useSyncStatus(projectId);
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            router.push("/login");
-        }
-    }, [isAuthenticated, router]);
-
-    if (!isAuthenticated) {
-        return null;
-    }
+    // Auth check is now handled by AuthGuard
 
     if (isLoading) {
         return (
@@ -39,12 +42,14 @@ export default function ProjectDetailsPage() {
         );
     }
 
-    if (error || !project) {
+    if (isError || !project) {
         return (
-            <div className="flex min-h-screen flex-col items-center justify-center">
-                <p className="text-red-600">
-                    {error ? "Failed to load project" : "Project not found"}
-                </p>
+            <div className="flex min-h-screen flex-col items-center justify-center px-6">
+                <ApiErrorDisplay
+                    title="Project failed to load"
+                    error={getErrorMessage(error)}
+                    onRetry={() => refetch()}
+                />
                 <Link href="/" className="mt-4 text-blue-600 hover:underline">
                     Back to Dashboard
                 </Link>
@@ -95,7 +100,16 @@ export default function ProjectDetailsPage() {
 
                         <div className="flex items-center space-x-6">
                             {user?.role === "Cogniter" && (
-                                <SyncButton projectId={project.id} />
+                                <>
+                                    <button
+                                        onClick={() => setIsEditModalOpen(true)}
+                                        className="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                        title="Project Settings"
+                                    >
+                                        <Settings className="h-5 w-5" />
+                                    </button>
+                                    <SyncButton projectId={project.id} />
+                                </>
                             )}
                             <div className="text-right">
                                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -129,11 +143,82 @@ export default function ProjectDetailsPage() {
 
                     {/* Right Column (1/3 width) */}
                     <div className="space-y-8">
+                        <div>
+                            {statusLoading && (
+                                <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-4">
+                                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                                </div>
+                            )}
+                            {statusError && (
+                                <ApiErrorDisplay
+                                    title="Sync status unavailable"
+                                    error={getErrorMessage(statusErrorObj)}
+                                    onRetry={() => refetchStatus()}
+                                />
+                            )}
+                            {!statusLoading && !statusError && syncStatus && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">Last synced</span>
+                                        <span className="text-sm text-gray-600">
+                                            {syncStatus.last_synced_at
+                                                ? new Date(syncStatus.last_synced_at).toLocaleString()
+                                                : "Never"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">Jira configured</span>
+                                        <div className="flex items-center space-x-2">
+                                            {syncStatus.jira_project_key && (
+                                                <span 
+                                                    className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+                                                    title={syncStatus.jira_project_name || syncStatus.jira_project_key}
+                                                >
+                                                    {syncStatus.jira_project_name ? (
+                                                        <>
+                                                            {syncStatus.jira_project_name} 
+                                                            <span className="opacity-75 ml-1">({syncStatus.jira_project_key})</span>
+                                                        </>
+                                                    ) : (
+                                                        syncStatus.jira_project_key
+                                                    )}
+                                                </span>
+                                            )}
+                                            <span className="text-sm text-gray-600">
+                                                {syncStatus.jira_configured ? "Yes" : "No"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">Precursive configured</span>
+                                        <span className="text-sm text-gray-600">
+                                            {syncStatus.precursive_configured ? "Yes" : "No"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-gray-700">Precursive last success</span>
+                                        <span className="text-sm text-gray-600">
+                                            {syncStatus.last_precursive_sync_success === undefined
+                                                ? "Unknown"
+                                                : syncStatus.last_precursive_sync_success
+                                                    ? "Yes"
+                                                    : "No"}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <FinancialsCard project={project} />
                         <RiskList projectId={project.id} />
                     </div>
                 </div>
             </main>
+
+            <EditProjectModal 
+                project={project}
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+            />
         </div>
     );
 }

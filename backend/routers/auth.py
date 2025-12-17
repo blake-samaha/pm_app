@@ -1,8 +1,11 @@
 """Authentication router."""
+import structlog
 from fastapi import APIRouter, HTTPException, status
 
 from schemas import GoogleLoginRequest, Token, UserRead
 from dependencies import AuthServiceDep, CurrentUser
+
+logger = structlog.get_logger()
 
 router = APIRouter(
     prefix="/auth",
@@ -23,8 +26,10 @@ async def login_with_firebase(
     """
     try:
         user, access_token = auth_service.authenticate_with_firebase(request.token)
+        logger.info("User logged in successfully", user_id=str(user.id), email=user.email)
         return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
+        logger.error("Login failed", error=str(e), error_type=type(e).__name__)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)

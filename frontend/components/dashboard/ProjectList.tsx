@@ -1,11 +1,13 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/error";
 import { useProjects } from "@/hooks/useProjects";
 import { ProjectCard } from "./ProjectCard";
 import { Loader2 } from "lucide-react";
+import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 
 export const ProjectList = () => {
-    const { data: projects, isLoading, error } = useProjects();
+    const { data: projects, isLoading, isError, error, refetch } = useProjects();
 
     if (isLoading) {
         return (
@@ -15,11 +17,13 @@ export const ProjectList = () => {
         );
     }
 
-    if (error) {
+    if (isError) {
         return (
-            <div className="rounded-lg bg-red-50 p-4 text-red-600">
-                Failed to load projects. Please try again.
-            </div>
+            <ApiErrorDisplay
+                title="Failed to load projects"
+                error={getErrorMessage(error)}
+                onRetry={() => refetch()}
+            />
         );
     }
 
