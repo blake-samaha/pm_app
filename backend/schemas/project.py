@@ -2,7 +2,7 @@ from datetime import datetime, date
 from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
-from models.project import ProjectBase, HealthStatus
+from models.project import ProjectBase, HealthStatus, ReportingCycle
 
 class ProjectCreate(ProjectBase):
     pass
@@ -21,4 +21,4 @@ class ProjectUpdate(BaseModel):
     client_logo_url: Optional[str] = None
     health_status_override: Optional[HealthStatus] = None
     is_published: Optional[bool] = None
-    reporting_cycle: Optional[str] = None
+    reporting_cycle: Optional[ReportingCycle] = None

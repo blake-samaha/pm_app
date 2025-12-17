@@ -16,6 +16,7 @@ import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
 import { useState } from "react";
 import { EditProjectModal } from "@/components/project/EditProjectModal";
+import { HealthStatus } from "@/types";
 
 export default function ProjectDetailsPage() {
     const params = useParams();
@@ -57,12 +58,23 @@ export default function ProjectDetailsPage() {
         );
     }
 
+    const currentHealth = project.health_status_override || project.health_status;
+    const isCritical = currentHealth === HealthStatus.RED || currentHealth === HealthStatus.YELLOW;
+
+    // Dynamic header styling for critical states
+    const headerBg = isCritical && currentHealth === HealthStatus.RED 
+        ? "bg-red-50 border-b border-red-100" 
+        : "bg-white";
+
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
             {/* Header */}
-            <header className="bg-white shadow-sm">
+            <header className={`${headerBg} shadow-sm transition-colors duration-300`}>
                 <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between">
+                    {/* Grid Layout: Left (Info), Center (Health), Right (Actions) */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 items-center">
+                        
+                        {/* Left: Project Info */}
                         <div className="flex items-center space-x-4">
                             <Link
                                 href="/"
@@ -71,7 +83,7 @@ export default function ProjectDetailsPage() {
                                 <ArrowLeft className="h-6 w-6" />
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">
+                                <h1 className="text-2xl font-bold text-gray-900 truncate">
                                     {project.name}
                                 </h1>
                                 <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
@@ -98,7 +110,21 @@ export default function ProjectDetailsPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center space-x-6">
+                        {/* Center: Hero Health Indicator */}
+                        <div className="flex flex-col items-center justify-center">
+                            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+                                Overall Health
+                            </p>
+                            <HealthIndicator
+                                status={currentHealth}
+                                label={currentHealth}
+                                size="xl"
+                                variant="solid"
+                            />
+                        </div>
+
+                        {/* Right: Actions */}
+                        <div className="flex items-center justify-end space-x-6">
                             {user?.role === "Cogniter" && (
                                 <>
                                     <button
@@ -111,23 +137,6 @@ export default function ProjectDetailsPage() {
                                     <SyncButton projectId={project.id} />
                                 </>
                             )}
-                            <div className="text-right">
-                                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                                    Overall Health
-                                </p>
-                                <div className="mt-1">
-                                    <HealthIndicator
-                                        status={
-                                            project.health_status_override ||
-                                            project.health_status
-                                        }
-                                        label={
-                                            project.health_status_override ||
-                                            project.health_status
-                                        }
-                                    />
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

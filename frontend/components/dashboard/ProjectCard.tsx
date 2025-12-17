@@ -1,15 +1,16 @@
 import { Project, HealthStatus } from "@/types";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { HealthIndicator } from "@/components/project/HealthIndicator";
 
 interface ProjectCardProps {
   project: Project;
 }
 
-const statusColors = {
-  [HealthStatus.GREEN]: "bg-green-500",
-  [HealthStatus.YELLOW]: "bg-yellow-500",
-  [HealthStatus.RED]: "bg-red-500",
+const statusBorderColors = {
+  [HealthStatus.GREEN]: "border-t-green-500",
+  [HealthStatus.YELLOW]: "border-t-yellow-500",
+  [HealthStatus.RED]: "border-t-red-600",
 };
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
@@ -17,7 +18,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
 
   return (
     <Link href={`/projects/${project.id}`} className="block">
-      <Card className="group relative overflow-hidden transition-all hover:shadow-md">
+      <Card className={`group relative overflow-hidden transition-all hover:shadow-md border-t-8 ${statusBorderColors[status]}`}>
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
@@ -39,7 +40,12 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
                 <p className="text-sm text-gray-500">{project.type}</p>
               </div>
             </div>
-            <div className={`h-3 w-3 rounded-full ${statusColors[status]}`} />
+            <HealthIndicator 
+              status={status} 
+              size="sm" 
+              variant="solid" 
+              label={status}
+            />
           </div>
           
           <div className="mt-4 flex items-center justify-between text-sm text-gray-500">

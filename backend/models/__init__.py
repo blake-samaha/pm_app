@@ -12,23 +12,6 @@ class AuthProvider(str, Enum):
     EMAIL = "Email"
 
 
-class ProjectType(str, Enum):
-    FIXED_PRICE = "Fixed Price"
-    TM = "T&M"
-    SAAS_REVENUE = "SaaS Revenue"
-
-
-class ReportingCycle(str, Enum):
-    WEEKLY = "Weekly"
-    BI_WEEKLY = "Bi-weekly"
-
-
-class HealthStatus(str, Enum):
-    GREEN = "Green"
-    YELLOW = "Yellow"
-    RED = "Red"
-
-
 class ActionStatus(str, Enum):
     TO_DO = "To Do"
     IN_PROGRESS = "In Progress"
@@ -62,7 +45,7 @@ class RiskStatus(str, Enum):
 # Import all models (order matters for relationships)
 from models.links import UserProjectLink
 from models.user import User
-from models.project import Project
+from models.project import Project, ProjectType, ReportingCycle, HealthStatus
 from models.action_item import ActionItem
 from models.comment import Comment
 from models.risk import Risk

@@ -1,7 +1,7 @@
 """Sync service for orchestrating data synchronization from external APIs."""
 import re
 import structlog
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 from uuid import UUID
 
@@ -269,17 +269,13 @@ class SyncService:
             # Parse dates if available
             if precursive_project.start_date:
                 try:
-                    project.start_date = datetime.fromisoformat(
-                        precursive_project.start_date.replace('Z', '+00:00')
-                    )
+                    project.start_date = self._parse_date_string(precursive_project.start_date)
                 except ValueError:
                     errors.append(f"Invalid start_date format: {precursive_project.start_date}")
             
             if precursive_project.end_date:
                 try:
-                    project.end_date = datetime.fromisoformat(
-                        precursive_project.end_date.replace('Z', '+00:00')
-                    )
+                    project.end_date = self._parse_date_string(precursive_project.end_date)
                 except ValueError:
                     errors.append(f"Invalid end_date format: {precursive_project.end_date}")
             
@@ -341,16 +337,16 @@ class SyncService:
                         existing_risk.impact_rationale = risk_data.impact_rationale
                         if risk_data.date_identified:
                             try:
-                                existing_risk.date_identified = datetime.fromisoformat(risk_data.date_identified)
+                                existing_risk.date_identified = self._parse_datetime_string(risk_data.date_identified)
                             except ValueError:
-                                pass # Ignore invalid dates
+                                pass  # Ignore invalid dates
                         self.session.add(existing_risk)
                     else:
                         # Create new
                         date_identified = None
                         if risk_data.date_identified:
                             try:
-                                date_identified = datetime.fromisoformat(risk_data.date_identified)
+                                date_identified = self._parse_datetime_string(risk_data.date_identified)
                             except ValueError:
                                 pass
 
@@ -557,3 +553,56 @@ class SyncService:
         if "closed" in val: return RiskStatus.CLOSED
         if "mitigated" in val: return RiskStatus.MITIGATED
         return RiskStatus.OPEN
+
+    def _parse_date_string(self, date_str: str) -> date:
+        """
+        Parse a date string to a date object.
+        
+        Handles both date-only strings (e.g., "2025-06-11") and 
+        datetime strings (e.g., "2025-06-11T00:00:00Z").
+        
+        Args:
+            date_str: ISO format date or datetime string
+            
+        Returns:
+            date object
+            
+        Raises:
+            ValueError: If the string cannot be parsed
+        """
+        # Remove timezone suffix if present
+        clean_str = date_str.replace('Z', '').split('+')[0]
+        
+        # Check if it's a date-only string (no 'T' separator)
+        if 'T' not in clean_str:
+            return date.fromisoformat(clean_str)
+        
+        # It's a datetime string, parse and extract date
+        return datetime.fromisoformat(clean_str).date()
+
+    def _parse_datetime_string(self, date_str: str) -> datetime:
+        """
+        Parse a date or datetime string to a datetime object.
+        
+        Handles both date-only strings (e.g., "2025-10-09") and 
+        datetime strings (e.g., "2025-10-09T14:30:00Z").
+        
+        Args:
+            date_str: ISO format date or datetime string
+            
+        Returns:
+            datetime object (for date-only strings, time is set to 00:00:00)
+            
+        Raises:
+            ValueError: If the string cannot be parsed
+        """
+        # Remove timezone suffix if present
+        clean_str = date_str.replace('Z', '').split('+')[0]
+        
+        # Check if it's a date-only string (no 'T' separator)
+        if 'T' not in clean_str:
+            parsed_date = date.fromisoformat(clean_str)
+            return datetime.combine(parsed_date, datetime.min.time())
+        
+        # It's a datetime string
+        return datetime.fromisoformat(clean_str)
