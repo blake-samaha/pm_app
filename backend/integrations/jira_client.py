@@ -28,6 +28,7 @@ class JiraIssue:
     priority: Optional[str]
     created: str
     updated: str
+    due_date: Optional[str] = None
 
 
 @dataclass
@@ -224,6 +225,7 @@ class JiraClient:
                     "priority",
                     "created",
                     "updated",
+                    "duedate",
                 ],
             )
 
@@ -243,6 +245,7 @@ class JiraClient:
                         priority=priority.get("name") if priority else None,
                         created=fields.get("created", ""),
                         updated=fields.get("updated", ""),
+                        due_date=fields.get("duedate"),
                     )
                 )
 
@@ -336,6 +339,7 @@ class JiraClient:
                     "priority",
                     "created",
                     "updated",
+                    "duedate",
                 ],
             )
 
@@ -355,6 +359,7 @@ class JiraClient:
                         priority=priority.get("name") if priority else None,
                         created=fields.get("created", ""),
                         updated=fields.get("updated", ""),
+                        due_date=fields.get("duedate"),
                     )
                 )
 

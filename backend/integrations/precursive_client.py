@@ -84,17 +84,18 @@ class PrecursiveClient:
     
     async def get_project_by_url(self, precursive_url: str) -> Optional[PrecursiveProject]:
         """Find project by URL in mock data."""
-        # For simplicity in testing, if URL is empty or just a placeholder, return the first project
-        if not precursive_url or "precursive" not in precursive_url.lower():
-             # If we have projects, return the first one as a fallback for testing ease
-             if self._data.get("projects"):
-                 p = self._data["projects"][0]
-                 return self._map_project(p)
-             return None
-
-        for p in self._data.get("projects", []):
-            if p.get("precursive_url") == precursive_url:
-                return self._map_project(p)
+        # Try to find exact match first
+        if precursive_url:
+            for p in self._data.get("projects", []):
+                if p.get("precursive_url") == precursive_url:
+                    return self._map_project(p)
+        
+        # Fallback: return the first project from mock data for testing/development
+        # This allows projects without matching URLs to still get mock data
+        if self._data.get("projects"):
+            p = self._data["projects"][0]
+            return self._map_project(p)
+        
         return None
         
     def _map_project(self, p: Dict[str, Any]) -> PrecursiveProject:
@@ -111,6 +112,7 @@ class PrecursiveClient:
 
     async def get_project_financials(self, project_id: str) -> PrecursiveFinancials:
         """Get financials from mock data."""
+        # Try to find exact match first
         for p in self._data.get("projects", []):
             if p["id"] == project_id:
                 fin = p.get("financials", {})
@@ -123,12 +125,28 @@ class PrecursiveClient:
                     margin_percentage=fin.get("margin_percentage"),
                     currency=fin.get("currency", "USD")
                 )
-        # Return empty/zero financials if not found, to avoid breaking flow
+        
+        # Fallback: return first project's financials if no match found
+        if self._data.get("projects"):
+            p = self._data["projects"][0]
+            fin = p.get("financials", {})
+            return PrecursiveFinancials(
+                project_id=project_id,
+                total_budget=fin.get("total_budget"),
+                spent_budget=fin.get("spent_budget"),
+                remaining_budget=fin.get("remaining_budget"),
+                revenue=fin.get("revenue"),
+                margin_percentage=fin.get("margin_percentage"),
+                currency=fin.get("currency", "USD")
+            )
+        
+        # Return empty/zero financials if no projects exist
         return PrecursiveFinancials(project_id, 0, 0, 0, 0, 0, "USD")
 
     async def get_project_risks(self, project_id: str) -> List[PrecursiveRisk]:
         """Get risks from mock data."""
         risks = []
+        # Try to find exact match first
         for p in self._data.get("projects", []):
             if p["id"] == project_id:
                 for r in p.get("risks", []):
@@ -143,4 +161,22 @@ class PrecursiveClient:
                         status=r["status"],
                         mitigation_plan=r.get("mitigation_plan")
                     ))
+                return risks
+        
+        # Fallback: return first project's risks if no match found
+        if self._data.get("projects"):
+            p = self._data["projects"][0]
+            for r in p.get("risks", []):
+                risks.append(PrecursiveRisk(
+                    summary=r["summary"],
+                    description=r["description"],
+                    category=r.get("category"),
+                    impact_rationale=r.get("impact_rationale"),
+                    date_identified=r.get("date_identified"),
+                    probability=r["probability"],
+                    impact=r["impact"],
+                    status=r["status"],
+                    mitigation_plan=r.get("mitigation_plan")
+                ))
+        
         return risks

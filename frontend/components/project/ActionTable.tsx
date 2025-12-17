@@ -2,13 +2,14 @@
 
 import { useActions } from "@/hooks/useActions";
 import { ActionItem, ActionStatus, Priority } from "@/types/actions-risks";
-import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search } from "lucide-react";
+import { Loader2, CheckCircle2, Circle, Clock, Filter, X, Search, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { useState, useMemo } from "react";
+import { useProject } from "@/hooks/useProjects"; // Import useProject to get Jira URL context
 
 interface ActionTableProps {
     projectId: string;
@@ -41,6 +42,7 @@ type FilterState = {
 
 export const ActionTable = ({ projectId }: ActionTableProps) => {
     const { data: actions, isLoading, isError, error, refetch } = useActions(projectId);
+    const { data: project } = useProject(projectId); // Fetch project to construct Jira URLs
     
     // Filter States
     const [filters, setFilters] = useState<FilterState>({
@@ -49,6 +51,16 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
         assignees: [],
         search: "",
     });
+
+    // Helper to construct Jira Issue URL
+    const getJiraIssueUrl = (jiraId: string) => {
+        // Fallback if project.jira_url isn't set but we have an ID (e.g. assume cloud hostname if we could, but better to just require the URL)
+        if (!project?.jira_url || !jiraId) return null;
+        
+        // Ensure no trailing slash on base URL
+        const baseUrl = project.jira_url.replace(/\/$/, "");
+        return `${baseUrl}/browse/${jiraId}`;
+    };
 
     // Derived unique lists for filter options
     const uniqueAssignees = useMemo(() => {
@@ -268,6 +280,8 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                     action.due_date &&
                                     new Date(action.due_date) < new Date() &&
                                     action.status !== ActionStatus.COMPLETE;
+                                
+                                const jiraUrl = getJiraIssueUrl(action.jira_id || "");
 
                                 return (
                                     <tr
@@ -282,9 +296,24 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                {action.title}
-                                            </div>
+                                            {jiraUrl ? (
+                                                <a 
+                                                    href={jiraUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="group/link flex items-start"
+                                                >
+                                                    <span className="text-sm font-medium text-slate-900 group-hover/link:text-blue-600 transition-colors mr-1">
+                                                        {action.title}
+                                                    </span>
+                                                    <ExternalLink className="h-3 w-3 text-slate-400 opacity-0 group-hover/link:opacity-100 transition-opacity mt-1 flex-shrink-0" />
+                                                </a>
+                                            ) : (
+                                                <div className="text-sm font-medium text-slate-900">
+                                                    {action.title}
+                                                </div>
+                                            )}
+                                            
                                             {action.jira_id && (
                                                 <div className="mt-0.5 flex items-center">
                                                     <span className="inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
