@@ -111,16 +111,38 @@ export default function ProjectDetailsPage() {
     const currentHealth = project.health_status_override || project.health_status;
     const isCritical = currentHealth === HealthStatus.RED || currentHealth === HealthStatus.YELLOW;
 
-    // Dynamic header styling for critical states
-    const headerBg = isCritical && currentHealth === HealthStatus.RED 
-        ? "bg-red-50 border-b border-red-100" 
-        : "bg-white";
+    // Define styles based on health status
+    const healthStyles = {
+        [HealthStatus.GREEN]: {
+            border: "border-green-500",
+            bg: "bg-green-50",
+            text: "text-green-700",
+            shadow: "shadow-green-100"
+        },
+        [HealthStatus.YELLOW]: {
+            border: "border-yellow-500",
+            bg: "bg-yellow-50",
+            text: "text-yellow-700",
+            shadow: "shadow-yellow-100"
+        },
+        [HealthStatus.RED]: {
+            border: "border-red-500",
+            bg: "bg-red-50",
+            text: "text-red-700",
+            shadow: "shadow-red-100"
+        }
+    };
+
+    const currentStyle = healthStyles[currentHealth] || healthStyles[HealthStatus.GREEN];
 
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
-            {/* Header */}
-            <header className={`${headerBg} shadow-sm transition-colors duration-300`}>
-                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            {/* Header with Health Status Indicator */}
+            <header className={`relative shadow-sm transition-all duration-300 ${currentStyle.bg} border-b border-slate-200`}>
+                {/* Top Health Border Strip */}
+                <div className={`absolute top-0 left-0 right-0 h-1.5 ${currentStyle.border}`} />
+                
+                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 pt-8">
                     {/* Top Row: Navigation & Actions */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         {/* Left: Project Info */}
@@ -178,7 +200,8 @@ export default function ProjectDetailsPage() {
 
                         {/* Right: Actions */}
                         <div className="flex items-center space-x-4">
-                            <div className="flex items-center mr-4">
+                            {/* Enhanced Health Status Display */}
+                            <div className={`flex items-center mr-4 px-3 py-1.5 rounded-lg border bg-white shadow-sm ${currentStyle.shadow} border-slate-100`}>
                                 <p className="mr-3 text-xs font-bold uppercase tracking-widest text-slate-400">
                                     Health
                                 </p>

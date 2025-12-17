@@ -225,6 +225,19 @@ class SyncService:
             return res
 
         try:
+            # Extract board ID if missing
+            if not project.jira_board_id:
+                try:
+                    boards = await self.jira.get_project_boards(project.jira_project_key)
+                    if boards:
+                        # Use the first board (typically the main board for the project)
+                        project.jira_board_id = boards[0].get("id")
+                        self.session.add(project)
+                        self.session.commit()
+                        logger.info("Extracted Jira board ID", board_id=project.jira_board_id)
+                except Exception as e:
+                    logger.warning("Failed to fetch Jira boards", error=str(e))
+            
             # Fetch Actions (Issues)
             issues = await self.jira.get_project_issues(project.jira_project_key)
             res.actions_count = len(issues)
@@ -247,7 +260,8 @@ class SyncService:
                         existing.priority = self._map_jira_priority(issue.priority)
                         if issue.due_date:
                             try:
-                                existing.due_date = datetime.strptime(issue.due_date, "%Y-%m-%d").date()
+                                # Parse as datetime (at midnight) to match model type
+                                existing.due_date = datetime.strptime(issue.due_date, "%Y-%m-%d")
                             except ValueError:
                                 logger.warning("Invalid due_date format", due_date=issue.due_date, issue_key=issue.key)
                         self.session.add(existing)
@@ -259,7 +273,7 @@ class SyncService:
                             status=self._map_jira_status(issue.status),
                             assignee=issue.assignee,
                             priority=self._map_jira_priority(issue.priority),
-                            due_date=datetime.strptime(issue.due_date, "%Y-%m-%d").date() if issue.due_date else None
+                            due_date=datetime.strptime(issue.due_date, "%Y-%m-%d") if issue.due_date else None
                         )
                         self.session.add(new_action)
                 except Exception as e:
@@ -332,9 +346,8 @@ class SyncService:
         if project.precursive_id and (not project.start_date or not project.end_date):
             try:
                 if not precursive_project:
-                    # Try to get project by ID - we'll need to fetch from mock data
-                    # For now, we'll use the fallback in get_project_by_url which returns first project
-                    precursive_project = await self.precursive.get_project_by_url("")
+                    # Get project by ID to ensure we get the correct project
+                    precursive_project = await self.precursive.get_project_by_id(project.precursive_id)
                 if precursive_project:
                     if not project.start_date and precursive_project.start_date:
                         try:

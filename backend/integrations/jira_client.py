@@ -253,6 +253,32 @@ class JiraClient:
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
     
+    async def get_project_boards(self, project_key: str) -> list[dict]:
+        """
+        Get boards associated with a Jira project.
+        Returns list of boards with 'id' and 'name' fields.
+        """
+        if not self.is_configured:
+            raise IntegrationError("Jira is not configured.")
+        
+        try:
+            client = await self._get_client()
+            # Use Agile API to get boards for a project
+            response = await client.get(
+                "/rest/agile/1.0/board",
+                params={"projectKeyOrId": project_key, "maxResults": 50}
+            )
+            
+            if response.status_code != 200:
+                raise IntegrationError(
+                    f"Failed to fetch boards: {response.status_code} - {response.text}"
+                )
+            
+            data = response.json()
+            return data.get("values", [])
+        except httpx.HTTPError as e:
+            raise IntegrationError(f"Jira API error: {str(e)}") from e
+    
     async def get_board_sprints(
         self, 
         board_id: int, 

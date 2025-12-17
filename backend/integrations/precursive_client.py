@@ -82,6 +82,13 @@ class PrecursiveClient:
             "project_count": len(self._data.get("projects", []))
         }
     
+    async def get_project_by_id(self, project_id: str) -> Optional[PrecursiveProject]:
+        """Find project by ID in mock data."""
+        for p in self._data.get("projects", []):
+            if p.get("id") == project_id:
+                return self._map_project(p)
+        return None
+    
     async def get_project_by_url(self, precursive_url: str) -> Optional[PrecursiveProject]:
         """Find project by URL in mock data."""
         # Try to find exact match first
