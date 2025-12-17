@@ -7,7 +7,7 @@ interface FinancialsCardProps {
 }
 
 export const FinancialsCard = ({ project }: FinancialsCardProps) => {
-    if (project.type === ProjectType.SAAS_REVENUE) {
+    if (project.type === ProjectType.RETAINER) {
         return null;
     }
 

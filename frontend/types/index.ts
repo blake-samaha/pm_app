@@ -1,12 +1,13 @@
 export enum ProjectType {
   FIXED_PRICE = "Fixed Price",
-  TM = "T&M",
-  SAAS_REVENUE = "SaaS Revenue"
+  TIME_AND_MATERIALS = "Time & Materials",
+  RETAINER = "Retainer"
 }
 
 export enum ReportingCycle {
   WEEKLY = "Weekly",
-  BI_WEEKLY = "Bi-weekly"
+  BIWEEKLY = "Bi-Weekly",
+  MONTHLY = "Monthly"
 }
 
 export enum HealthStatus {
