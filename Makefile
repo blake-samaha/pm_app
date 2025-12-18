@@ -46,3 +46,17 @@ test-integration:
 test-file:
 	cd backend && uv run pytest $(FILE) -v
 
+# Code Quality
+.PHONY: format lint setup-hooks
+
+format:
+	cd backend && uv run ruff format .
+	cd frontend && npm run format
+
+lint:
+	cd backend && uv run ruff check . --fix
+	cd backend && uv run ty check
+
+setup-hooks:
+	cd backend && uv run pre-commit install --config ../.pre-commit-config.yaml
+

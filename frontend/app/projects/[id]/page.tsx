@@ -15,7 +15,17 @@ import { RiskImpact, RiskProbability } from "@/types/actions-risks";
 import { SyncButton } from "@/components/project/SyncButton";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { TeamSection } from "@/components/project/TeamSection";
-import { ArrowLeft, Loader2, ExternalLink, Settings, CheckSquare, DollarSign, Users, ShieldAlert, X } from "lucide-react";
+import {
+    ArrowLeft,
+    Loader2,
+    ExternalLink,
+    Settings,
+    CheckSquare,
+    DollarSign,
+    Users,
+    ShieldAlert,
+    X,
+} from "lucide-react";
 import Link from "next/link";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { getErrorMessage } from "@/lib/error";
@@ -47,7 +57,10 @@ export default function ProjectDetailsPage() {
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
     const { data: risks } = useRisks(projectId); // Fetch risks here for the Matrix
-    const [matrixFilter, setMatrixFilter] = useState<{ probability: RiskProbability; impact: RiskImpact } | null>(null);
+    const [matrixFilter, setMatrixFilter] = useState<{
+        probability: RiskProbability;
+        impact: RiskImpact;
+    } | null>(null);
     const {
         data: syncStatus,
         isLoading: statusLoading,
@@ -61,7 +74,7 @@ export default function ProjectDetailsPage() {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 pb-12">
-                <div className="bg-white shadow-sm border-b border-slate-200">
+                <div className="border-b border-slate-200 bg-white shadow-sm">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         <div className="flex flex-col gap-6">
                             <div className="flex items-center space-x-4">
@@ -119,20 +132,20 @@ export default function ProjectDetailsPage() {
             border: "border-green-500",
             bg: "bg-green-50",
             text: "text-green-700",
-            shadow: "shadow-green-100"
+            shadow: "shadow-green-100",
         },
         [HealthStatus.YELLOW]: {
             border: "border-yellow-500",
             bg: "bg-yellow-50",
             text: "text-yellow-700",
-            shadow: "shadow-yellow-100"
+            shadow: "shadow-yellow-100",
         },
         [HealthStatus.RED]: {
             border: "border-red-500",
             bg: "bg-red-50",
             text: "text-red-700",
-            shadow: "shadow-red-100"
-        }
+            shadow: "shadow-red-100",
+        },
     };
 
     const currentStyle = healthStyles[currentHealth] || healthStyles[HealthStatus.GREEN];
@@ -140,19 +153,18 @@ export default function ProjectDetailsPage() {
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
             {/* Header with Health Status Indicator */}
-            <header className={`relative shadow-sm transition-all duration-300 ${currentStyle.bg} border-b border-slate-200`}>
+            <header
+                className={`relative shadow-sm transition-all duration-300 ${currentStyle.bg} border-b border-slate-200`}
+            >
                 {/* Top Health Border Strip */}
-                <div className={`absolute top-0 left-0 right-0 h-1.5 ${currentStyle.border}`} />
-                
-                <div className="mx-auto max-w-screen-2xl px-4 py-4 sm:px-6 lg:px-8 pt-6">
+                <div className={`absolute left-0 right-0 top-0 h-1.5 ${currentStyle.border}`} />
+
+                <div className="mx-auto max-w-screen-2xl px-4 py-4 pt-6 sm:px-6 lg:px-8">
                     {/* Top Row: Navigation & Actions */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                         {/* Left: Project Info */}
                         <div className="flex items-center space-x-4">
-                            <Link
-                                href="/"
-                                className="text-slate-400 hover:text-slate-600"
-                            >
+                            <Link href="/" className="text-slate-400 hover:text-slate-600">
                                 <ArrowLeft className="h-6 w-6" />
                             </Link>
                             {/* Project Logo */}
@@ -163,7 +175,7 @@ export default function ProjectDetailsPage() {
                                     <img
                                         src={logoUrl}
                                         alt={`${project.name} logo`}
-                                        className="h-12 w-12 rounded-lg object-cover bg-slate-50 shadow-sm ring-1 ring-slate-900/5"
+                                        className="h-12 w-12 rounded-lg bg-slate-50 object-cover shadow-sm ring-1 ring-slate-900/5"
                                         onError={() => setLogoError(true)}
                                     />
                                 ) : (
@@ -173,7 +185,7 @@ export default function ProjectDetailsPage() {
                                 );
                             })()}
                             <div>
-                                <h1 className="text-2xl font-bold text-slate-900 truncate">
+                                <h1 className="truncate text-2xl font-bold text-slate-900">
                                     {project.name}
                                 </h1>
                                 <div className="mt-1 flex items-center space-x-4 text-sm text-slate-500">
@@ -181,20 +193,18 @@ export default function ProjectDetailsPage() {
                                         href={project.jira_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center hover:text-blue-600 transition-colors"
+                                        className="flex items-center transition-colors hover:text-blue-600"
                                     >
-                                        Jira Board{" "}
-                                        <ExternalLink className="ml-1 h-3 w-3" />
+                                        Jira Board <ExternalLink className="ml-1 h-3 w-3" />
                                     </a>
                                     <span className="text-slate-300">•</span>
                                     <a
                                         href={project.precursive_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center hover:text-blue-600 transition-colors"
+                                        className="flex items-center transition-colors hover:text-blue-600"
                                     >
-                                        Precursive{" "}
-                                        <ExternalLink className="ml-1 h-3 w-3" />
+                                        Precursive <ExternalLink className="ml-1 h-3 w-3" />
                                     </a>
                                 </div>
                             </div>
@@ -203,7 +213,9 @@ export default function ProjectDetailsPage() {
                         {/* Right: Actions */}
                         <div className="flex items-center space-x-4">
                             {/* Enhanced Health Status Display */}
-                            <div className={`flex items-center mr-4 px-3 py-1.5 rounded-lg border bg-white shadow-sm ${currentStyle.shadow} border-slate-100`}>
+                            <div
+                                className={`mr-4 flex items-center rounded-lg border bg-white px-3 py-1.5 shadow-sm ${currentStyle.shadow} border-slate-100`}
+                            >
                                 <p className="mr-3 text-xs font-bold uppercase tracking-widest text-slate-400">
                                     Health
                                 </p>
@@ -214,13 +226,13 @@ export default function ProjectDetailsPage() {
                                     variant="solid"
                                 />
                             </div>
-                            
+
                             {user?.role === "Cogniter" && (
                                 <>
                                     <SyncButton projectId={project.id} />
                                     <button
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                                        className="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                                         title="Project Settings"
                                     >
                                         <Settings className="h-5 w-5" />
@@ -232,45 +244,67 @@ export default function ProjectDetailsPage() {
 
                     {/* Bottom Row: Tabs */}
                     <div className="mt-2 overflow-x-auto pb-1">
-                        <TabsList className="bg-transparent p-0 space-x-6 min-w-max">
-                            <TabsTrigger 
-                                isActive={activeTab === "work"} 
+                        <TabsList className="min-w-max space-x-6 bg-transparent p-0">
+                            <TabsTrigger
+                                isActive={activeTab === "work"}
                                 onClick={() => setActiveTab("work")}
-                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
                             >
                                 <div className="flex items-center space-x-2">
-                                    <CheckSquare className={`h-4 w-4 ${activeTab === "work" ? "text-indigo-600" : ""}`} />
-                                    <span className={activeTab === "work" ? "text-indigo-600" : ""}>Work & Sprints</span>
+                                    <CheckSquare
+                                        className={`h-4 w-4 ${activeTab === "work" ? "text-indigo-600" : ""}`}
+                                    />
+                                    <span className={activeTab === "work" ? "text-indigo-600" : ""}>
+                                        Work & Sprints
+                                    </span>
                                 </div>
                             </TabsTrigger>
-                            <TabsTrigger 
-                                isActive={activeTab === "risks"} 
+                            <TabsTrigger
+                                isActive={activeTab === "risks"}
                                 onClick={() => setActiveTab("risks")}
-                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
                             >
                                 <div className="flex items-center space-x-2">
-                                    <ShieldAlert className={`h-4 w-4 ${activeTab === "risks" ? "text-indigo-600" : ""}`} />
-                                    <span className={activeTab === "risks" ? "text-indigo-600" : ""}>Risks</span>
+                                    <ShieldAlert
+                                        className={`h-4 w-4 ${activeTab === "risks" ? "text-indigo-600" : ""}`}
+                                    />
+                                    <span
+                                        className={activeTab === "risks" ? "text-indigo-600" : ""}
+                                    >
+                                        Risks
+                                    </span>
                                 </div>
                             </TabsTrigger>
-                            <TabsTrigger 
-                                isActive={activeTab === "financials"} 
+                            <TabsTrigger
+                                isActive={activeTab === "financials"}
                                 onClick={() => setActiveTab("financials")}
-                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
                             >
                                 <div className="flex items-center space-x-2">
-                                    <DollarSign className={`h-4 w-4 ${activeTab === "financials" ? "text-indigo-600" : ""}`} />
-                                    <span className={activeTab === "financials" ? "text-indigo-600" : ""}>Financials</span>
+                                    <DollarSign
+                                        className={`h-4 w-4 ${activeTab === "financials" ? "text-indigo-600" : ""}`}
+                                    />
+                                    <span
+                                        className={
+                                            activeTab === "financials" ? "text-indigo-600" : ""
+                                        }
+                                    >
+                                        Financials
+                                    </span>
                                 </div>
                             </TabsTrigger>
-                            <TabsTrigger 
-                                isActive={activeTab === "team"} 
+                            <TabsTrigger
+                                isActive={activeTab === "team"}
                                 onClick={() => setActiveTab("team")}
-                                className="border-b-2 border-transparent data-[state=active]:border-indigo-600 rounded-none bg-transparent p-0 pb-2 shadow-none text-base"
+                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
                             >
                                 <div className="flex items-center space-x-2">
-                                    <Users className={`h-4 w-4 ${activeTab === "team" ? "text-indigo-600" : ""}`} />
-                                    <span className={activeTab === "team" ? "text-indigo-600" : ""}>Team</span>
+                                    <Users
+                                        className={`h-4 w-4 ${activeTab === "team" ? "text-indigo-600" : ""}`}
+                                    />
+                                    <span className={activeTab === "team" ? "text-indigo-600" : ""}>
+                                        Team
+                                    </span>
                                 </div>
                             </TabsTrigger>
                         </TabsList>
@@ -295,7 +329,7 @@ export default function ProjectDetailsPage() {
                         {/* Right Column (Sidebar) */}
                         <div className="space-y-6 lg:col-span-4 xl:col-span-3">
                             <Timeline project={project} />
-                            
+
                             {/* Sync Status Card */}
                             <div>
                                 {statusLoading && (
@@ -311,27 +345,38 @@ export default function ProjectDetailsPage() {
                                     />
                                 )}
                                 {!statusLoading && !statusError && syncStatus && (
-                                    <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-2">
+                                    <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-slate-700">Last synced</span>
+                                            <span className="text-sm font-medium text-slate-700">
+                                                Last synced
+                                            </span>
                                             <span className="text-sm text-slate-600">
                                                 {syncStatus.last_synced_at
-                                                    ? new Date(syncStatus.last_synced_at).toLocaleString()
+                                                    ? new Date(
+                                                          syncStatus.last_synced_at
+                                                      ).toLocaleString()
                                                     : "Never"}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-slate-700">Jira configured</span>
+                                            <span className="text-sm font-medium text-slate-700">
+                                                Jira configured
+                                            </span>
                                             <div className="flex items-center space-x-2">
                                                 {syncStatus.jira_project_key && (
-                                                    <span 
+                                                    <span
                                                         className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
-                                                        title={syncStatus.jira_project_name || syncStatus.jira_project_key}
+                                                        title={
+                                                            syncStatus.jira_project_name ||
+                                                            syncStatus.jira_project_key
+                                                        }
                                                     >
                                                         {syncStatus.jira_project_name ? (
                                                             <>
-                                                                {syncStatus.jira_project_name} 
-                                                                <span className="opacity-75 ml-1">({syncStatus.jira_project_key})</span>
+                                                                {syncStatus.jira_project_name}
+                                                                <span className="ml-1 opacity-75">
+                                                                    ({syncStatus.jira_project_key})
+                                                                </span>
                                                             </>
                                                         ) : (
                                                             syncStatus.jira_project_key
@@ -346,7 +391,7 @@ export default function ProjectDetailsPage() {
                                     </div>
                                 )}
                             </div>
-                            
+
                             {/* Removed sidebar RiskList */}
                         </div>
                     </div>
@@ -357,7 +402,7 @@ export default function ProjectDetailsPage() {
                     <div className="grid gap-6 lg:grid-cols-12">
                         <div className="space-y-6 lg:col-span-8 xl:col-span-9">
                             {/* Detailed Risk List */}
-                            <RiskList 
+                            <RiskList
                                 projectId={project.id}
                                 filterByProbability={matrixFilter?.probability}
                                 filterByImpact={matrixFilter?.impact}
@@ -365,26 +410,29 @@ export default function ProjectDetailsPage() {
                         </div>
                         <div className="space-y-6 lg:col-span-4 xl:col-span-3">
                             {/* Risk Matrix Heatmap */}
-                            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden sticky top-8">
-                                <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-white">
+                            <div className="sticky top-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex items-center justify-between border-b border-slate-100 bg-white px-6 py-4">
                                     <h3 className="font-semibold text-slate-900">Risk Heatmap</h3>
                                     {matrixFilter && (
                                         <button
                                             onClick={() => setMatrixFilter(null)}
-                                            className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors"
+                                            className="flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-700"
                                         >
                                             <X className="h-3 w-3" />
                                             Clear filter
                                         </button>
                                     )}
                                 </div>
-                                <div className="p-6 flex items-center justify-center">
-                                    <RiskMatrix 
+                                <div className="flex items-center justify-center p-6">
+                                    <RiskMatrix
                                         risks={risks || []}
                                         selectedCell={matrixFilter}
                                         onCellClick={(probability, impact) => {
                                             // Toggle: if clicking the same cell, clear filter
-                                            if (matrixFilter?.probability === probability && matrixFilter?.impact === impact) {
+                                            if (
+                                                matrixFilter?.probability === probability &&
+                                                matrixFilter?.impact === impact
+                                            ) {
                                                 setMatrixFilter(null);
                                             } else {
                                                 setMatrixFilter({ probability, impact });
@@ -402,7 +450,7 @@ export default function ProjectDetailsPage() {
                     <div className="grid gap-6 lg:grid-cols-2">
                         <FinancialsCard project={project} />
                         {/* Placeholder for future financial widgets */}
-                        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 flex items-center justify-center text-slate-400">
+                        <div className="flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-400">
                             <p>Detailed budget breakdown coming soon</p>
                         </div>
                     </div>
@@ -416,7 +464,7 @@ export default function ProjectDetailsPage() {
                 </TabsContent>
             </main>
 
-            <EditProjectModal 
+            <EditProjectModal
                 project={project}
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}

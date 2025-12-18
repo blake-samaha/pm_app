@@ -30,12 +30,8 @@ export const ProjectList = () => {
     if (!projects || projects.length === 0) {
         return (
             <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-center">
-                <h3 className="text-lg font-medium text-gray-900">
-                    No projects found
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                    Get started by creating a new project.
-                </p>
+                <h3 className="text-lg font-medium text-gray-900">No projects found</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
             </div>
         );
     }

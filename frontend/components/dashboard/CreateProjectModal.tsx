@@ -14,10 +14,7 @@ interface CreateProjectModalProps {
     onClose: () => void;
 }
 
-export const CreateProjectModal = ({
-    isOpen,
-    onClose,
-}: CreateProjectModalProps) => {
+export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps) => {
     const createProject = useCreateProject();
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -38,10 +35,10 @@ export const CreateProjectModal = ({
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
-        
+
         // Determine final logo URL
         let finalLogoUrl: string | null = logoUrl;
-        
+
         // If a file was selected, upload it first
         if (logoFile) {
             try {
@@ -76,9 +73,7 @@ export const CreateProjectModal = ({
             },
             onError: (error: any) => {
                 toast.error("Failed to create project", {
-                    description:
-                        error.response?.data?.detail ||
-                        "An unexpected error occurred.",
+                    description: error.response?.data?.detail || "An unexpected error occurred.",
                 });
             },
         });
@@ -90,13 +85,8 @@ export const CreateProjectModal = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
             <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
                 <div className="flex items-center justify-between border-b p-6">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                        Create New Project
-                    </h2>
-                    <button
-                        onClick={handleClose}
-                        className="text-gray-400 hover:text-gray-500"
-                    >
+                    <h2 className="text-xl font-semibold text-gray-900">Create New Project</h2>
+                    <button onClick={handleClose} className="text-gray-400 hover:text-gray-500">
                         <X className="h-6 w-6" />
                     </button>
                 </div>
@@ -104,16 +94,13 @@ export const CreateProjectModal = ({
                 <form onSubmit={handleSubmit} className="space-y-4 p-6">
                     {createProject.isError && (
                         <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-                            {(createProject.error as any)?.response?.data
-                                ?.detail || "Failed to create project"}
+                            {(createProject.error as any)?.response?.data?.detail ||
+                                "Failed to create project"}
                         </div>
                     )}
 
                     <div>
-                        <label
-                            htmlFor="name"
-                            className="block text-sm font-medium text-gray-700"
-                        >
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                             Project Name
                         </label>
                         <input
@@ -200,7 +187,7 @@ export const CreateProjectModal = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
                             Client Logo
                         </label>
                         <ImageUpload

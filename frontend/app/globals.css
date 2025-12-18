@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
+    body {
+        @apply bg-slate-50 text-slate-900 antialiased;
+    }
 }
 
 @layer utilities {
-  .transition-all-200 {
-    @apply transition-all duration-200 ease-in-out;
-  }
+    .transition-all-200 {
+        @apply transition-all duration-200 ease-in-out;
+    }
 }

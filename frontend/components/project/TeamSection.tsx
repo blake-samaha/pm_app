@@ -62,8 +62,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                 onError: (error: any) => {
                     toast.error("Failed to remove user", {
                         description:
-                            error.response?.data?.detail ||
-                            "An unexpected error occurred.",
+                            error.response?.data?.detail || "An unexpected error occurred.",
                     });
                 },
             }
@@ -83,7 +82,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                             size="sm"
                             variant="outline"
                             onClick={() => setIsModalOpen(true)}
-                            className="h-8 bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
+                            className="h-8 border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                         >
                             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                             Add Member
@@ -101,7 +100,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                         </div>
                     ) : !users || users.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
-                            <div className="rounded-full bg-slate-50 p-4 border border-slate-100">
+                            <div className="rounded-full border border-slate-100 bg-slate-50 p-4">
                                 <Users className="h-6 w-6 text-slate-300" />
                             </div>
                             <p className="mt-4 text-sm font-semibold text-slate-900">
@@ -116,7 +115,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                             {users.map((user) => (
                                 <li
                                     key={user.id}
-                                    className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors"
+                                    className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-slate-50/50"
                                 >
                                     <div className="flex items-center space-x-4">
                                         <div
@@ -130,13 +129,13 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                                                     {user.name}
                                                 </p>
                                                 {user.is_pending && (
-                                                    <span className="flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-100">
+                                                    <span className="flex items-center rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
                                                         <Clock className="mr-1 h-2.5 w-2.5" />
                                                         Pending
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 font-medium">
+                                            <p className="text-xs font-medium text-slate-500">
                                                 {user.email}
                                             </p>
                                         </div>
@@ -145,8 +144,8 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                                         <span
                                             className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
                                                 user.role === UserRole.COGNITER
-                                                    ? "bg-blue-50 text-blue-700 border border-blue-100"
-                                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                                                    ? "border border-blue-100 bg-blue-50 text-blue-700"
+                                                    : "border border-slate-200 bg-slate-100 text-slate-600"
                                             }`}
                                         >
                                             {user.role}
@@ -154,7 +153,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                                         <button
                                             onClick={() => handleRemoveUser(user)}
                                             disabled={removeUser.isPending}
-                                            className="rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
+                                            className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                                             title="Remove from project"
                                         >
                                             {removeUser.isPending ? (
@@ -180,4 +179,3 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
         </>
     );
 };
-

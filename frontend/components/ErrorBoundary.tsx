@@ -39,13 +39,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
         this.setState({ errorInfo });
-        
+
         // Log error to console in development
         if (process.env.NODE_ENV === "development") {
             console.error("ErrorBoundary caught an error:", error);
             console.error("Component stack:", errorInfo.componentStack);
         }
-        
+
         // TODO: Send to error reporting service in production
         // e.g., Sentry, LogRocket, etc.
     }
@@ -96,12 +96,12 @@ ${errorInfo?.componentStack}
             }
 
             return (
-                <div className="min-h-[400px] flex items-center justify-center p-6">
-                    <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden">
+                <div className="flex min-h-[400px] items-center justify-center p-6">
+                    <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-red-200 bg-white shadow-lg">
                         {/* Header */}
-                        <div className="bg-red-50 px-6 py-4 border-b border-red-200">
+                        <div className="border-b border-red-200 bg-red-50 px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-red-100 rounded-full">
+                                <div className="rounded-full bg-red-100 p-2">
                                     <AlertTriangle className="h-6 w-6 text-red-600" />
                                 </div>
                                 <div>
@@ -118,11 +118,11 @@ ${errorInfo?.componentStack}
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 space-y-4">
+                        <div className="space-y-4 p-6">
                             {/* Error message */}
                             {isDev && error && (
-                                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                                    <code className="text-red-400 text-sm font-mono">
+                                <div className="overflow-x-auto rounded-lg bg-gray-900 p-4">
+                                    <code className="font-mono text-sm text-red-400">
                                         {error.message}
                                     </code>
                                 </div>
@@ -130,10 +130,10 @@ ${errorInfo?.componentStack}
 
                             {/* Expandable details (dev only) */}
                             {isDev && (
-                                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="overflow-hidden rounded-lg border border-gray-200">
                                     <button
                                         onClick={this.toggleDetails}
-                                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                        className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 transition-colors hover:bg-gray-100"
                                     >
                                         <span className="text-sm font-medium text-gray-700">
                                             Stack Trace & Details
@@ -146,17 +146,17 @@ ${errorInfo?.componentStack}
                                     </button>
 
                                     {showDetails && (
-                                        <div className="p-4 bg-gray-900 max-h-64 overflow-auto">
-                                            <pre className="text-xs text-gray-300 font-mono whitespace-pre-wrap">
+                                        <div className="max-h-64 overflow-auto bg-gray-900 p-4">
+                                            <pre className="whitespace-pre-wrap font-mono text-xs text-gray-300">
                                                 {error?.stack}
                                             </pre>
                                             {errorInfo?.componentStack && (
                                                 <>
                                                     <div className="my-3 border-t border-gray-700" />
-                                                    <p className="text-xs text-gray-500 mb-2">
+                                                    <p className="mb-2 text-xs text-gray-500">
                                                         Component Stack:
                                                     </p>
-                                                    <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap">
+                                                    <pre className="whitespace-pre-wrap font-mono text-xs text-gray-400">
                                                         {errorInfo.componentStack}
                                                     </pre>
                                                 </>
@@ -170,7 +170,7 @@ ${errorInfo?.componentStack}
                             <div className="flex items-center gap-3 pt-2">
                                 <button
                                     onClick={this.handleReset}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                                 >
                                     <RefreshCw className="h-4 w-4" />
                                     Try Again
@@ -179,7 +179,7 @@ ${errorInfo?.componentStack}
                                 {isDev && (
                                     <button
                                         onClick={this.handleCopyError}
-                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                                        className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
                                     >
                                         <Copy className="h-4 w-4" />
                                         {copied ? "Copied!" : "Copy Error"}
@@ -188,7 +188,7 @@ ${errorInfo?.componentStack}
 
                                 <button
                                     onClick={() => window.location.reload()}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
+                                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
                                 >
                                     Reload Page
                                 </button>
@@ -228,4 +228,3 @@ export function withErrorBoundary<P extends object>(
 }
 
 export default ErrorBoundary;
-

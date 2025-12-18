@@ -1,11 +1,15 @@
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel
-from models.project import ProjectBase, HealthStatus, ReportingCycle
+
+from models.project import HealthStatus, ProjectBase, ReportingCycle
+
 
 class ProjectCreate(ProjectBase):
     pass
+
 
 class ProjectRead(ProjectBase):
     id: UUID
@@ -15,6 +19,7 @@ class ProjectRead(ProjectBase):
     jira_project_name: Optional[str] = None
     jira_board_id: Optional[int] = None
     sprint_goals: Optional[str] = None
+
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None

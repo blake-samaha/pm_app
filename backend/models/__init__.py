@@ -1,9 +1,13 @@
 """Models package - exports all models and enums."""
+
+# ruff: noqa: E402
+
 from enum import Enum
 
 
 class UserRole(str, Enum):
     COGNITER = "Cogniter"
+    CLIENT_FINANCIALS = "Client + Financials"
     CLIENT = "Client"
 
 
@@ -44,12 +48,12 @@ class RiskStatus(str, Enum):
 
 
 # Import all models (order matters for relationships)
-from models.links import UserProjectLink
-from models.user import User
-from models.project import Project, ProjectType, ReportingCycle, HealthStatus
 from models.action_item import ActionItem
 from models.comment import Comment
+from models.links import UserProjectLink
+from models.project import HealthStatus, Project, ProjectType, ReportingCycle
 from models.risk import Risk
+from models.user import User
 
 __all__ = [
     # Enums

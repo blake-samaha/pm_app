@@ -48,13 +48,7 @@ export const useAssignUser = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            projectId,
-            userId,
-        }: {
-            projectId: string;
-            userId: string;
-        }) => {
+        mutationFn: async ({ projectId, userId }: { projectId: string; userId: string }) => {
             await api.post(`/projects/${projectId}/users/${userId}`);
         },
         onSuccess: (_, { projectId }) => {
@@ -73,13 +67,7 @@ export const useRemoveUser = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            projectId,
-            userId,
-        }: {
-            projectId: string;
-            userId: string;
-        }) => {
+        mutationFn: async ({ projectId, userId }: { projectId: string; userId: string }) => {
             await api.delete(`/projects/${projectId}/users/${userId}`);
         },
         onSuccess: (_, { projectId }) => {
@@ -99,17 +87,10 @@ export const useInviteUser = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            projectId,
-            email,
-        }: {
-            projectId: string;
-            email: string;
-        }) => {
-            const { data } = await api.post<InviteUserResponse>(
-                `/projects/${projectId}/invite`,
-                { email }
-            );
+        mutationFn: async ({ projectId, email }: { projectId: string; email: string }) => {
+            const { data } = await api.post<InviteUserResponse>(`/projects/${projectId}/invite`, {
+                email,
+            });
             return data;
         },
         onSuccess: (_, { projectId }) => {
@@ -124,4 +105,3 @@ export const useInviteUser = () => {
         },
     });
 };
-

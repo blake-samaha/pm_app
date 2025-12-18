@@ -111,13 +111,14 @@ frontend/
 │
 ├── lib/                        # Utilities and Configuration
 │   ├── api.ts                  # Axios instance & interceptors
+│   ├── permissions.ts          # Role-based permission helpers
 │   └── utils.ts                # Helper functions (Tailwind merge, etc.)
 │
 ├── store/                      # Global Client State (Zustand)
 │   └── authStore.ts            # Authenticated user/session
 │
 ├── types/                      # TypeScript Definitions
-│   ├── index.ts                # Project domain types
+│   ├── index.ts                # Project domain types (includes UserRole enum)
 │   ├── actions-risks.ts        # Action & risk types
 │   └── all.ts                  # Barrel exports
 │
@@ -380,7 +381,77 @@ if (!isAuthenticated) {
 - Create a `ProtectedLayout` wrapper component
 - Or use a higher-order component pattern
 
-## 6. UI/UX System (🟢 IMPLEMENTED)
+## 6. Authorization & Permissions (🟢 IMPLEMENTED)
+
+The frontend implements role-based UI gating to match the backend's three-tier persona system.
+
+### 6.1. User Roles
+
+```typescript
+// types/index.ts
+export enum UserRole {
+  COGNITER = "Cogniter",           // Full access
+  CLIENT_FINANCIALS = "Client + Financials",  // Projects + Financials
+  CLIENT = "Client"                // Projects only
+}
+```
+
+### 6.2. Permission Helpers (`lib/permissions.ts`)
+
+Pure functions for checking user capabilities:
+
+```typescript
+// lib/permissions.ts
+import { UserRole } from '@/types';
+
+export const isCogniter = (role: UserRole): boolean => 
+    role === UserRole.COGNITER;
+
+export const canViewFinancials = (role: UserRole): boolean =>
+    role === UserRole.COGNITER || role === UserRole.CLIENT_FINANCIALS;
+
+export const isClientRole = (role: UserRole): boolean =>
+    role === UserRole.CLIENT || role === UserRole.CLIENT_FINANCIALS;
+```
+
+### 6.3. Usage in Components
+
+Components use these helpers to conditionally render UI based on user role:
+
+```typescript
+// components/project/FinancialsCard.tsx
+import { useAuthStore } from "@/store/authStore";
+import { canViewFinancials } from "@/lib/permissions";
+
+export const FinancialsCard = ({ project }: FinancialsCardProps) => {
+    const { user } = useAuthStore();
+
+    // Gate visibility by role
+    if (!user || !canViewFinancials(user.role as UserRole)) {
+        return null;
+    }
+
+    // ... render financial data
+};
+```
+
+### 6.4. Auth Store Role Type
+
+The Zustand auth store supports all three roles:
+
+```typescript
+// store/authStore.ts
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'Cogniter' | 'Client + Financials' | 'Client';
+}
+```
+
+---
+
+## 7. UI/UX System (🟢 IMPLEMENTED)
 
 - **Shadcn UI**:
   - ✅ The project uses Shadcn-style components copied into `components/ui`
@@ -400,7 +471,7 @@ if (!isAuthenticated) {
 - ❌ No error boundaries
 - ❌ Limited accessibility (no ARIA labels, keyboard navigation)
 
-## 7. API Integration (🟢 IMPLEMENTED)
+## 8. API Integration (🟢 IMPLEMENTED)
 
 - **Centralized Client**:
   - ✅ A singleton Axios instance in `lib/api.ts` manages the base URL and default headers
@@ -444,7 +515,7 @@ api.interceptors.request.use(
 - ❌ No request/response logging in development
 - ❌ No request cancellation on component unmount
 
-## 8. Testing Strategy (🔴 NOT IMPLEMENTED)
+## 9. Testing Strategy (🔴 NOT IMPLEMENTED)
 
 **Current Status:** There are **zero tests** in the frontend codebase.
 
@@ -470,9 +541,9 @@ api.interceptors.request.use(
 
 ---
 
-## 9. Known Issues & Technical Debt
+## 10. Known Issues & Technical Debt
 
-### 9.1. Critical Issues (Must Fix)
+### 10.1. Critical Issues (Must Fix)
 
 1. **🔴 Token Storage Bug** (Section 5.3)
    - Token stored in both localStorage and Zustand but not persisted correctly
@@ -490,7 +561,7 @@ api.interceptors.request.use(
    - Destroys entire component tree unnecessarily
    - Fix: Use React Query automatic invalidation
 
-### 9.2. High Priority Issues
+### 10.2. High Priority Issues
 
 4. **🟡 No Error Boundaries**
    - Any component error crashes the entire app
@@ -505,7 +576,7 @@ api.interceptors.request.use(
    - Poor UX with browser native alerts
    - Fix: Install sonner or react-hot-toast
 
-### 9.3. Medium Priority Issues
+### 10.3. Medium Priority Issues
 
 7. **🟡 No Form Validation**
    - Only HTML5 `required` attribute
@@ -525,7 +596,7 @@ api.interceptors.request.use(
     - Should read from Zustand store
     - Inconsistent with state management pattern
 
-### 9.4. Low Priority / Nice to Have
+### 10.4. Low Priority / Nice to Have
 
 11. **🟢 No Accessibility Features**
     - Missing ARIA labels
@@ -542,7 +613,7 @@ api.interceptors.request.use(
 
 ---
 
-## 10. Migration Plan: React Query Integration
+## 11. Migration Plan: React Query Integration
 
 ### Phase 1: Setup (30 minutes)
 
@@ -603,7 +674,7 @@ api.interceptors.request.use(
 
 ---
 
-## 11. Next Steps & Roadmap
+## 12. Next Steps & Roadmap
 
 ### Immediate (Next Sprint)
 - [ ] Fix token storage bug (15 min)

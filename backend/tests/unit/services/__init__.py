@@ -1,2 +1,1 @@
 """Service unit tests package."""
-

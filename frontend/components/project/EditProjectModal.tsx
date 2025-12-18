@@ -15,13 +15,11 @@ interface EditProjectModalProps {
     onClose: () => void;
 }
 
-export const EditProjectModal = ({
-    project,
-    isOpen,
-    onClose,
-}: EditProjectModalProps) => {
+export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalProps) => {
     const updateProject = useUpdateProject();
-    const [activeTab, setActiveTab] = useState<"general" | "branding" | "health" | "sprint" | "visibility">("general");
+    const [activeTab, setActiveTab] = useState<
+        "general" | "branding" | "health" | "sprint" | "visibility"
+    >("general");
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoUrl, setLogoUrl] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -60,12 +58,12 @@ export const EditProjectModal = ({
 
         // Determine final logo URL
         let finalLogoUrl: string | null = formData.client_logo_url || null;
-        
+
         // If a new URL was provided, use it
         if (logoUrl) {
             finalLogoUrl = logoUrl;
         }
-        
+
         // If a file was selected, upload it first
         if (logoFile) {
             try {
@@ -104,8 +102,7 @@ export const EditProjectModal = ({
                 onError: (error: any) => {
                     toast.error("Failed to update project", {
                         description:
-                            error.response?.data?.detail ||
-                            "An unexpected error occurred.",
+                            error.response?.data?.detail || "An unexpected error occurred.",
                     });
                 },
             }
@@ -116,12 +113,10 @@ export const EditProjectModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden">
+            <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b px-6 py-4">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                        Project Settings
-                    </h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Project Settings</h2>
                     <button
                         onClick={onClose}
                         className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
@@ -131,10 +126,10 @@ export const EditProjectModal = ({
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b px-6 overflow-x-auto">
+                <div className="flex overflow-x-auto border-b px-6">
                     <button
                         onClick={() => setActiveTab("general")}
-                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                        className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                             activeTab === "general"
                                 ? "border-blue-600 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -144,7 +139,7 @@ export const EditProjectModal = ({
                     </button>
                     <button
                         onClick={() => setActiveTab("branding")}
-                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                        className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                             activeTab === "branding"
                                 ? "border-blue-600 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -154,7 +149,7 @@ export const EditProjectModal = ({
                     </button>
                     <button
                         onClick={() => setActiveTab("health")}
-                        className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                        className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                             activeTab === "health"
                                 ? "border-blue-600 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -209,7 +204,10 @@ export const EditProjectModal = ({
                                 <select
                                     value={formData.reporting_cycle}
                                     onChange={(e) =>
-                                        setFormData({ ...formData, reporting_cycle: e.target.value })
+                                        setFormData({
+                                            ...formData,
+                                            reporting_cycle: e.target.value,
+                                        })
                                     }
                                     className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
@@ -254,11 +252,12 @@ export const EditProjectModal = ({
                         <div className="space-y-4">
                             <div className="rounded-md bg-purple-50 p-4">
                                 <p className="text-sm text-purple-700">
-                                    Add a client logo to personalize this project. You can upload an image or provide a URL to an existing logo.
+                                    Add a client logo to personalize this project. You can upload an
+                                    image or provide a URL to an existing logo.
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
                                     Client Logo
                                 </label>
                                 <ImageUpload
@@ -276,7 +275,8 @@ export const EditProjectModal = ({
                         <div className="space-y-4">
                             <div className="rounded-md bg-blue-50 p-4">
                                 <p className="text-sm text-blue-700">
-                                    The system automatically calculates health based on Precursive data. Use this setting to manually override that status.
+                                    The system automatically calculates health based on Precursive
+                                    data. Use this setting to manually override that status.
                                 </p>
                             </div>
                             <div>
@@ -286,7 +286,10 @@ export const EditProjectModal = ({
                                 <select
                                     value={formData.health_status_override}
                                     onChange={(e) =>
-                                        setFormData({ ...formData, health_status_override: e.target.value })
+                                        setFormData({
+                                            ...formData,
+                                            health_status_override: e.target.value,
+                                        })
                                     }
                                     className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
@@ -305,8 +308,8 @@ export const EditProjectModal = ({
                         <div className="space-y-4">
                             <div className="rounded-md bg-indigo-50 p-4">
                                 <p className="text-sm text-indigo-700">
-                                    Sprint goals are automatically synced from your active Jira sprint. 
-                                    You can also manually override them here.
+                                    Sprint goals are automatically synced from your active Jira
+                                    sprint. You can also manually override them here.
                                 </p>
                             </div>
                             <div>
@@ -320,7 +323,7 @@ export const EditProjectModal = ({
                                     }
                                     rows={5}
                                     placeholder="Enter the goals for the current sprint..."
-                                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                                    className="mt-1 block w-full resize-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 />
                                 <p className="mt-2 text-xs text-gray-500">
                                     This will be displayed on the project details page.
@@ -343,7 +346,10 @@ export const EditProjectModal = ({
                                         type="checkbox"
                                         checked={formData.is_published}
                                         onChange={(e) =>
-                                            setFormData({ ...formData, is_published: e.target.checked })
+                                            setFormData({
+                                                ...formData,
+                                                is_published: e.target.checked,
+                                            })
                                         }
                                         className="peer sr-only"
                                     />
@@ -354,7 +360,7 @@ export const EditProjectModal = ({
                     )}
 
                     {/* Footer */}
-                    <div className="mt-8 flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                    <div className="mt-8 flex justify-end space-x-3 border-t border-gray-100 pt-4">
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
@@ -370,4 +376,3 @@ export const EditProjectModal = ({
         </div>
     );
 };
-

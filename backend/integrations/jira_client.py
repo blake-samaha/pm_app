@@ -1,8 +1,10 @@
 """Jira API client for fetching project data."""
+
 import base64
-import httpx
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
+import httpx
 
 from config import Settings
 from exceptions import IntegrationError
@@ -11,6 +13,7 @@ from exceptions import IntegrationError
 @dataclass
 class JiraProject:
     """Jira project data."""
+
     key: str
     name: str
     id: str
@@ -20,6 +23,7 @@ class JiraProject:
 @dataclass
 class JiraIssue:
     """Jira issue data."""
+
     id: str  # Internal Jira issue ID
     key: str  # Public issue key like "PROJ-123"
     summary: str
@@ -35,6 +39,7 @@ class JiraIssue:
 @dataclass
 class JiraSprint:
     """Jira sprint data."""
+
     id: int
     name: str
     state: str  # active, closed, future
@@ -45,18 +50,18 @@ class JiraSprint:
 
 class JiraClient:
     """Client for interacting with Jira Cloud API using API Token authentication."""
-    
+
     def __init__(self, settings: Settings):
         self.base_url = settings.jira_base_url.rstrip("/")
         self.email = settings.jira_email
         self.api_token = settings.jira_api_token
         self._client: Optional[httpx.AsyncClient] = None
-    
+
     @property
     def is_configured(self) -> bool:
         """Check if Jira API token credentials are configured."""
         return bool(self.base_url and self.email and self.api_token)
-    
+
     def _get_auth_header(self) -> str:
         """Generate Basic auth header from email and API token."""
         credentials = f"{self.email}:{self.api_token}"
@@ -118,7 +123,7 @@ class JiraClient:
             start_at += received
 
         return issues[:max_results]
-    
+
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with API token authentication."""
         if self._client is None or self._client.is_closed:
@@ -128,17 +133,17 @@ class JiraClient:
                 headers={
                     "Accept": "application/json",
                     "Content-Type": "application/json",
-                    "Authorization": self._get_auth_header()
-                }
+                    "Authorization": self._get_auth_header(),
+                },
             )
-        
+
         return self._client
-    
+
     async def close(self):
         """Close the HTTP client."""
         if self._client and not self._client.is_closed:
             await self._client.aclose()
-    
+
     async def test_connection(self) -> dict:
         """
         Test the Jira connection and return server info.
@@ -148,24 +153,22 @@ class JiraClient:
             raise IntegrationError(
                 "Jira is not configured. Set JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN."
             )
-        
+
         try:
             client = await self._get_client()
             response = await client.get("/rest/api/3/myself")
-            
+
             if response.status_code == 401:
                 raise IntegrationError(
                     "Jira authentication failed. Check your email and API token."
                 )
             elif response.status_code == 403:
-                raise IntegrationError(
-                    "Jira access forbidden. Check your permissions."
-                )
+                raise IntegrationError("Jira access forbidden. Check your permissions.")
             elif response.status_code != 200:
                 raise IntegrationError(
                     f"Jira connection failed with status {response.status_code}: {response.text}"
                 )
-            
+
             user_data = response.json()
             return {
                 "status": "connected",
@@ -174,26 +177,28 @@ class JiraClient:
                 "account_id": user_data.get("accountId", "Unknown"),
             }
         except httpx.ConnectError as e:
-            raise IntegrationError(f"Cannot connect to Jira at {self.base_url}: {str(e)}") from e
+            raise IntegrationError(
+                f"Cannot connect to Jira at {self.base_url}: {str(e)}"
+            ) from e
         except httpx.TimeoutException as e:
             raise IntegrationError(f"Jira connection timed out: {self.base_url}") from e
-    
+
     async def get_project(self, project_key: str) -> JiraProject:
         """Fetch a Jira project by key."""
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
-        
+
         try:
             client = await self._get_client()
             response = await client.get(f"/rest/api/3/project/{project_key}")
-            
+
             if response.status_code == 404:
                 raise IntegrationError(f"Jira project '{project_key}' not found.")
             elif response.status_code != 200:
                 raise IntegrationError(
                     f"Failed to fetch Jira project: {response.status_code} - {response.text}"
                 )
-            
+
             data = response.json()
             return JiraProject(
                 key=data["key"],
@@ -203,16 +208,14 @@ class JiraClient:
             )
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
-    
+
     async def get_project_issues(
-        self, 
-        project_key: str, 
-        max_results: int = 100
+        self, project_key: str, max_results: int = 100
     ) -> list[JiraIssue]:
         """Fetch issues for a Jira project using the current JQL search API."""
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
-        
+
         try:
             jql = f"project = {project_key} ORDER BY created DESC"
             raw_issues = await self._search_issues(
@@ -254,7 +257,7 @@ class JiraClient:
             return issues
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
-    
+
     async def get_project_boards(self, project_key: str) -> list[dict]:
         """
         Get boards associated with a Jira project.
@@ -262,75 +265,74 @@ class JiraClient:
         """
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
-        
+
         try:
             client = await self._get_client()
             # Use Agile API to get boards for a project
             response = await client.get(
                 "/rest/agile/1.0/board",
-                params={"projectKeyOrId": project_key, "maxResults": 50}
+                params={"projectKeyOrId": project_key, "maxResults": 50},
             )
-            
+
             if response.status_code != 200:
                 raise IntegrationError(
                     f"Failed to fetch boards: {response.status_code} - {response.text}"
                 )
-            
+
             data = response.json()
             return data.get("values", [])
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
-    
+
     async def get_board_sprints(
-        self, 
-        board_id: int, 
-        state: Optional[str] = None
+        self, board_id: int, state: Optional[str] = None
     ) -> list[JiraSprint]:
         """
         Fetch sprints for a Jira board.
-        
+
         Args:
             board_id: The Jira board ID
             state: Filter by sprint state ('active', 'closed', 'future')
         """
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
-        
+
         try:
             client = await self._get_client()
             params = {"maxResults": 50}
             if state:
                 params["state"] = state
-            
+
             response = await client.get(
-                f"/rest/agile/1.0/board/{board_id}/sprint",
-                params=params
+                f"/rest/agile/1.0/board/{board_id}/sprint", params=params
             )
-            
+
             if response.status_code == 404:
                 raise IntegrationError(f"Jira board {board_id} not found.")
             elif response.status_code != 200:
                 raise IntegrationError(
                     f"Failed to fetch sprints: {response.status_code} - {response.text}"
                 )
-            
+
             data = response.json()
             sprints = []
-            
+
             for sprint in data.get("values", []):
-                sprints.append(JiraSprint(
-                    id=sprint["id"],
-                    name=sprint["name"],
-                    state=sprint.get("state", "unknown"),
-                    start_date=sprint.get("startDate"),
-                    end_date=sprint.get("endDate"),
-                    goal=sprint.get("goal"),
-                ))
-            
+                sprints.append(
+                    JiraSprint(
+                        id=sprint["id"],
+                        name=sprint["name"],
+                        state=sprint.get("state", "unknown"),
+                        start_date=sprint.get("startDate"),
+                        end_date=sprint.get("endDate"),
+                        goal=sprint.get("goal"),
+                    )
+                )
+
             return sprints
         except httpx.HTTPError as e:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
-            
+
     async def get_active_sprint_goal(self, board_id: int) -> Optional[str]:
         """
         Get the goal of the active sprint for a board.
@@ -344,16 +346,14 @@ class JiraClient:
         except IntegrationError:
             # Swallow errors for sprint goal fetch as it's secondary data
             return None
-    
+
     async def get_sprint_issues(
-        self, 
-        sprint_id: int, 
-        max_results: int = 100
+        self, sprint_id: int, max_results: int = 100
     ) -> list[JiraIssue]:
         """Fetch issues for a specific sprint using the current JQL search API."""
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
-        
+
         try:
             jql = f"sprint = {sprint_id} ORDER BY rank ASC"
             raw_issues = await self._search_issues(

@@ -28,9 +28,7 @@ export default function Home() {
             <header className="bg-white shadow-sm">
                 <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                     <div className="flex items-center space-x-4">
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Projects
-                        </h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
                     </div>
 
                     <div className="flex items-center space-x-4">
@@ -40,9 +38,7 @@ export default function Home() {
                                     Internal
                                 </span>
                             )}
-                            <span className="text-sm font-medium text-gray-700">
-                                {user?.name}
-                            </span>
+                            <span className="text-sm font-medium text-gray-700">{user?.name}</span>
                             <button
                                 onClick={() => {
                                     logout();
@@ -61,9 +57,7 @@ export default function Home() {
             <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-medium text-gray-900">
-                            Active Projects
-                        </h2>
+                        <h2 className="text-lg font-medium text-gray-900">Active Projects</h2>
                         <p className="mt-1 text-sm text-gray-500">
                             Overview of all ongoing projects and their status.
                         </p>

@@ -12,14 +12,12 @@ Notes:
 from __future__ import annotations
 
 import asyncio
-import base64
 from typing import Any, Dict
 
 import httpx
 
 from config import get_settings
 from integrations.precursive_client import PrecursiveClient
-
 
 LOGIN_URL = "https://login.salesforce.com/services/oauth2/token"
 
@@ -109,8 +107,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-
-

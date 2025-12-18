@@ -1,13 +1,16 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
+
 from pydantic import BaseModel
+
 
 class JiraSyncResult(BaseModel):
     success: bool
     actions_count: int = 0
     message: Optional[str] = None
     error: Optional[str] = None
+
 
 class PrecursiveSyncResult(BaseModel):
     success: bool
@@ -16,11 +19,13 @@ class PrecursiveSyncResult(BaseModel):
     message: Optional[str] = None
     error: Optional[str] = None
 
+
 class SyncResult(BaseModel):
     project_id: UUID
     timestamp: datetime
     jira: JiraSyncResult
     precursive: PrecursiveSyncResult
+
 
 class SyncStatus(BaseModel):
     project_id: UUID

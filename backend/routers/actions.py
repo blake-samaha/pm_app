@@ -1,12 +1,13 @@
 """Actions router."""
-from fastapi import APIRouter, HTTPException
-from sqlmodel import select
-from typing import List
-import uuid
 
+import uuid
+from typing import List
+
+from fastapi import APIRouter, HTTPException, status
+
+from dependencies import ActionServiceDep, CogniterUser, CurrentUser
+from exceptions import AuthorizationError, ResourceNotFoundError
 from schemas import ActionItemCreate, ActionItemRead
-from dependencies import SessionDep, CurrentUser
-from models import ActionItem, Project, UserRole
 
 router = APIRouter(
     prefix="/actions",
@@ -16,41 +17,58 @@ router = APIRouter(
 
 @router.get("/", response_model=List[ActionItemRead])
 async def read_actions(
-    project_id: uuid.UUID,
-    session: SessionDep,
-    current_user: CurrentUser
+    project_id: uuid.UUID, current_user: CurrentUser, action_service: ActionServiceDep
 ):
     """Get all actions for a project."""
-    # Verify access to project
-    project = session.get(Project, project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    if current_user.role == UserRole.CLIENT and project not in current_user.projects:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    statement = select(ActionItem).where(ActionItem.project_id == project_id)
-    actions = session.exec(statement).all()
-    return actions
+    try:
+        return action_service.get_project_actions(project_id, current_user)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
 
-@router.post("/", response_model=ActionItemRead)
+@router.post("/", response_model=ActionItemRead, status_code=status.HTTP_201_CREATED)
 async def create_action(
     action: ActionItemCreate,
-    session: SessionDep,
-    current_user: CurrentUser
+    current_user: CurrentUser,
+    action_service: ActionServiceDep,
 ):
     """Create a new action item."""
-    # Verify access to project
-    project = session.get(Project, action.project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    if current_user.role == UserRole.CLIENT and project not in current_user.projects:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    try:
+        return action_service.create_action(action, current_user)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
-    db_action = ActionItem.model_validate(action)
-    session.add(db_action)
-    session.commit()
-    session.refresh(db_action)
-    return db_action
+
+@router.get("/{action_id}", response_model=ActionItemRead)
+async def get_action(
+    action_id: uuid.UUID, current_user: CurrentUser, action_service: ActionServiceDep
+):
+    """Get a specific action item by ID."""
+    try:
+        action = action_service.get_action_by_id(action_id)
+        # Check project access
+        action_service._check_project_access(action.project_id, current_user)
+        return action
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.delete("/{action_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_action(
+    action_id: uuid.UUID,
+    current_user: CogniterUser,  # Only Cogniters can delete
+    action_service: ActionServiceDep,
+):
+    """Delete an action item. Only Cogniters can delete actions."""
+    try:
+        action_service.delete_action(action_id, current_user)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))

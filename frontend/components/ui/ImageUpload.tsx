@@ -107,7 +107,8 @@ export const ImageUpload = ({
     };
 
     // Determine what preview to show
-    const previewUrl = filePreviewUrl || (urlInput && urlInput.startsWith("http") ? urlInput : null);
+    const previewUrl =
+        filePreviewUrl || (urlInput && urlInput.startsWith("http") ? urlInput : null);
     const hasSelection = selectedFile || urlInput;
 
     // If there's a selection (file or URL entered), show the preview state
@@ -120,29 +121,28 @@ export const ImageUpload = ({
                             src={previewUrl}
                             alt="Logo preview"
                             onError={() => setImageError(true)}
-                            className="h-14 w-14 rounded-lg object-cover bg-white shadow-sm"
+                            className="h-14 w-14 rounded-lg bg-white object-cover shadow-sm"
                         />
                     ) : (
                         <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200">
                             <ImageIcon className="h-6 w-6 text-gray-400" />
                         </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-gray-900">
                             {selectedFile ? selectedFile.name : "Image URL"}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
-                            {selectedFile 
+                        <p className="truncate text-xs text-gray-500">
+                            {selectedFile
                                 ? `${(selectedFile.size / 1024).toFixed(1)} KB`
-                                : urlInput
-                            }
+                                : urlInput}
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={clearSelection}
                         disabled={disabled}
-                        className="rounded-full p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
+                        className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -162,14 +162,17 @@ export const ImageUpload = ({
             <div className="space-y-3">
                 <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <img
-                        src={currentUrl.startsWith("/") 
-                            ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${currentUrl}` 
-                            : currentUrl}
+                        src={
+                            currentUrl.startsWith("/")
+                                ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${currentUrl}`
+                                : currentUrl
+                        }
                         alt="Current logo"
-                        className="h-14 w-14 rounded-lg object-cover bg-white shadow-sm"
+                        className="h-14 w-14 rounded-lg bg-white object-cover shadow-sm"
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = "";
-                            (e.target as HTMLImageElement).className = "h-14 w-14 rounded-lg bg-gray-200";
+                            (e.target as HTMLImageElement).className =
+                                "h-14 w-14 rounded-lg bg-gray-200";
                         }}
                     />
                     <div className="flex-1">
@@ -177,14 +180,14 @@ export const ImageUpload = ({
                         <p className="text-xs text-gray-500">Click below to replace</p>
                     </div>
                 </div>
-                
+
                 {/* Replace options */}
                 <div className="flex gap-2">
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={disabled}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
                     >
                         <Upload className="h-4 w-4" />
                         Upload new
@@ -193,13 +196,13 @@ export const ImageUpload = ({
                         type="button"
                         onClick={() => setShowUrlInput(true)}
                         disabled={disabled}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
                     >
                         <LinkIcon className="h-4 w-4" />
                         Use URL
                     </button>
                 </div>
-                
+
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -240,7 +243,7 @@ export const ImageUpload = ({
                     isDragging
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
             >
                 <input
                     ref={fileInputRef}
@@ -267,7 +270,7 @@ export const ImageUpload = ({
                     type="button"
                     onClick={() => setShowUrlInput(true)}
                     disabled={disabled}
-                    className="flex w-full items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
                 >
                     <LinkIcon className="h-3.5 w-3.5" />
                     Or paste an image URL
@@ -291,7 +294,7 @@ export const ImageUpload = ({
                             handleUrlInputChange("");
                         }}
                         disabled={disabled}
-                        className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -300,4 +303,3 @@ export const ImageUpload = ({
         </div>
     );
 };
-

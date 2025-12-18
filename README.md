@@ -60,6 +60,31 @@ To run the entire stack in containers (closer to production):
 docker-compose up --build
 ```
 
+## Demo Mode (Public Access)
+
+For stakeholder demos, you can create a temporary public URL using Cloudflare Tunnel:
+
+```bash
+# Start all services including the tunnel
+docker-compose --profile demo up
+```
+
+Look for the tunnel URL in the logs:
+```
+tunnel-1  | Your quick tunnel has been created!
+tunnel-1  | +-------------------------------------------+
+tunnel-1  | |  https://random-name.trycloudflare.com   |
+tunnel-1  | +-------------------------------------------+
+```
+
+Share this URL with stakeholders for instant demo access.
+
+**Security Notes:**
+- The URL is temporary and changes on each restart
+- Your local environment is exposed to the internet while running
+- Only run during active demos
+- Stop with `Ctrl+C` when done
+
 ## Documentation
 
 See the `docs/` directory for detailed requirements and architecture:

@@ -1,9 +1,10 @@
 """Integrations package for external API clients."""
-from integrations.jira_client import JiraClient, JiraProject, JiraIssue, JiraSprint
+
+from integrations.jira_client import JiraClient, JiraIssue, JiraProject, JiraSprint
 from integrations.precursive_client import (
-    PrecursiveClient, 
-    PrecursiveProject, 
+    PrecursiveClient,
     PrecursiveFinancials,
+    PrecursiveProject,
     SalesforceToken,
 )
 

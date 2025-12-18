@@ -80,10 +80,7 @@ export const AssignUserModal = ({
         }
     }, [isOpen]);
 
-    const { data: allUsers, isLoading } = useUsers(
-        debouncedSearch || undefined,
-        undefined
-    );
+    const { data: allUsers, isLoading } = useUsers(debouncedSearch || undefined, undefined);
     const assignUser = useAssignUser();
     const inviteUser = useInviteUser();
 
@@ -98,9 +95,7 @@ export const AssignUserModal = ({
         if (!isValidEmail(searchTerm)) return false;
         // Check if this email is already in the user list
         const emailLower = searchTerm.toLowerCase().trim();
-        const emailInResults = allUsers?.some(
-            (user) => user.email.toLowerCase() === emailLower
-        );
+        const emailInResults = allUsers?.some((user) => user.email.toLowerCase() === emailLower);
         return !emailInResults;
     }, [searchTerm, allUsers]);
 
@@ -118,8 +113,7 @@ export const AssignUserModal = ({
                 onError: (error: any) => {
                     toast.error("Failed to assign user", {
                         description:
-                            error.response?.data?.detail ||
-                            "An unexpected error occurred.",
+                            error.response?.data?.detail || "An unexpected error occurred.",
                     });
                     setAssigningUserId(null);
                 },
@@ -149,8 +143,7 @@ export const AssignUserModal = ({
                 onError: (error: any) => {
                     toast.error("Failed to invite user", {
                         description:
-                            error.response?.data?.detail ||
-                            "An unexpected error occurred.",
+                            error.response?.data?.detail || "An unexpected error occurred.",
                     });
                     setIsInviting(false);
                 },
@@ -162,10 +155,10 @@ export const AssignUserModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden">
+            <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b px-6 py-4">
-                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h2 className="flex items-center text-lg font-semibold text-gray-900">
                         <UserPlus className="mr-2 h-5 w-5 text-gray-600" />
                         Assign Team Member
                     </h2>
@@ -199,7 +192,7 @@ export const AssignUserModal = ({
                             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                         </div>
                     ) : availableUsers.length === 0 && !canInviteByEmail ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+                        <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
                             <div className="rounded-full bg-gray-100 p-3">
                                 <Users className="h-6 w-6 text-gray-400" />
                             </div>
@@ -218,7 +211,7 @@ export const AssignUserModal = ({
                         <ul className="divide-y divide-gray-100">
                             {/* Invite by email option */}
                             {canInviteByEmail && (
-                                <li className="flex items-center justify-between px-6 py-3 bg-blue-50 border-b border-blue-100">
+                                <li className="flex items-center justify-between border-b border-blue-100 bg-blue-50 px-6 py-3">
                                     <div className="flex items-center space-x-3">
                                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-sm font-semibold text-white">
                                             <Mail className="h-4 w-4" />
@@ -253,7 +246,7 @@ export const AssignUserModal = ({
                             {availableUsers.map((user) => (
                                 <li
                                     key={user.id}
-                                    className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
+                                    className="flex items-center justify-between px-6 py-3 transition-colors hover:bg-gray-50"
                                 >
                                     <div className="flex items-center space-x-3">
                                         <div
@@ -279,8 +272,7 @@ export const AssignUserModal = ({
                                                 </p>
                                                 <span
                                                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                                                        user.role ===
-                                                        UserRole.COGNITER
+                                                        user.role === UserRole.COGNITER
                                                             ? "bg-blue-100 text-blue-700"
                                                             : "bg-gray-100 text-gray-600"
                                                     }`}
@@ -313,11 +305,7 @@ export const AssignUserModal = ({
 
                 {/* Footer */}
                 <div className="border-t px-6 py-4">
-                    <Button
-                        variant="outline"
-                        onClick={onClose}
-                        className="w-full"
-                    >
+                    <Button variant="outline" onClick={onClose} className="w-full">
                         Close
                     </Button>
                 </div>
@@ -325,4 +313,3 @@ export const AssignUserModal = ({
         </div>
     );
 };
-

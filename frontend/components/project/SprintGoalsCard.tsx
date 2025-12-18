@@ -27,23 +27,24 @@ export const SprintGoalsCard = ({
             <CardContent className="p-6">
                 {hasGoals ? (
                     <div className="space-y-4">
-                        <div className="flex items-start gap-4 rounded-lg bg-slate-50 p-4 border border-slate-100">
+                        <div className="flex items-start gap-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
                             <Zap className="mt-1 h-5 w-5 flex-shrink-0 text-amber-500" />
-                            <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap font-medium">
+                            <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-slate-700">
                                 {sprintGoals}
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <div className="rounded-full bg-slate-50 p-4 border border-slate-100">
+                        <div className="rounded-full border border-slate-100 bg-slate-50 p-4">
                             <Target className="h-6 w-6 text-slate-300" />
                         </div>
                         <p className="mt-4 text-sm font-semibold text-slate-900">
                             No sprint goals set
                         </p>
                         <p className="mt-1 max-w-xs text-xs text-slate-500">
-                            Sprint goals will sync from Jira when an active sprint has a goal defined.
+                            Sprint goals will sync from Jira when an active sprint has a goal
+                            defined.
                         </p>
                         {canEdit && (
                             <p className="mt-2 text-xs text-indigo-500">
@@ -56,4 +57,3 @@ export const SprintGoalsCard = ({
         </Card>
     );
 };
-

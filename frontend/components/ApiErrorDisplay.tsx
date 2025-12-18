@@ -72,27 +72,31 @@ export function ApiErrorDisplay({
             className={`rounded-lg border ${getStatusColor(normalizedError.status_code)} ${className}`}
         >
             {/* Header */}
-            <div className="px-4 py-3 flex items-start gap-3">
+            <div className="flex items-start gap-3 px-4 py-3">
                 <AlertCircle
-                    className={`h-5 w-5 mt-0.5 flex-shrink-0 ${getStatusTextColor(normalizedError.status_code)}`}
+                    className={`mt-0.5 h-5 w-5 flex-shrink-0 ${getStatusTextColor(normalizedError.status_code)}`}
                 />
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`font-medium ${getStatusTextColor(normalizedError.status_code)}`}>
+                <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h3
+                            className={`font-medium ${getStatusTextColor(normalizedError.status_code)}`}
+                        >
                             {title}
                         </h3>
                         {normalizedError.status_code && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                            <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
                                 {normalizedError.status_code}
                             </span>
                         )}
                         {normalizedError.error_type && isDev && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-200 font-mono">
+                            <span className="rounded-full bg-gray-800 px-2 py-0.5 font-mono text-xs text-gray-200">
                                 {normalizedError.error_type}
                             </span>
                         )}
                     </div>
-                    <p className={`mt-1 text-sm ${getStatusTextColor(normalizedError.status_code)}`}>
+                    <p
+                        className={`mt-1 text-sm ${getStatusTextColor(normalizedError.status_code)}`}
+                    >
                         {normalizedError.detail}
                     </p>
                 </div>
@@ -103,7 +107,7 @@ export function ApiErrorDisplay({
                 <div className="border-t border-gray-200">
                     <button
                         onClick={() => setShowDetails(!showDetails)}
-                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100/50 transition-colors"
+                        className="flex w-full items-center justify-between px-4 py-2 transition-colors hover:bg-gray-100/50"
                     >
                         <span className="text-xs font-medium text-gray-600">
                             Stack Trace ({normalizedError.traceback.length} frames)
@@ -117,7 +121,7 @@ export function ApiErrorDisplay({
 
                     {showDetails && (
                         <div className="px-4 pb-4">
-                            <pre className="bg-gray-900 rounded-lg p-3 overflow-x-auto text-xs text-gray-300 font-mono">
+                            <pre className="overflow-x-auto rounded-lg bg-gray-900 p-3 font-mono text-xs text-gray-300">
                                 {normalizedError.traceback.join("")}
                             </pre>
                         </div>
@@ -126,11 +130,11 @@ export function ApiErrorDisplay({
             )}
 
             {/* Actions */}
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center gap-2">
+            <div className="flex items-center gap-2 border-t border-gray-200 px-4 py-3">
                 {onRetry && (
                     <button
                         onClick={onRetry}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
                     >
                         <RefreshCw className="h-4 w-4" />
                         Retry
@@ -139,7 +143,7 @@ export function ApiErrorDisplay({
                 {isDev && (
                     <button
                         onClick={handleCopy}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                        className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-700"
                     >
                         <Copy className="h-4 w-4" />
                         {copied ? "Copied!" : "Copy"}
@@ -160,11 +164,8 @@ export function InlineApiError({
     error: string | ApiError | Error;
     className?: string;
 }) {
-    const message = typeof error === "string" 
-        ? error 
-        : error instanceof Error 
-            ? error.message 
-            : error.detail;
+    const message =
+        typeof error === "string" ? error : error instanceof Error ? error.message : error.detail;
 
     return (
         <div className={`flex items-center gap-2 text-sm text-red-600 ${className}`}>
@@ -175,4 +176,3 @@ export function InlineApiError({
 }
 
 export default ApiErrorDisplay;
-

@@ -45,6 +45,7 @@ backend/
 ├── database.py                 # Database connection & session management
 ├── dependencies.py             # Shared FastAPI dependencies (Auth, Services)
 ├── exceptions.py               # Custom exception hierarchy
+├── permissions.py              # Role-based permission helpers (pure functions)
 ├── logging_config.py           # Logging configuration
 │
 ├── models/                     # Domain models (SQLModel)
@@ -137,24 +138,84 @@ async def create_project(
 
 ## 4. Authorization System
 
-The application implements **Role-Based Access Control (RBAC)**.
+The application implements **Role-Based Access Control (RBAC)** with a three-tier persona system.
 
-*   **Roles**:
-    *   `Cogniter`: Internal employees (email domain `@cognite.com`). Full access.
-    *   `Client`: External stakeholders. Limited access to assigned projects.
+### 4.1. Roles
 
-*   **Implementation**:
-    Authorization is enforced via dependencies in `dependencies.py`.
+| Role | Description | Permissions |
+|------|-------------|-------------|
+| `Cogniter` | Internal employees (`@cognite.com` emails) | Full access: all projects, financials, user management, project creation |
+| `Client + Financials` | Senior client stakeholders | View assigned projects + financial data (budgets, burn rates) |
+| `Client` | Standard client stakeholders | View assigned projects only (no financial data) |
+
+### 4.2. Permission Helpers (`permissions.py`)
+
+Centralized permission logic is implemented as **pure functions** for easy testing:
+
+```python
+# permissions.py
+def is_internal_user(user: User) -> bool:
+    """Cognite employees have full access."""
+    return user.role == UserRole.COGNITER
+
+def is_client_role(user: User) -> bool:
+    """Any external client role."""
+    return user.role in (UserRole.CLIENT, UserRole.CLIENT_FINANCIALS)
+
+def can_view_financials(user: User) -> bool:
+    """Roles that can see budget/financial data."""
+    return user.role in (UserRole.COGNITER, UserRole.CLIENT_FINANCIALS)
+
+def can_manage_team(user: User) -> bool:
+    """Roles that can assign/remove users from projects."""
+    return user.role == UserRole.COGNITER
+
+def can_edit_project(user: User) -> bool:
+    """Roles that can modify project settings."""
+    return user.role == UserRole.COGNITER
+
+def can_create_project(user: User) -> bool:
+    """Roles that can create new projects."""
+    return user.role == UserRole.COGNITER
+```
+
+### 4.3. Dependency Injection for Authorization
+
+Authorization is enforced via dependencies in `dependencies.py`:
 
 ```python
 # dependencies.py
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CogniterUser = Annotated[User, Depends(require_cogniter)]
 
-# Usage
+# Usage - Cogniter-only endpoint
 async def create_project(current_user: CogniterUser, ...):
     # Only Cogniters can access
 ```
+
+### 4.4. Project Access Control
+
+Client roles (both `CLIENT` and `CLIENT_FINANCIALS`) can only access projects they are explicitly assigned to. This is enforced via:
+
+```python
+# services/project_service.py
+def user_has_access_to_project(project_id: UUID, user: User) -> bool:
+    """Check if user can access a specific project."""
+    if user.role == UserRole.COGNITER:
+        return True  # Cogniters can access all projects
+    # Client roles require explicit assignment
+    return self.repository.is_user_assigned(project_id, user.id)
+```
+
+### 4.5. Role Management
+
+Cogniters can update user roles (except promoting to Cogniter):
+
+```
+PATCH /users/{user_id}/role
+```
+
+This allows upgrading clients to `Client + Financials` for financial data access.
 
 ## 5. Configuration Management
 

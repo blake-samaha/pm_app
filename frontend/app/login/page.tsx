@@ -17,12 +17,12 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 export default function LoginPage() {
     const router = useRouter();
     const setAuth = useAuthStore((state) => state.setAuth);
-    
+
     // Form state
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    
+
     // UI state
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -39,9 +39,9 @@ export default function LoginPage() {
         try {
             // Now we can set loading since the sensitive interaction is done
             setLoading(true);
-            
+
             const idToken = await firebaseUser.getIdToken();
-            
+
             // Send token to backend for verification and JWT creation
             const response = await api.post("/auth/login", { token: idToken });
             const { access_token } = response.data;
@@ -70,11 +70,11 @@ export default function LoginPage() {
         // Clear previous errors
         setError(null);
         setSuccess(null);
-        
-        // CRITICAL: Do NOT set loading=true here. 
-        // Updating state triggers a re-render which can cause the browser to 
+
+        // CRITICAL: Do NOT set loading=true here.
+        // Updating state triggers a re-render which can cause the browser to
         // lose the "trusted user event" context, leading to "Popup blocked".
-        
+
         try {
             const result = await signInWithPopup(auth, googleProvider);
             // Login successful on Firebase side, now sync with backend
@@ -82,7 +82,7 @@ export default function LoginPage() {
         } catch (err: any) {
             console.error("Google login failed", err);
             setLoading(false);
-            
+
             if (err.code === "auth/popup-closed-by-user") {
                 setError("Sign-in was cancelled. Please try again.");
             } else if (err.code === "auth/popup-blocked") {
@@ -92,7 +92,7 @@ export default function LoginPage() {
             } else {
                 setError(err.message || "Google login failed. Please try again.");
             }
-            
+
             localStorage.removeItem("accessToken");
         }
     };
@@ -108,7 +108,7 @@ export default function LoginPage() {
 
         try {
             let userCredential;
-            
+
             if (isRegistering) {
                 // Create new account
                 userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -120,11 +120,13 @@ export default function LoginPage() {
             await completeLogin(userCredential.user);
         } catch (err: any) {
             console.error("Email login failed", err);
-            
+
             // Handle Firebase auth errors with user-friendly messages
             switch (err.code) {
                 case "auth/user-not-found":
-                    setError("No account found with this email. Click 'Create Account' to register.");
+                    setError(
+                        "No account found with this email. Click 'Create Account' to register."
+                    );
                     break;
                 case "auth/wrong-password":
                     setError("Incorrect password. Please try again.");
@@ -147,7 +149,7 @@ export default function LoginPage() {
                 default:
                     setError(err.message || "Authentication failed. Please try again.");
             }
-            
+
             localStorage.removeItem("accessToken");
             setLoading(false);
         }
@@ -169,7 +171,7 @@ export default function LoginPage() {
             setForgotEmail("");
         } catch (err: any) {
             console.error("Password reset failed", err);
-            
+
             switch (err.code) {
                 case "auth/user-not-found":
                     setError("No account found with this email address.");
@@ -191,26 +193,29 @@ export default function LoginPage() {
                 {/* Header */}
                 <div className="text-center">
                     <h2 className="text-3xl font-bold text-gray-900">
-                        {showForgotPassword ? "Reset Password" : (isRegistering ? "Create Account" : "Welcome Back")}
+                        {showForgotPassword
+                            ? "Reset Password"
+                            : isRegistering
+                              ? "Create Account"
+                              : "Welcome Back"}
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        {showForgotPassword 
+                        {showForgotPassword
                             ? "Enter your email to receive a reset link"
-                            : "Automated Project Management Tool"
-                        }
+                            : "Automated Project Management Tool"}
                     </p>
                 </div>
 
                 {/* Success Message */}
                 {success && (
-                    <div className="rounded-lg bg-green-50 p-4 text-center text-sm text-green-700 border border-green-200">
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-center text-sm text-green-700">
                         {success}
                     </div>
                 )}
 
                 {/* Error Message */}
                 {error && (
-                    <div className="rounded-lg bg-red-50 p-4 text-center text-sm text-red-700 border border-red-200">
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700">
                         {error}
                     </div>
                 )}
@@ -219,7 +224,10 @@ export default function LoginPage() {
                 {showForgotPassword ? (
                     <form onSubmit={handleForgotPassword} className="space-y-4">
                         <div>
-                            <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">
+                            <label
+                                htmlFor="forgot-email"
+                                className="block text-sm font-medium text-gray-700"
+                            >
                                 Email address
                             </label>
                             <div className="relative mt-1">
@@ -235,7 +243,7 @@ export default function LoginPage() {
                                 />
                             </div>
                         </div>
-                        
+
                         <button
                             type="submit"
                             disabled={loading}
@@ -247,7 +255,7 @@ export default function LoginPage() {
                                 "Send Reset Link"
                             )}
                         </button>
-                        
+
                         <button
                             type="button"
                             onClick={() => {
@@ -298,14 +306,19 @@ export default function LoginPage() {
                                 <div className="w-full border-t border-gray-200" />
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-4 text-gray-500">or continue with email</span>
+                                <span className="bg-white px-4 text-gray-500">
+                                    or continue with email
+                                </span>
                             </div>
                         </div>
 
                         {/* Email/Password Form */}
                         <form onSubmit={handleEmailSignIn} className="space-y-4">
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                <label
+                                    htmlFor="email"
+                                    className="block text-sm font-medium text-gray-700"
+                                >
                                     Email address
                                 </label>
                                 <div className="relative mt-1">
@@ -321,9 +334,12 @@ export default function LoginPage() {
                                     />
                                 </div>
                             </div>
-                            
+
                             <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                <label
+                                    htmlFor="password"
+                                    className="block text-sm font-medium text-gray-700"
+                                >
                                     Password
                                 </label>
                                 <div className="relative mt-1">
@@ -343,7 +359,11 @@ export default function LoginPage() {
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                     >
-                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -372,8 +392,10 @@ export default function LoginPage() {
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : isRegistering ? (
+                                    "Create Account"
                                 ) : (
-                                    isRegistering ? "Create Account" : "Sign In"
+                                    "Sign In"
                                 )}
                             </button>
                         </form>
@@ -390,9 +412,17 @@ export default function LoginPage() {
                                 className="text-sm text-gray-600 hover:text-gray-900"
                             >
                                 {isRegistering ? (
-                                    <>Already have an account? <span className="font-semibold text-blue-600">Sign in</span></>
+                                    <>
+                                        Already have an account?{" "}
+                                        <span className="font-semibold text-blue-600">Sign in</span>
+                                    </>
                                 ) : (
-                                    <>Need an account? <span className="font-semibold text-blue-600">Create one</span></>
+                                    <>
+                                        Need an account?{" "}
+                                        <span className="font-semibold text-blue-600">
+                                            Create one
+                                        </span>
+                                    </>
                                 )}
                             </button>
                         </div>

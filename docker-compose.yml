@@ -39,6 +39,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Cloudflare Tunnel for demo access
+  # Only runs with: docker-compose --profile demo up
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://frontend:3000
+    depends_on:
+      - frontend
+    profiles:
+      - demo
+    restart: "no"
+
 volumes:
   postgres_data:
   uploads_data:

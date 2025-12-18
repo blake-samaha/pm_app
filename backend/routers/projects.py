@@ -1,19 +1,19 @@
 """Projects router."""
-from fastapi import APIRouter, HTTPException, status
+
 from typing import List
 from uuid import UUID
 
-from schemas import ProjectCreate, ProjectRead, ProjectUpdate, UserRead, InviteUserRequest, InviteUserResponse
-from dependencies import (
-    CurrentUser,
-    CogniterUser,
-    ProjectServiceDep,
-    UserServiceDep
-)
-from exceptions import (
-    ResourceNotFoundError,
-    DuplicateResourceError,
-    AuthorizationError
+from fastapi import APIRouter, HTTPException, status
+
+from dependencies import CogniterUser, CurrentUser, ProjectServiceDep, UserServiceDep
+from exceptions import AuthorizationError, DuplicateResourceError, ResourceNotFoundError
+from schemas import (
+    InviteUserRequest,
+    InviteUserResponse,
+    ProjectCreate,
+    ProjectRead,
+    ProjectUpdate,
+    UserRead,
 )
 
 router = APIRouter(
@@ -23,10 +23,7 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[ProjectRead])
-async def list_projects(
-    current_user: CurrentUser,
-    project_service: ProjectServiceDep
-):
+async def list_projects(current_user: CurrentUser, project_service: ProjectServiceDep):
     """
     List all projects accessible to the current user.
     - Cogniters: see all projects
@@ -40,7 +37,7 @@ async def list_projects(
 async def create_project(
     project_data: ProjectCreate,
     current_user: CogniterUser,  # Only Cogniters can create
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Create a new project.
@@ -57,9 +54,7 @@ async def create_project(
 
 @router.get("/{project_id}", response_model=ProjectRead)
 async def get_project(
-    project_id: UUID,
-    current_user: CurrentUser,
-    project_service: ProjectServiceDep
+    project_id: UUID, current_user: CurrentUser, project_service: ProjectServiceDep
 ):
     """
     Get a specific project by ID.
@@ -70,9 +65,9 @@ async def get_project(
         if not project_service.user_has_access_to_project(project_id, current_user):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to this project"
+                detail="You don't have access to this project",
             )
-        
+
         project = project_service.get_project_by_id(project_id)
         return project
     except ResourceNotFoundError as e:
@@ -84,7 +79,7 @@ async def update_project(
     project_id: UUID,
     project_data: ProjectUpdate,
     current_user: CogniterUser,  # Only Cogniters can update
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Update a project.
@@ -103,7 +98,7 @@ async def update_project(
 async def delete_project(
     project_id: UUID,
     current_user: CogniterUser,  # Only Cogniters can delete
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Delete a project.
@@ -119,9 +114,7 @@ async def delete_project(
 
 @router.post("/{project_id}/publish", response_model=ProjectRead)
 async def publish_project(
-    project_id: UUID,
-    current_user: CogniterUser,
-    project_service: ProjectServiceDep
+    project_id: UUID, current_user: CogniterUser, project_service: ProjectServiceDep
 ):
     """
     Publish a project (make it visible to assigned clients).
@@ -138,9 +131,7 @@ async def publish_project(
 
 @router.post("/{project_id}/unpublish", response_model=ProjectRead)
 async def unpublish_project(
-    project_id: UUID,
-    current_user: CogniterUser,
-    project_service: ProjectServiceDep
+    project_id: UUID, current_user: CogniterUser, project_service: ProjectServiceDep
 ):
     """
     Unpublish a project (hide from clients).
@@ -159,7 +150,7 @@ async def unpublish_project(
 async def get_project_users(
     project_id: UUID,
     current_user: CogniterUser,  # Only Cogniters can view project users
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Get all users assigned to a project.
@@ -176,7 +167,7 @@ async def assign_user_to_project(
     project_id: UUID,
     user_id: UUID,
     current_user: CogniterUser,
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Assign a user to a project.
@@ -195,7 +186,7 @@ async def remove_user_from_project(
     project_id: UUID,
     user_id: UUID,
     current_user: CogniterUser,
-    project_service: ProjectServiceDep
+    project_service: ProjectServiceDep,
 ):
     """
     Remove a user from a project.
@@ -213,13 +204,13 @@ async def invite_user_to_project(
     invite_data: InviteUserRequest,
     current_user: CogniterUser,
     project_service: ProjectServiceDep,
-    user_service: UserServiceDep
+    user_service: UserServiceDep,
 ):
     """
     Invite a user to a project by email.
     - If the email exists: assigns the user directly
     - If the email doesn't exist: creates a placeholder user and assigns them
-    
+
     Only Cogniters can invite users.
     """
     # Verify project exists
@@ -227,35 +218,39 @@ async def invite_user_to_project(
         project_service.get_project_by_id(project_id)
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    
+
     email = invite_data.email.lower().strip()
-    
+
     # Check if user exists
     existing_user = user_service.get_user_by_email(email)
-    
+
     if existing_user:
         # User exists - just assign them
         try:
-            project_service.assign_user_to_project(project_id, existing_user.id, current_user)
+            project_service.assign_user_to_project(
+                project_id, existing_user.id, current_user
+            )
             return InviteUserResponse(
-                user=existing_user,
+                user=UserRead.model_validate(existing_user),
                 was_created=False,
-                message=f"{existing_user.name} has been assigned to the project."
+                message=f"{existing_user.name} has been assigned to the project.",
             )
         except DuplicateResourceError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{existing_user.name} is already assigned to this project."
+                detail=f"{existing_user.name} is already assigned to this project.",
             )
     else:
         # Create placeholder user and assign
         try:
             new_user = user_service.create_pending_user(email)
-            project_service.assign_user_to_project(project_id, new_user.id, current_user)
+            project_service.assign_user_to_project(
+                project_id, new_user.id, current_user
+            )
             return InviteUserResponse(
-                user=new_user,
+                user=UserRead.model_validate(new_user),
                 was_created=True,
-                message=f"Invitation created for {email}. They will have access once they register."
+                message=f"Invitation created for {email}. They will have access once they register.",
             )
         except DuplicateResourceError as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

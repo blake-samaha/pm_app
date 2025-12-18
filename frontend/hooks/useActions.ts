@@ -8,9 +8,7 @@ export const useActions = (projectId: string) => {
     return useQuery({
         queryKey: ["actions", projectId],
         queryFn: async () => {
-            const { data } = await api.get<ActionItem[]>(
-                `/actions/?project_id=${projectId}`
-            );
+            const { data } = await api.get<ActionItem[]>(`/actions/?project_id=${projectId}`);
             return data;
         },
         enabled: !!projectId && isAuthenticated,
@@ -21,17 +19,8 @@ export const useUpdateActionStatus = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            actionId,
-            status,
-        }: {
-            actionId: string;
-            status: string;
-        }) => {
-            const { data } = await api.patch<ActionItem>(
-                `/actions/${actionId}`,
-                { status }
-            );
+        mutationFn: async ({ actionId, status }: { actionId: string; status: string }) => {
+            const { data } = await api.patch<ActionItem>(`/actions/${actionId}`, { status });
             return data;
         },
         onSuccess: (data) => {
@@ -42,4 +31,3 @@ export const useUpdateActionStatus = () => {
         },
     });
 };
-
