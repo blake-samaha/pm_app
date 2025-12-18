@@ -42,9 +42,9 @@ class Risk(SQLModel, table=True):
     # Relationships
     project: "Project" = Relationship(back_populates="risks")
     resolved_by: Optional["User"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "[Risk.resolved_by_id]"}
+        sa_relationship_kwargs={"foreign_keys": ["resolved_by_id"]}
     )
     reopened_by: Optional["User"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": "[Risk.reopened_by_id]"}
+        sa_relationship_kwargs={"foreign_keys": ["reopened_by_id"]}
     )
     comments: List["Comment"] = Relationship(back_populates="risk")

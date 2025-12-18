@@ -58,5 +58,5 @@ lint:
 	cd backend && uv run ty check
 
 setup-hooks:
-	cd backend && uv run pre-commit install --config ../.pre-commit-config.yaml
+	cd backend && uv run bash -c 'cd .. && pre-commit install'
 
