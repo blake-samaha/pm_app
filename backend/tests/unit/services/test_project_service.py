@@ -92,7 +92,10 @@ class TestGetUserProjects:
 
         service.assign_user_to_project(sample_project.id, client_user.id, cogniter)
 
-        # Now client should see the project
+        # Clients only see projects once they're published
+        service.publish_project(sample_project.id, cogniter)
+
+        # Now client should see the published project
         projects = service.get_user_projects(client_user)
         assert len(projects) == 1
         assert projects[0].id == sample_project.id

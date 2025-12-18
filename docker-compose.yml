@@ -11,6 +11,9 @@ services:
       - /app/.next
     env_file:
       - ./frontend/.env.local
+    environment:
+      # Backend URL for Next.js API proxy (uses Docker service name)
+      - BACKEND_URL=http://backend:8000
     depends_on:
       - backend
 

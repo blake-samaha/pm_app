@@ -11,7 +11,6 @@ from models import RiskImpact, RiskProbability, RiskStatus
 if TYPE_CHECKING:
     from models.comment import Comment
     from models.project import Project
-    from models.user import User
 
 
 class Risk(SQLModel, table=True):
@@ -41,10 +40,7 @@ class Risk(SQLModel, table=True):
 
     # Relationships
     project: "Project" = Relationship(back_populates="risks")
-    resolved_by: Optional["User"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": ["resolved_by_id"]}
-    )
-    reopened_by: Optional["User"] = Relationship(
-        sa_relationship_kwargs={"foreign_keys": ["reopened_by_id"]}
-    )
+    # Note: resolved_by and reopened_by relationships removed due to SQLModel
+    # limitations with multiple FKs to the same table. Use resolved_by_id and
+    # reopened_by_id foreign keys directly instead.
     comments: List["Comment"] = Relationship(back_populates="risk")

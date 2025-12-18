@@ -34,8 +34,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
-import { useState, useMemo } from "react";
-import { useAuthStore } from "@/store/authStore";
+import { useEffect, useState, useMemo } from "react";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { isCogniter } from "@/lib/permissions";
 import { UserRole } from "@/types";
 
@@ -110,7 +110,7 @@ const calculateRiskScore = (risk: Risk) => {
 
 // Risk Detail Dialog Component
 const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }) => {
-    const { user } = useAuthStore();
+    const user = useEffectiveUser();
     const canResolve = user && isCogniter(user.role as UserRole);
     const isResolved = risk.status !== RiskStatus.OPEN;
 
@@ -460,11 +460,12 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
 
-    const filteredRisks = useMemo(() => {
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        }
+    // Reset to first page when filters/search change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, filterByProbability, filterByImpact, projectId]);
 
+    const filteredRisks = useMemo(() => {
         if (!risks) return [];
 
         let filtered = risks;

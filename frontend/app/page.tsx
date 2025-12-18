@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuthStore } from "@/store/authStore";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ProjectList } from "@/components/dashboard/ProjectList";
@@ -8,7 +9,8 @@ import { CreateProjectModal } from "@/components/dashboard/CreateProjectModal";
 import { Plus } from "lucide-react";
 
 export default function Home() {
-    const { user, isAuthenticated, logout } = useAuthStore();
+    const { isAuthenticated, logout } = useAuthStore();
+    const user = useEffectiveUser();
     const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 

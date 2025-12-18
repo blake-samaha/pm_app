@@ -12,7 +12,7 @@ import {
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useState } from "react";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, Shield } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -30,6 +30,9 @@ export default function LoginPage() {
     const [isRegistering, setIsRegistering] = useState(false);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [forgotEmail, setForgotEmail] = useState("");
+    const [showSuperuserLogin, setShowSuperuserLogin] = useState(false);
+    const [superuserEmail, setSuperuserEmail] = useState("");
+    const [superuserPassword, setSuperuserPassword] = useState("");
 
     /**
      * Completes the login flow by sending the Firebase token to the backend
@@ -156,6 +159,38 @@ export default function LoginPage() {
     };
 
     /**
+     * Handle Superuser Login (bypasses Firebase)
+     */
+    const handleSuperuserLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+
+        try {
+            const response = await api.post("/auth/superuser-login", {
+                email: superuserEmail,
+                password: superuserPassword,
+            });
+
+            const { access_token, is_superuser } = response.data;
+            localStorage.setItem("accessToken", access_token);
+
+            // Get user info from backend
+            const userResponse = await api.get("/auth/me");
+            const user = userResponse.data;
+
+            // Store in Zustand with superuser flag
+            setAuth(user, access_token, is_superuser);
+            router.push("/");
+        } catch (err: any) {
+            console.error("Superuser login failed", err);
+            setError(err.response?.data?.detail || "Invalid superuser credentials");
+            setLoading(false);
+        }
+    };
+
+    /**
      * Handle Password Reset
      */
     const handleForgotPassword = async (e: React.FormEvent) => {
@@ -220,8 +255,83 @@ export default function LoginPage() {
                     </div>
                 )}
 
-                {/* Forgot Password Form */}
-                {showForgotPassword ? (
+                {/* Superuser Login Form */}
+                {showSuperuserLogin ? (
+                    <form onSubmit={handleSuperuserLogin} className="space-y-4">
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-center text-sm text-amber-800">
+                            <Shield className="mr-1 inline-block h-4 w-4" />
+                            Admin access - bypasses Firebase authentication
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="superuser-email"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Admin Email
+                            </label>
+                            <div className="relative mt-1">
+                                <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    id="superuser-email"
+                                    type="email"
+                                    value={superuserEmail}
+                                    onChange={(e) => setSuperuserEmail(e.target.value)}
+                                    required
+                                    placeholder="admin@example.com"
+                                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="superuser-password"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Admin Password
+                            </label>
+                            <div className="relative mt-1">
+                                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                                <input
+                                    id="superuser-password"
+                                    type="password"
+                                    value={superuserPassword}
+                                    onChange={(e) => setSuperuserPassword(e.target.value)}
+                                    required
+                                    placeholder="••••••••"
+                                    className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 text-gray-900 placeholder-gray-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex w-full items-center justify-center rounded-lg bg-amber-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <>
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    Sign In as Admin
+                                </>
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowSuperuserLogin(false);
+                                setError(null);
+                            }}
+                            className="w-full text-sm text-gray-600 hover:text-gray-900"
+                        >
+                            ← Back to regular sign in
+                        </button>
+                    </form>
+                ) : showForgotPassword ? (
                     <form onSubmit={handleForgotPassword} className="space-y-4">
                         <div>
                             <label
@@ -433,6 +543,23 @@ export default function LoginPage() {
                 <p className="text-center text-xs text-gray-500">
                     By signing in, you agree to our Terms of Service and Privacy Policy
                 </p>
+
+                {/* Admin Access Link (subtle) */}
+                {!showSuperuserLogin && !showForgotPassword && (
+                    <div className="border-t border-gray-100 pt-2 text-center">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowSuperuserLogin(true);
+                                setError(null);
+                                setSuccess(null);
+                            }}
+                            className="text-xs text-gray-400 transition-colors hover:text-gray-600"
+                        >
+                            Admin Access
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -457,10 +457,14 @@ class SyncService:
                 res.financials_updated = True
                 res.message = "Synced financials from Precursive"
             else:
-                # Generate fake financials if none exist
-                if not project.total_budget:
+                # Optionally generate synthetic financials in development/demo only.
+                allow_synthetic = (
+                    self.settings.environment == "development"
+                    or self.settings.allow_synthetic_demo_data
+                )
+                if allow_synthetic and not project.total_budget:
                     logger.info(
-                        "No Precursive financials found. Generating fake financials."
+                        "No Precursive financials found. Generating synthetic financials."
                     )
                     project.total_budget = random.uniform(200000, 500000)
                     project.spent_budget = project.total_budget * random.uniform(
@@ -478,9 +482,13 @@ class SyncService:
             errors.append(f"Financials sync failed: {str(e)}")
 
         # Step 2.5: Generate fake dates if none exist (for timeline)
-        if not project.start_date or not project.end_date:
+        allow_synthetic = (
+            self.settings.environment == "development"
+            or self.settings.allow_synthetic_demo_data
+        )
+        if allow_synthetic and (not project.start_date or not project.end_date):
             logger.info(
-                "No Precursive dates found. Generating fake dates for timeline."
+                "No Precursive dates found. Generating synthetic dates for timeline."
             )
             today = date.today()
             if not project.start_date:

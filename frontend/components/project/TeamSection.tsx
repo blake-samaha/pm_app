@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { User, UserRole } from "@/types";
 import { useProjectUsers, useRemoveUser } from "@/hooks/useUsers";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, UserPlus, X, Loader2, Clock } from "lucide-react";
@@ -46,9 +47,16 @@ const getAvatarColor = (str: string): string => {
 };
 
 export const TeamSection = ({ projectId }: TeamSectionProps) => {
+    const currentUser = useEffectiveUser();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { data: users, isLoading, isError } = useProjectUsers(projectId);
+    const canManageTeam = !!currentUser && currentUser.role === UserRole.COGNITER;
+    const { data: users, isLoading, isError } = useProjectUsers(projectId, canManageTeam);
     const removeUser = useRemoveUser();
+
+    // Only Cogniters can view/manage team assignments (matches backend enforcement)
+    if (!canManageTeam) {
+        return null;
+    }
 
     const handleRemoveUser = (user: User) => {
         removeUser.mutate(

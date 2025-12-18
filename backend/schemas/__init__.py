@@ -7,7 +7,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from models import ActionStatus, Priority, RiskImpact, RiskProbability, RiskStatus
-from schemas.auth import GoogleLoginRequest, Token
+from schemas.auth import GoogleLoginRequest, SuperuserLoginRequest, Token
 from schemas.project import ProjectBase, ProjectCreate, ProjectRead, ProjectUpdate
 from schemas.sync import JiraSyncResult, PrecursiveSyncResult, SyncResult, SyncStatus
 from schemas.user import (
@@ -138,6 +138,7 @@ class CommentRead(BaseModel):
 __all__ = [
     # Auth
     "GoogleLoginRequest",
+    "SuperuserLoginRequest",
     "Token",
     # User
     "UserRead",

@@ -28,7 +28,7 @@ export const useUsers = (search?: string, role?: UserRole) => {
 /**
  * Fetch users assigned to a specific project.
  */
-export const useProjectUsers = (projectId: string) => {
+export const useProjectUsers = (projectId: string, enabled: boolean = true) => {
     const { isAuthenticated } = useAuthStore();
 
     return useQuery({
@@ -37,7 +37,7 @@ export const useProjectUsers = (projectId: string) => {
             const { data } = await api.get<User[]>(`/projects/${projectId}/users`);
             return data;
         },
-        enabled: !!projectId && isAuthenticated,
+        enabled: !!projectId && isAuthenticated && enabled,
     });
 };
 

@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useProject } from "@/hooks/useProjects";
 import { useSyncStatus } from "@/hooks/useSync";
-import { useAuthStore } from "@/store/authStore";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { HealthIndicator } from "@/components/project/HealthIndicator";
 import { FinancialsCard } from "@/components/project/FinancialsCard";
 import { Timeline } from "@/components/project/Timeline";
@@ -32,7 +32,8 @@ import { getErrorMessage } from "@/lib/error";
 import { API_URL } from "@/lib/api";
 import { useState } from "react";
 import { EditProjectModal } from "@/components/project/EditProjectModal";
-import { HealthStatus } from "@/types";
+import { HealthStatus, UserRole } from "@/types";
+import { canViewFinancials } from "@/lib/permissions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -49,11 +50,13 @@ const getLogoUrl = (url: string | undefined | null): string | null => {
 
 export default function ProjectDetailsPage() {
     const params = useParams();
-    const { user } = useAuthStore();
+    const user = useEffectiveUser();
     const projectId = params.id as string;
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [logoError, setLogoError] = useState(false);
     const [activeTab, setActiveTab] = useState("work");
+    const isCogniterUser = !!user && user.role === UserRole.COGNITER;
+    const canSeeFinancials = !!user && canViewFinancials(user.role);
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
     const { data: risks } = useRisks(projectId); // Fetch risks here for the Matrix
@@ -275,38 +278,46 @@ export default function ProjectDetailsPage() {
                                     </span>
                                 </div>
                             </TabsTrigger>
-                            <TabsTrigger
-                                isActive={activeTab === "financials"}
-                                onClick={() => setActiveTab("financials")}
-                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <DollarSign
-                                        className={`h-4 w-4 ${activeTab === "financials" ? "text-indigo-600" : ""}`}
-                                    />
-                                    <span
-                                        className={
-                                            activeTab === "financials" ? "text-indigo-600" : ""
-                                        }
-                                    >
-                                        Financials
-                                    </span>
-                                </div>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                isActive={activeTab === "team"}
-                                onClick={() => setActiveTab("team")}
-                                className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <Users
-                                        className={`h-4 w-4 ${activeTab === "team" ? "text-indigo-600" : ""}`}
-                                    />
-                                    <span className={activeTab === "team" ? "text-indigo-600" : ""}>
-                                        Team
-                                    </span>
-                                </div>
-                            </TabsTrigger>
+                            {canSeeFinancials && (
+                                <TabsTrigger
+                                    isActive={activeTab === "financials"}
+                                    onClick={() => setActiveTab("financials")}
+                                    className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <DollarSign
+                                            className={`h-4 w-4 ${activeTab === "financials" ? "text-indigo-600" : ""}`}
+                                        />
+                                        <span
+                                            className={
+                                                activeTab === "financials" ? "text-indigo-600" : ""
+                                            }
+                                        >
+                                            Financials
+                                        </span>
+                                    </div>
+                                </TabsTrigger>
+                            )}
+                            {isCogniterUser && (
+                                <TabsTrigger
+                                    isActive={activeTab === "team"}
+                                    onClick={() => setActiveTab("team")}
+                                    className="rounded-none border-b-2 border-transparent bg-transparent p-0 pb-2 text-base shadow-none data-[state=active]:border-indigo-600"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <Users
+                                            className={`h-4 w-4 ${activeTab === "team" ? "text-indigo-600" : ""}`}
+                                        />
+                                        <span
+                                            className={
+                                                activeTab === "team" ? "text-indigo-600" : ""
+                                            }
+                                        >
+                                            Team
+                                        </span>
+                                    </div>
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                     </div>
                 </div>
@@ -446,22 +457,26 @@ export default function ProjectDetailsPage() {
                 </TabsContent>
 
                 {/* Financials View */}
-                <TabsContent isActive={activeTab === "financials"}>
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <FinancialsCard project={project} />
-                        {/* Placeholder for future financial widgets */}
-                        <div className="flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-400">
-                            <p>Detailed budget breakdown coming soon</p>
+                {canSeeFinancials && (
+                    <TabsContent isActive={activeTab === "financials"}>
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            <FinancialsCard project={project} />
+                            {/* Placeholder for future financial widgets */}
+                            <div className="flex items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-400">
+                                <p>Detailed budget breakdown coming soon</p>
+                            </div>
                         </div>
-                    </div>
-                </TabsContent>
+                    </TabsContent>
+                )}
 
                 {/* Team View */}
-                <TabsContent isActive={activeTab === "team"}>
-                    <div className="w-full">
-                        <TeamSection projectId={project.id} />
-                    </div>
-                </TabsContent>
+                {isCogniterUser && (
+                    <TabsContent isActive={activeTab === "team"}>
+                        <div className="w-full">
+                            <TeamSection projectId={project.id} />
+                        </div>
+                    </TabsContent>
+                )}
             </main>
 
             <EditProjectModal

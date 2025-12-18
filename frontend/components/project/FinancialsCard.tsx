@@ -2,7 +2,7 @@ import { Project, ProjectType, UserRole } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { FinancialsChart } from "./FinancialsChart";
-import { useAuthStore } from "@/store/authStore";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { canViewFinancials } from "@/lib/permissions";
 
 interface FinancialsCardProps {
@@ -10,7 +10,7 @@ interface FinancialsCardProps {
 }
 
 export const FinancialsCard = ({ project }: FinancialsCardProps) => {
-    const { user } = useAuthStore();
+    const user = useEffectiveUser();
 
     // Gate visibility by role - only Cogniters and Client+Financials can view
     if (!user || !canViewFinancials(user.role as UserRole)) {

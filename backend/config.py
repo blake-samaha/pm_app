@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     # Environment
     environment: str = "development"
 
+    # Superuser (bypasses Firebase for demos)
+    superuser_email: str = ""
+    superuser_password: str = ""
+    # Extra guardrail: require explicit enablement outside local development
+    allow_superuser_login: bool = False
+
+    # Demo/seed behavior (never enable in production)
+    allow_synthetic_demo_data: bool = False
+
     # Pydantic v2 settings config
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -58,9 +58,9 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
             name: formData.get("name") as string,
             precursive_url: formData.get("precursive_url") as string,
             jira_url: formData.get("jira_url") as string,
-            type: formData.get("type") as string,
-            reporting_cycle: formData.get("reporting_cycle") as string,
-            client_logo_url: finalLogoUrl,
+            type: formData.get("type") as ProjectType,
+            reporting_cycle: formData.get("reporting_cycle") as ReportingCycle,
+            client_logo_url: finalLogoUrl ?? undefined,
         };
 
         createProject.mutate(data, {

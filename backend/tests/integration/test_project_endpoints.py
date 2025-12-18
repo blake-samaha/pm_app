@@ -93,16 +93,22 @@ class TestClientAccessControl:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_assigned_client_sees_only_their_project(
+    def test_assigned_client_sees_only_published_project(
         self,
         client,
+        session,
         client_user,
         sample_project,
         second_project,
         project_with_client_assigned,
         create_token,
     ):
-        """Client assigned to one project should see only that project."""
+        """Client assigned to one *published* project should see only that project."""
+        # Publish the project before listing (clients only see published projects)
+        project_with_client_assigned.is_published = True
+        session.add(project_with_client_assigned)
+        session.commit()
+
         token = create_token(client_user)
         client.headers["Authorization"] = f"Bearer {token}"
 
@@ -112,6 +118,18 @@ class TestClientAccessControl:
         projects = response.json()
         assert len(projects) == 1
         assert projects[0]["id"] == str(sample_project.id)
+
+    def test_assigned_client_does_not_see_draft_project(
+        self, client, client_user, project_with_client_assigned, create_token
+    ):
+        """Client assigned to a draft project should see an empty list until it is published."""
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get("/projects/")
+
+        assert response.status_code == 200
+        assert response.json() == []
 
     def test_client_cannot_access_unassigned_project_details(
         self, client, client_user, sample_project, create_token
@@ -125,9 +143,13 @@ class TestClientAccessControl:
         assert response.status_code == 403
 
     def test_client_can_access_assigned_project_details(
-        self, client, client_user, project_with_client_assigned, create_token
+        self, client, session, client_user, project_with_client_assigned, create_token
     ):
-        """Client should be able to access assigned project details."""
+        """Client should be able to access assigned project details only when published."""
+        project_with_client_assigned.is_published = True
+        session.add(project_with_client_assigned)
+        session.commit()
+
         token = create_token(client_user)
         client.headers["Authorization"] = f"Bearer {token}"
 
@@ -179,3 +201,55 @@ class TestClientAccessControl:
         projects = response.json()
         # Cogniter should see at least both sample_project and second_project
         assert len(projects) >= 2
+
+
+class TestFinancialFieldLevelAccess:
+    """Tests for server-side enforcement of financial visibility."""
+
+    def test_financials_hidden_for_regular_client(
+        self,
+        client,
+        session,
+        client_user,
+        client_financials_user,
+        sample_project,
+        create_token,
+    ):
+        """Regular Client should not receive financial fields even if project has them."""
+        from models.links import UserProjectLink
+
+        # Publish and assign both users
+        sample_project.is_published = True
+        sample_project.total_budget = 1000
+        sample_project.spent_budget = 250
+        sample_project.remaining_budget = 750
+        session.add(sample_project)
+        session.add(
+            UserProjectLink(project_id=sample_project.id, user_id=client_user.id)
+        )
+        session.add(
+            UserProjectLink(
+                project_id=sample_project.id, user_id=client_financials_user.id
+            )
+        )
+        session.commit()
+
+        # Regular client should see financials stripped
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+        resp = client.get(f"/projects/{sample_project.id}")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_budget"] is None
+        assert data["spent_budget"] is None
+        assert data["remaining_budget"] is None
+
+        # Client + Financials should see values
+        token = create_token(client_financials_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+        resp = client.get(f"/projects/{sample_project.id}")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total_budget"] == 1000
+        assert data["spent_budget"] == 250
+        assert data["remaining_budget"] == 750

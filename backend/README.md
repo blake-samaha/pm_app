@@ -105,14 +105,29 @@ backend/
 
 1. Install dependencies:
 ```bash
-uv pip install -r pyproject.toml
+uv sync
 ```
 
 2. Set up environment variables (create `.env` file):
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/pm_app
 SECRET_KEY=your-secret-key
-GOOGLE_CLIENT_ID=your-google-client-id
+FIREBASE_PROJECT_ID=your-firebase-project-id
+
+# Optional (local dev): Firebase Admin service account JSON path
+# Copy `firebase-service-account.example.json` → `firebase-service-account.json`
+# and set:
+FIREBASE_SERVICE_ACCOUNT_PATH=firebase-service-account.json
+
+# Superuser (dev/demo only)
+SUPERUSER_EMAIL=superuseradmin@cognite.com
+SUPERUSER_PASSWORD=change-me
+
+# Non-dev environments: require explicit enablement
+ALLOW_SUPERUSER_LOGIN=false
+
+# Demo-only behavior (never enable in production)
+ALLOW_SYNTHETIC_DEMO_DATA=false
 ```
 
 3. Run migrations (create tables):
@@ -122,7 +137,7 @@ GOOGLE_CLIENT_ID=your-google-client-id
 
 4. Start the server:
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## API Documentation
@@ -137,6 +152,21 @@ Once running, access interactive API docs at:
 - Google OAuth2 SSO
 - JWT token-based authentication
 - Role-based access control (Cogniter/Client)
+
+### Superuser / Impersonation (Dev/Demo)
+- `POST /auth/superuser-login` is available in **development** by default.
+- In **non-development** environments, it requires `ALLOW_SUPERUSER_LOGIN=true`.
+- The superuser can impersonate via the `X-Impersonate-User-Id` request header.
+- The frontend uses `GET /auth/impersonation-presets` to show stable QA personas for:
+  - Cogniter
+  - Client
+  - Client + Financials
+
+To seed personas (and optionally a published sandbox project) in a dev database:
+
+```bash
+uv run python -m scripts.seed_qa_personas --create-sandbox-project
+```
 
 ### Authorization
 - `@cognite.com` emails automatically get Cogniter role
@@ -177,11 +207,11 @@ See `.env.example` for all required environment variables.
 ## Testing
 
 ```bash
-# Run tests (future)
-pytest
+# Run tests
+uv run pytest
 
 # Run with coverage
-pytest --cov=. --cov-report=html
+uv run pytest --cov=. --cov-report=html
 ```
 
 ## Code Quality

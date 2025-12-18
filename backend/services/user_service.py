@@ -171,3 +171,53 @@ class UserService:
         self.session.commit()
         self.session.refresh(user)
         return user
+
+    def ensure_qa_personas(self) -> list[User]:
+        """
+        Ensure a stable set of QA personas exist for superuser impersonation.
+
+        These are used to quickly QA role-based UI/security for:
+        - Cogniter
+        - Client
+        - Client + Financials
+        """
+        personas: list[tuple[str, str, UserRole]] = [
+            ("qa-cogniter@cognite.com", "QA Cogniter", UserRole.COGNITER),
+            ("qa-client@example.com", "QA Client", UserRole.CLIENT),
+            (
+                "qa-client-financials@example.com",
+                "QA Client + Financials",
+                UserRole.CLIENT_FINANCIALS,
+            ),
+        ]
+
+        ensured: list[User] = []
+        for email, name, role in personas:
+            user = self.repository.get_by_email(email)
+            if not user:
+                user = self.repository.create_user(
+                    email=email,
+                    name=name,
+                    role=role,
+                    auth_provider=AuthProvider.SUPERUSER,
+                )
+                ensured.append(user)
+                continue
+
+            # Keep personas stable even if roles were changed manually.
+            if (
+                user.role != role
+                or user.name != name
+                or user.auth_provider != AuthProvider.SUPERUSER
+            ):
+                user.name = name
+                user.role = role
+                user.auth_provider = AuthProvider.SUPERUSER
+                user.is_pending = False
+                self.session.add(user)
+                self.session.commit()
+                self.session.refresh(user)
+
+            ensured.append(user)
+
+        return ensured

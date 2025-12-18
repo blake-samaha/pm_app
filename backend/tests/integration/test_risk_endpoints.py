@@ -58,6 +58,8 @@ def resolved_risk(session, sample_project, cogniter_user) -> Risk:
 @pytest.fixture
 def project_with_client_and_risk(session, sample_project, client_user, sample_risk):
     """Project with client assigned and a risk."""
+    sample_project.is_published = True
+    session.add(sample_project)
     link = UserProjectLink(project_id=sample_project.id, user_id=client_user.id)
     session.add(link)
     session.commit()

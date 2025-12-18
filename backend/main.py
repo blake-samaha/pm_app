@@ -181,6 +181,9 @@ app = FastAPI(
     description="Automated Project Management Tool API",
     version="1.0.0",
     lifespan=lifespan,
+    # Disable automatic redirect from /path to /path/
+    # This is needed for Next.js rewrites to work through tunnels
+    redirect_slashes=False,
 )
 
 # CORS Configuration

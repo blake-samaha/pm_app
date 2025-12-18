@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Home, Folder, LogOut, Laptop } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 
 export function CommandMenu() {
     const [open, setOpen] = React.useState(false);
     const router = useRouter();
-    const { logout, user } = useAuthStore();
+    const { logout } = useAuthStore();
+    const user = useEffectiveUser();
 
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Upload, Link as LinkIcon, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { API_URL } from "@/lib/api";
 
 interface ImageUploadProps {
     currentUrl?: string | null;
@@ -162,11 +163,7 @@ export const ImageUpload = ({
             <div className="space-y-3">
                 <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <img
-                        src={
-                            currentUrl.startsWith("/")
-                                ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${currentUrl}`
-                                : currentUrl
-                        }
+                        src={currentUrl.startsWith("/") ? `${API_URL}${currentUrl}` : currentUrl}
                         alt="Current logo"
                         className="h-14 w-14 rounded-lg bg-white object-cover shadow-sm"
                         onError={(e) => {

@@ -33,6 +33,13 @@ class RiskService:
         if is_internal_user(user):
             return  # Cogniters have access to all projects
 
+        project = self.project_repository.get_by_id(project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {project_id} not found")
+
+        if not project.is_published:
+            raise AuthorizationError("This project is not published")
+
         if not self.project_repository.user_has_access(project_id, user.id):
             raise AuthorizationError("You don't have access to this project")
 

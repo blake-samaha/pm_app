@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from dependencies import CogniterUser, CurrentUser, ProjectServiceDep, UserServiceDep
 from exceptions import AuthorizationError, DuplicateResourceError, ResourceNotFoundError
+from permissions import can_view_financials, is_internal_user
 from schemas import (
     InviteUserRequest,
     InviteUserResponse,
@@ -22,6 +23,20 @@ router = APIRouter(
 )
 
 
+def _to_project_read(project, user) -> ProjectRead:
+    """
+    Serialize a project for the requesting user, enforcing field-level permissions.
+
+    Frontend UI gating is not a security boundary; enforce financial visibility here.
+    """
+    model = ProjectRead.model_validate(project)
+    if not can_view_financials(user):
+        model.total_budget = None
+        model.spent_budget = None
+        model.remaining_budget = None
+    return model
+
+
 @router.get("/", response_model=List[ProjectRead])
 async def list_projects(current_user: CurrentUser, project_service: ProjectServiceDep):
     """
@@ -30,7 +45,7 @@ async def list_projects(current_user: CurrentUser, project_service: ProjectServi
     - Clients: see only assigned projects
     """
     projects = project_service.get_user_projects(current_user)
-    return projects
+    return [_to_project_read(p, current_user) for p in projects]
 
 
 @router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
@@ -61,15 +76,24 @@ async def get_project(
     User must have access to the project.
     """
     try:
-        # Check access
-        if not project_service.user_has_access_to_project(project_id, current_user):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to this project",
-            )
-
         project = project_service.get_project_by_id(project_id)
-        return project
+
+        # Access rules:
+        # - Cogniters: all projects
+        # - Clients: must be assigned AND project must be published
+        if not is_internal_user(current_user):
+            if not project.is_published:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This project is not published",
+                )
+            if not project_service.user_has_access_to_project(project_id, current_user):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You don't have access to this project",
+                )
+
+        return _to_project_read(project, current_user)
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 

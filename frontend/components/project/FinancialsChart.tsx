@@ -49,7 +49,12 @@ export const FinancialsChart = ({ total, spent, remaining, currency }: Financial
                         ))}
                     </Pie>
                     <Tooltip
-                        formatter={(value: number) => formatter.format(value)}
+                        formatter={(value: number | string | undefined) => {
+                            if (typeof value !== "number") {
+                                return value ?? "";
+                            }
+                            return formatter.format(value);
+                        }}
                         contentStyle={{
                             backgroundColor: "#fff",
                             borderRadius: "8px",

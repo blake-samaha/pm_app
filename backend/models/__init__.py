@@ -14,6 +14,7 @@ class UserRole(str, Enum):
 class AuthProvider(str, Enum):
     GOOGLE = "Google"
     EMAIL = "Email"
+    SUPERUSER = "Superuser"
 
 
 class ActionStatus(str, Enum):

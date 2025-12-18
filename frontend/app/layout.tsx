@@ -7,6 +7,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "sonner";
 import { CommandMenu } from "@/components/ui/command-menu";
+import { ImpersonationBar } from "@/components/ImpersonationBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,6 +28,7 @@ export default function RootLayout({
                     <AuthProvider>
                         <AuthGuard>
                             <ErrorBoundary>
+                                <ImpersonationBar />
                                 <CommandMenu />
                                 {children}
                             </ErrorBoundary>

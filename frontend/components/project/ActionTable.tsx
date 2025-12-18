@@ -21,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useProject } from "@/hooks/useProjects"; // Import useProject to get Jira URL context
 
 interface ActionTableProps {
@@ -76,6 +76,11 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Reset to first page when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filters]);
+
     // Helper to construct Jira Issue URL
     const getJiraIssueUrl = (jiraId: string) => {
         // Fallback if project.jira_url isn't set but we have an ID (e.g. assume cloud hostname if we could, but better to just require the URL)
@@ -94,11 +99,6 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
     }, [actions]);
 
     const filteredActions = useMemo(() => {
-        // Reset to first page when filters change
-        if (currentPage !== 1) {
-            setCurrentPage(1);
-        }
-
         if (!actions) return [];
 
         const now = new Date();

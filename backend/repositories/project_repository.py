@@ -31,6 +31,7 @@ class ProjectRepository(BaseRepository[Project]):
             select(Project)
             .join(UserProjectLink)
             .where(UserProjectLink.user_id == user_id)
+            .where(Project.is_published)
         )
         return list(self.session.exec(statement).all())
 
