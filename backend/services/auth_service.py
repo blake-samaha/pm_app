@@ -25,29 +25,50 @@ def initialize_firebase(settings: Settings):
     if _firebase_initialized:
         return
 
+    # Check if Firebase is already initialized
     try:
-        # Check if already initialized
         firebase_admin.get_app()
         _firebase_initialized = True
         return
     except ValueError:
+        # App doesn't exist yet, continue to initialize
         pass
 
-    # Initialize with service account if path provided AND file exists
-    if settings.firebase_service_account_path and os.path.exists(
-        settings.firebase_service_account_path
-    ):
-        cred = credentials.Certificate(settings.firebase_service_account_path)
-        firebase_admin.initialize_app(cred)
-    elif settings.firebase_project_id:
-        # Initialize with just project ID (works with ADC or for token verification only)
-        firebase_admin.initialize_app(
-            options={"projectId": settings.firebase_project_id}
-        )
-    else:
-        # No Firebase config available - skip initialization
-        # This allows superuser login to work without Firebase
-        return
+    # Initialize Firebase (handle race condition where another thread might initialize it)
+    try:
+        if settings.firebase_service_account_path and os.path.exists(
+            settings.firebase_service_account_path
+        ):
+            cred = credentials.Certificate(settings.firebase_service_account_path)
+            firebase_admin.initialize_app(cred)
+        elif settings.firebase_project_id:
+            # Initialize with just project ID (works with ADC or for token verification only)
+            firebase_admin.initialize_app(
+                options={"projectId": settings.firebase_project_id}
+            )
+        else:
+            # No Firebase config available - skip initialization
+            # This allows superuser login to work without Firebase
+            _firebase_initialized = True
+            return
+    except ValueError as e:
+        # Handle race condition: Firebase might have been initialized by another thread
+        error_msg = str(e).lower()
+        if (
+            "already exists" in error_msg
+            or "default firebase app already exists" in error_msg
+        ):
+            # Another thread initialized it - verify it exists and mark as initialized
+            try:
+                firebase_admin.get_app()
+                _firebase_initialized = True
+                return
+            except ValueError:
+                # Still doesn't exist - this shouldn't happen, but re-raise original error
+                raise e
+        else:
+            # Different ValueError - re-raise it
+            raise
 
     _firebase_initialized = True
 

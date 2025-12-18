@@ -18,4 +18,5 @@ COPY . .
 RUN uv sync --frozen --no-dev
 
 # Run with uv
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Exclude .venv from reload watching to prevent false reload triggers
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-exclude", ".venv"]
