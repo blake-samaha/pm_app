@@ -10,7 +10,7 @@ settings = get_settings()
 # Create engine with connection pooling
 engine = create_engine(
     settings.database_url,
-    echo=settings.environment == "development",  # SQL logging in development
+    echo=False,  # SQL logging controlled via Python logging (see main.py)
     poolclass=QueuePool,
     pool_size=5,  # Number of connections to maintain
     max_overflow=10,  # Additional connections if pool exhausted

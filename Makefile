@@ -4,6 +4,7 @@
 install:
 	cd frontend && npm install
 	cd backend && uv sync
+	$(MAKE) setup-hooks
 
 # Start the database only
 dev-db:
@@ -58,5 +59,8 @@ lint:
 	cd backend && uv run ty check
 
 setup-hooks:
-	cd backend && uv run bash -c 'cd .. && pre-commit install'
+	@echo "Installing robust pre-commit hook..."
+	cp scripts/pre-commit-hook .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
+	@echo "Pre-commit hook installed successfully!"
 

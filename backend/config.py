@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # Environment
     environment: str = "development"
 
+    # Logging
+    log_level: str = "INFO"
+    sql_log_level: str = "WARNING"
+
     # Superuser (bypasses Firebase for demos)
     superuser_email: str = ""
     superuser_password: str = ""

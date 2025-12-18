@@ -27,6 +27,7 @@ from exceptions import (
     ValidationError,
 )
 from integrations import JiraClient, PrecursiveClient
+from middleware import RequestContextMiddleware, RequestLoggingMiddleware
 from routers import actions, auth, projects, risks, sync, uploads, users
 
 settings = get_settings()
@@ -40,8 +41,9 @@ settings = get_settings()
 def configure_logging():
     """Configure structured logging with structlog."""
 
-    # Determine log level based on environment
-    log_level = logging.DEBUG if settings.environment == "development" else logging.INFO
+    # Get log level from settings (configurable via environment)
+    log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
+    sql_log_level = getattr(logging, settings.sql_log_level.upper(), logging.WARNING)
 
     # Configure standard logging
     logging.basicConfig(
@@ -50,19 +52,37 @@ def configure_logging():
         stream=sys.stdout,
     )
 
+    # Configure third-party loggers to reduce noise
+    logging.getLogger("sqlalchemy.engine").setLevel(sql_log_level)
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    # Shared processors for both dev and prod
+    # Note: Using processors compatible with PrintLoggerFactory (not stdlib)
+    shared_processors = [
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.UnicodeDecoder(),
+    ]
+
+    if settings.environment == "development":
+        # Pretty console output for development
+        processors = shared_processors + [
+            structlog.dev.set_exc_info,
+            structlog.dev.ConsoleRenderer(),
+        ]
+    else:
+        # JSON for production (easy to parse in log aggregators)
+        processors = shared_processors + [
+            structlog.processors.format_exc_info,
+            structlog.processors.JSONRenderer(),
+        ]
+
     # Configure structlog
     structlog.configure(
-        processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.processors.add_log_level,
-            structlog.processors.StackInfoRenderer(),
-            structlog.dev.set_exc_info,
-            structlog.processors.TimeStamper(fmt="iso"),
-            # Use console renderer in dev, JSON in production
-            structlog.dev.ConsoleRenderer()
-            if settings.environment == "development"
-            else structlog.processors.JSONRenderer(),
-        ],
+        processors=processors,
         wrapper_class=structlog.make_filtering_bound_logger(log_level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
@@ -194,6 +214,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request Logging Middleware (logs request completion with timing)
+# Note: Order matters - middleware is processed in reverse order of addition
+# RequestLoggingMiddleware should run after RequestContextMiddleware has set context
+app.add_middleware(RequestLoggingMiddleware)  # type: ignore[arg-type]
+
+# Request Context Middleware (sets correlation IDs and request metadata)
+app.add_middleware(RequestContextMiddleware)  # type: ignore[arg-type]
 
 
 # ============================================================================
