@@ -52,3 +52,9 @@ class UserUpdate(BaseModel):
     """Schema for updating user data."""
 
     name: Optional[str] = None
+
+
+class UserRoleUpdate(BaseModel):
+    """Schema for updating a user's role."""
+
+    role: UserRole

@@ -7,8 +7,14 @@ from uuid import UUID
 from sqlmodel import Session
 
 from exceptions import AuthorizationError, ResourceNotFoundError, ValidationError
-from models import Comment, Risk, RiskStatus, User, UserRole
-from permissions import can_reopen_risk, can_resolve_risk
+from models import Comment, Risk, RiskStatus, User
+from permissions import (
+    can_delete_risk,
+    can_reopen_risk,
+    can_resolve_risk,
+    can_update_risk,
+    is_internal_user,
+)
 from repositories.project_repository import ProjectRepository
 from repositories.risk_repository import RiskRepository
 from schemas import RiskCreate, RiskUpdate
@@ -24,7 +30,7 @@ class RiskService:
 
     def _check_project_access(self, project_id: UUID, user: User) -> None:
         """Verify user has access to the project. Raises AuthorizationError if not."""
-        if user.role == UserRole.COGNITER:
+        if is_internal_user(user):
             return  # Cogniters have access to all projects
 
         if not self.project_repository.user_has_access(project_id, user.id):
@@ -70,7 +76,7 @@ class RiskService:
         self._check_project_access(risk.project_id, user)
 
         # Only Cogniters can update risks
-        if user.role != UserRole.COGNITER:
+        if not can_update_risk(user):
             raise AuthorizationError("Only Cogniters can update risks")
 
         # Update fields
@@ -195,7 +201,7 @@ class RiskService:
         _ = self.get_risk_by_id(risk_id)
 
         # Only Cogniters can delete risks
-        if user.role != UserRole.COGNITER:
+        if not can_delete_risk(user):
             raise AuthorizationError("Only Cogniters can delete risks")
 
         return self.repository.delete(risk_id)

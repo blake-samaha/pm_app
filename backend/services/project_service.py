@@ -6,7 +6,14 @@ from uuid import UUID
 from sqlmodel import Session
 
 from exceptions import AuthorizationError, DuplicateResourceError, ResourceNotFoundError
-from models import Project, User, UserRole
+from models import Project, User
+from permissions import (
+    can_create_project,
+    can_edit_project,
+    can_manage_team,
+    can_publish_project,
+    is_internal_user,
+)
 from repositories.project_repository import ProjectRepository
 from schemas.project import ProjectCreate, ProjectUpdate
 
@@ -35,7 +42,7 @@ class ProjectService:
 
     def get_user_projects(self, user: User) -> List[Project]:
         """Get projects accessible to a user."""
-        if user.role == UserRole.COGNITER:
+        if is_internal_user(user):
             # Cogniters see all projects
             return self.repository.get_all()
         else:
@@ -45,7 +52,7 @@ class ProjectService:
     def create_project(self, project_data: ProjectCreate, creator: User) -> Project:
         """Create a new project."""
         # Only Cogniters can create projects
-        if creator.role != UserRole.COGNITER:
+        if not can_create_project(creator):
             raise AuthorizationError("Only Cogniters can create projects")
 
         # Check for duplicate Precursive URL
@@ -65,7 +72,7 @@ class ProjectService:
     ) -> Project:
         """Update an existing project."""
         # Only Cogniters can update projects
-        if user.role != UserRole.COGNITER:
+        if not can_edit_project(user):
             raise AuthorizationError("Only Cogniters can update projects")
 
         project = self.get_project_by_id(project_id)
@@ -80,7 +87,7 @@ class ProjectService:
     def delete_project(self, project_id: UUID, user: User) -> bool:
         """Delete a project."""
         # Only Cogniters can delete projects
-        if user.role != UserRole.COGNITER:
+        if not can_edit_project(user):
             raise AuthorizationError("Only Cogniters can delete projects")
 
         return self.repository.delete(project_id)
@@ -90,7 +97,7 @@ class ProjectService:
     ) -> None:
         """Assign a user to a project."""
         # Only Cogniters can assign users
-        if assigner.role != UserRole.COGNITER:
+        if not can_manage_team(assigner):
             raise AuthorizationError("Only Cogniters can assign users to projects")
 
         # Verify project exists
@@ -103,14 +110,14 @@ class ProjectService:
     ) -> None:
         """Remove a user from a project."""
         # Only Cogniters can remove users
-        if remover.role != UserRole.COGNITER:
+        if not can_manage_team(remover):
             raise AuthorizationError("Only Cogniters can remove users from projects")
 
         self.repository.remove_user_from_project(project_id, user_id)
 
     def user_has_access_to_project(self, project_id: UUID, user: User) -> bool:
         """Check if a user has access to a project."""
-        if user.role == UserRole.COGNITER:
+        if is_internal_user(user):
             # Cogniters have access to all projects
             return True
 
@@ -125,7 +132,7 @@ class ProjectService:
 
     def publish_project(self, project_id: UUID, user: User) -> Project:
         """Publish a project."""
-        if user.role != UserRole.COGNITER:
+        if not can_publish_project(user):
             raise AuthorizationError("Only Cogniters can publish projects")
 
         project = self.get_project_by_id(project_id)
@@ -134,7 +141,7 @@ class ProjectService:
 
     def unpublish_project(self, project_id: UUID, user: User) -> Project:
         """Unpublish a project."""
-        if user.role != UserRole.COGNITER:
+        if not can_publish_project(user):
             raise AuthorizationError("Only Cogniters can unpublish projects")
 
         project = self.get_project_by_id(project_id)

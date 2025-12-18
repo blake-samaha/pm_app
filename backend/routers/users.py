@@ -9,6 +9,7 @@ from dependencies import CogniterUser, UserServiceDep
 from exceptions import ResourceNotFoundError
 from models import UserRole
 from schemas import UserRead
+from schemas.user import UserRoleUpdate
 
 router = APIRouter(
     prefix="/users",
@@ -37,7 +38,7 @@ async def list_users(
 @router.patch("/{user_id}/role", response_model=UserRead)
 async def update_user_role(
     user_id: UUID,
-    new_role: UserRole,
+    role_data: UserRoleUpdate,
     current_user: CogniterUser,  # Only Cogniters can update roles
     user_service: UserServiceDep,
 ):
@@ -51,13 +52,13 @@ async def update_user_role(
     Use this to upgrade a client to Client + Financials for financial data access.
     """
     # Security: Cannot promote to Cogniter
-    if new_role == UserRole.COGNITER:
+    if role_data.role == UserRole.COGNITER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot promote users to Cogniter role",
         )
 
     try:
-        return user_service.update_role(user_id, new_role)
+        return user_service.update_role(user_id, role_data.role)
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

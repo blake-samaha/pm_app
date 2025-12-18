@@ -10,7 +10,13 @@ from models import ActionStatus, Priority, RiskImpact, RiskProbability, RiskStat
 from schemas.auth import GoogleLoginRequest, Token
 from schemas.project import ProjectBase, ProjectCreate, ProjectRead, ProjectUpdate
 from schemas.sync import JiraSyncResult, PrecursiveSyncResult, SyncResult, SyncStatus
-from schemas.user import InviteUserRequest, InviteUserResponse, UserCreate, UserRead
+from schemas.user import (
+    InviteUserRequest,
+    InviteUserResponse,
+    UserCreate,
+    UserRead,
+    UserRoleUpdate,
+)
 
 
 # Action Item Schemas
@@ -136,6 +142,7 @@ __all__ = [
     # User
     "UserRead",
     "UserCreate",
+    "UserRoleUpdate",
     "InviteUserRequest",
     "InviteUserResponse",
     # Project

@@ -6,7 +6,8 @@ from uuid import UUID
 from sqlmodel import Session
 
 from exceptions import AuthorizationError, ResourceNotFoundError
-from models import ActionItem, User, UserRole
+from models import ActionItem, User
+from permissions import can_delete_action, is_internal_user
 from repositories.action_repository import ActionRepository
 from repositories.project_repository import ProjectRepository
 from schemas import ActionItemCreate
@@ -22,7 +23,7 @@ class ActionService:
 
     def _check_project_access(self, project_id: UUID, user: User) -> None:
         """Verify user has access to the project. Raises AuthorizationError if not."""
-        if user.role == UserRole.COGNITER:
+        if is_internal_user(user):
             return  # Cogniters have access to all projects
 
         if not self.project_repository.user_has_access(project_id, user.id):
@@ -92,7 +93,7 @@ class ActionService:
         _ = self.get_action_by_id(action_id)
 
         # Only Cogniters can delete actions
-        if user.role != UserRole.COGNITER:
+        if not can_delete_action(user):
             raise AuthorizationError("Only Cogniters can delete action items")
 
         return self.repository.delete(action_id)

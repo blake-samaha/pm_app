@@ -91,3 +91,49 @@ def can_reopen_risk(user: User) -> bool:
     Only internal users (Cogniters) can reopen risks.
     """
     return user.role == UserRole.COGNITER
+
+
+def can_trigger_sync(user: User) -> bool:
+    """
+    Check if user can trigger data synchronization (Jira, Precursive).
+
+    Only internal users (Cogniters) can trigger syncs.
+    Clients (both CLIENT and CLIENT_FINANCIALS) cannot sync.
+    """
+    return user.role == UserRole.COGNITER
+
+
+def can_delete_action(user: User) -> bool:
+    """
+    Check if user can delete action items.
+
+    Only internal users (Cogniters) can delete action items.
+    """
+    return user.role == UserRole.COGNITER
+
+
+def can_update_risk(user: User) -> bool:
+    """
+    Check if user can update risk details (not status changes).
+
+    Only internal users (Cogniters) can update risks.
+    """
+    return user.role == UserRole.COGNITER
+
+
+def can_delete_risk(user: User) -> bool:
+    """
+    Check if user can delete risks.
+
+    Only internal users (Cogniters) can delete risks.
+    """
+    return user.role == UserRole.COGNITER
+
+
+def can_publish_project(user: User) -> bool:
+    """
+    Check if user can publish or unpublish projects.
+
+    Only internal users (Cogniters) can publish/unpublish projects.
+    """
+    return user.role == UserRole.COGNITER

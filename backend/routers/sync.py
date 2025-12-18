@@ -5,9 +5,9 @@ import uuid
 import structlog
 from fastapi import APIRouter, HTTPException, status
 
-from dependencies import CurrentUser, SessionDep, SettingsDep
+from dependencies import CogniterUser, CurrentUser, SessionDep, SettingsDep
 from exceptions import IntegrationError, ResourceNotFoundError
-from models import Project, UserRole
+from models import Project
 from schemas.sync import JiraSyncResult, PrecursiveSyncResult, SyncResult, SyncStatus
 from services.sync_service import SyncService
 
@@ -24,7 +24,7 @@ async def trigger_sync(
     project_id: uuid.UUID,
     session: SessionDep,
     settings: SettingsDep,
-    current_user: CurrentUser,
+    current_user: CogniterUser,  # Only Cogniters can trigger syncs
 ):
     """
     Trigger a full sync for a project (Jira + Precursive).
@@ -44,10 +44,6 @@ async def trigger_sync(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # Only Cogniters can trigger sync
-    if current_user.role == UserRole.CLIENT:
-        raise HTTPException(status_code=403, detail="Clients cannot trigger sync")
-
     # Run sync
     sync_service = SyncService(session, settings)
     try:
@@ -63,7 +59,7 @@ async def sync_jira_only(
     project_id: uuid.UUID,
     session: SessionDep,
     settings: SettingsDep,
-    current_user: CurrentUser,
+    current_user: CogniterUser,  # Only Cogniters can trigger syncs
 ):
     """
     Sync only Jira issues for a project.
@@ -79,10 +75,6 @@ async def sync_jira_only(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-
-    # Only Cogniters can trigger sync
-    if current_user.role == UserRole.CLIENT:
-        raise HTTPException(status_code=403, detail="Clients cannot trigger sync")
 
     sync_service = SyncService(session, settings)
 
@@ -107,7 +99,7 @@ async def sync_precursive_only(
     project_id: uuid.UUID,
     session: SessionDep,
     settings: SettingsDep,
-    current_user: CurrentUser,
+    current_user: CogniterUser,  # Only Cogniters can trigger syncs
 ):
     """
     Sync only Precursive data for a project.
@@ -123,10 +115,6 @@ async def sync_precursive_only(
     project = session.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-
-    # Only Cogniters can trigger sync
-    if current_user.role == UserRole.CLIENT:
-        raise HTTPException(status_code=403, detail="Clients cannot trigger sync")
 
     sync_service = SyncService(session, settings)
 

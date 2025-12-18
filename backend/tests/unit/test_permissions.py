@@ -9,8 +9,12 @@ from models import AuthProvider, User, UserRole
 # These imports will fail initially - that's expected in TDD
 from permissions import (
     can_create_project,
+    can_delete_action,
+    can_delete_risk,
     can_edit_project,
     can_manage_team,
+    can_publish_project,
+    can_update_risk,
     can_view_financials,
     is_client_role,
     is_internal_user,
@@ -147,3 +151,67 @@ class TestCanCreateProject:
     def test_client_cannot_create(self, client):
         """Client should not be able to create projects."""
         assert can_create_project(client) is False
+
+
+class TestCanDeleteAction:
+    """Tests for can_delete_action permission check."""
+
+    def test_cogniter_can_delete(self, cogniter):
+        """Cogniter should be able to delete action items."""
+        assert can_delete_action(cogniter) is True
+
+    def test_client_financials_cannot_delete(self, client_financials):
+        """Client + Financials should not be able to delete action items."""
+        assert can_delete_action(client_financials) is False
+
+    def test_client_cannot_delete(self, client):
+        """Client should not be able to delete action items."""
+        assert can_delete_action(client) is False
+
+
+class TestCanUpdateRisk:
+    """Tests for can_update_risk permission check."""
+
+    def test_cogniter_can_update(self, cogniter):
+        """Cogniter should be able to update risks."""
+        assert can_update_risk(cogniter) is True
+
+    def test_client_financials_cannot_update(self, client_financials):
+        """Client + Financials should not be able to update risks."""
+        assert can_update_risk(client_financials) is False
+
+    def test_client_cannot_update(self, client):
+        """Client should not be able to update risks."""
+        assert can_update_risk(client) is False
+
+
+class TestCanDeleteRisk:
+    """Tests for can_delete_risk permission check."""
+
+    def test_cogniter_can_delete(self, cogniter):
+        """Cogniter should be able to delete risks."""
+        assert can_delete_risk(cogniter) is True
+
+    def test_client_financials_cannot_delete(self, client_financials):
+        """Client + Financials should not be able to delete risks."""
+        assert can_delete_risk(client_financials) is False
+
+    def test_client_cannot_delete(self, client):
+        """Client should not be able to delete risks."""
+        assert can_delete_risk(client) is False
+
+
+class TestCanPublishProject:
+    """Tests for can_publish_project permission check."""
+
+    def test_cogniter_can_publish(self, cogniter):
+        """Cogniter should be able to publish/unpublish projects."""
+        assert can_publish_project(cogniter) is True
+
+    def test_client_financials_cannot_publish(self, client_financials):
+        """Client + Financials should not be able to publish/unpublish projects."""
+        assert can_publish_project(client_financials) is False
+
+    def test_client_cannot_publish(self, client):
+        """Client should not be able to publish/unpublish projects."""
+        assert can_publish_project(client) is False
