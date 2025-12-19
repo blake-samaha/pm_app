@@ -6,8 +6,9 @@ from typing import List
 from fastapi import APIRouter, HTTPException, status
 
 from dependencies import ActionServiceDep, CogniterUser, CurrentUser
-from exceptions import AuthorizationError, ResourceNotFoundError
-from schemas import ActionItemCreate, ActionItemRead
+from exceptions import AuthorizationError, ResourceNotFoundError, ValidationError
+from schemas import ActionItemCreate, ActionItemRead, CommentCreate, CommentRead
+from serializers.api_models import to_action_item_read, to_comment_read
 
 router = APIRouter(
     prefix="/actions",
@@ -21,7 +22,12 @@ async def read_actions(
 ):
     """Get all actions for a project."""
     try:
-        return action_service.get_project_actions(project_id, current_user)
+        rows = action_service.get_project_actions_with_comment_counts(
+            project_id, current_user
+        )
+        return [
+            to_action_item_read(action, comment_count) for action, comment_count in rows
+        ]
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except AuthorizationError as e:
@@ -72,3 +78,57 @@ async def delete_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except AuthorizationError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+# =============================================================================
+# Comment Endpoints
+# =============================================================================
+
+
+@router.get("/{action_id}/comments", response_model=List[CommentRead])
+async def get_action_comments(
+    action_id: uuid.UUID, current_user: CurrentUser, action_service: ActionServiceDep
+):
+    """
+    Get all comments for an action item.
+
+    Both Cogniters and assigned Clients can view comments.
+    """
+    try:
+        rows = action_service.get_comments(action_id, current_user)
+        return [to_comment_read(comment, author) for comment, author in rows]
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+
+
+@router.post(
+    "/{action_id}/comments",
+    response_model=CommentRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def add_action_comment(
+    action_id: uuid.UUID,
+    data: CommentCreate,
+    current_user: CurrentUser,
+    action_service: ActionServiceDep,
+):
+    """
+    Add a comment to an action item.
+
+    Both Cogniters and assigned Clients can comment on actions.
+    """
+    try:
+        comment, author = action_service.add_comment(
+            action_id, data.content, current_user
+        )
+        return to_comment_read(comment, author)
+    except ResourceNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthorizationError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+        )

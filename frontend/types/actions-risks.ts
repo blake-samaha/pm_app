@@ -23,6 +23,8 @@ export interface ActionItem {
     priority: Priority;
     issue_type?: string;
     last_synced_at?: string;
+    // Comment count for badge display
+    comment_count?: number;
 }
 
 export enum RiskProbability {
@@ -72,6 +74,9 @@ export interface Comment {
     created_at: string;
     action_item_id?: string;
     risk_id?: string;
+    // Author identity (name first, fallback to email)
+    author_name?: string;
+    author_email?: string;
 }
 
 // Request types for mutations

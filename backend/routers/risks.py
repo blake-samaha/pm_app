@@ -15,6 +15,7 @@ from schemas import (
     RiskReopen,
     RiskResolve,
 )
+from serializers.api_models import to_comment_read
 
 router = APIRouter(
     prefix="/risks",
@@ -91,7 +92,7 @@ async def resolve_risk(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
 
 
@@ -118,7 +119,7 @@ async def reopen_risk(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
 
 
@@ -132,7 +133,8 @@ async def get_risk_comments(
     Both Cogniters and assigned Clients can view comments.
     """
     try:
-        return risk_service.get_comments(risk_id, current_user)
+        rows = risk_service.get_comments(risk_id, current_user)
+        return [to_comment_read(comment, author) for comment, author in rows]
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except AuthorizationError as e:
@@ -156,14 +158,15 @@ async def add_risk_comment(
     Both Cogniters and assigned Clients can comment on risks.
     """
     try:
-        return risk_service.add_comment(risk_id, data.content, current_user)
+        comment, author = risk_service.add_comment(risk_id, data.content, current_user)
+        return to_comment_read(comment, author)
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except AuthorizationError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
         )
 
 

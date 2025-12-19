@@ -1,7 +1,7 @@
 """Risk service for business logic."""
 
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from sqlmodel import Session
@@ -15,6 +15,7 @@ from permissions import (
     can_update_risk,
     is_internal_user,
 )
+from repositories.comment_repository import CommentRepository
 from repositories.project_repository import ProjectRepository
 from repositories.risk_repository import RiskRepository
 from schemas import RiskCreate, RiskUpdate
@@ -27,6 +28,7 @@ class RiskService:
         self.session = session
         self.repository = RiskRepository(session)
         self.project_repository = ProjectRepository(session)
+        self.comment_repository = CommentRepository(session)
 
     def _check_project_access(self, project_id: UUID, user: User) -> None:
         """Verify user has access to the project. Raises AuthorizationError if not."""
@@ -173,7 +175,13 @@ class RiskService:
 
         return self.repository.update(risk)
 
-    def add_comment(self, risk_id: UUID, content: str, user: User) -> Comment:
+    # =========================================================================
+    # Comment Methods
+    # =========================================================================
+
+    def add_comment(
+        self, risk_id: UUID, content: str, user: User
+    ) -> Tuple[Comment, User]:
         """
         Add a comment to a risk.
 
@@ -189,19 +197,19 @@ class RiskService:
             raise ValidationError("Comment content is required")
 
         comment = Comment(risk_id=risk_id, user_id=user.id, content=content.strip())
-        self.session.add(comment)
-        self.session.commit()
-        self.session.refresh(comment)
-        return comment
+        comment = self.comment_repository.create(comment)
 
-    def get_comments(self, risk_id: UUID, user: User) -> List[Comment]:
+        return comment, user
+
+    def get_comments(self, risk_id: UUID, user: User) -> List[Tuple[Comment, User]]:
         """Get all comments for a risk."""
         risk = self.get_risk_by_id(risk_id)
 
         # Verify access to project
         self._check_project_access(risk.project_id, user)
 
-        return risk.comments
+        # Get comments with authors
+        return self.comment_repository.list_for_risk(risk_id)
 
     def delete_risk(self, risk_id: UUID, user: User) -> bool:
         """Delete a risk."""

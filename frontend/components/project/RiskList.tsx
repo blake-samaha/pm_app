@@ -19,11 +19,9 @@ import {
     ChevronRight,
     CheckCircle2,
     RotateCcw,
-    MessageSquare,
-    Send,
 } from "lucide-react";
+import { CommentThread } from "@/components/comments/CommentThread";
 import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -121,7 +119,6 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
     );
     const [decisionRecord, setDecisionRecord] = useState("");
     const [reopenReason, setReopenReason] = useState("");
-    const [newComment, setNewComment] = useState("");
 
     const resolveRisk = useResolveRisk();
     const reopenRisk = useReopenRisk();
@@ -160,17 +157,11 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
         }
     };
 
-    const handleAddComment = async () => {
-        if (!newComment.trim()) return;
-        try {
-            await addComment.mutateAsync({
-                riskId: risk.id,
-                content: newComment,
-            });
-            setNewComment("");
-        } catch (error) {
-            console.error("Failed to add comment:", error);
-        }
+    const handleAddComment = async (content: string) => {
+        await addComment.mutateAsync({
+            riskId: risk.id,
+            content,
+        });
     };
 
     return (
@@ -391,64 +382,12 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
 
                 {/* Comments Section */}
                 <div className="rounded-xl border border-slate-200 bg-white p-5">
-                    <h4 className="mb-4 flex items-center text-sm font-bold text-slate-900">
-                        <MessageSquare className="mr-2 h-4 w-4 text-slate-500" />
-                        Comments
-                        {comments && comments.length > 0 && (
-                            <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs">
-                                {comments.length}
-                            </span>
-                        )}
-                    </h4>
-
-                    {/* Comment List */}
-                    <div className="mb-4 max-h-48 space-y-3 overflow-y-auto">
-                        {commentsLoading ? (
-                            <div className="flex justify-center py-4">
-                                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                            </div>
-                        ) : comments && comments.length > 0 ? (
-                            comments.map((comment) => (
-                                <div key={comment.id} className="rounded-lg bg-slate-50 p-3">
-                                    <p className="text-sm text-slate-700">{comment.content}</p>
-                                    <p className="mt-1 text-xs text-slate-400">
-                                        {new Date(comment.created_at).toLocaleString()}
-                                    </p>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="py-4 text-center text-sm text-slate-400">
-                                No comments yet
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Add Comment */}
-                    <div className="flex gap-2">
-                        <Input
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Add a comment..."
-                            className="flex-1"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleAddComment();
-                                }
-                            }}
-                        />
-                        <Button
-                            size="sm"
-                            onClick={handleAddComment}
-                            disabled={!newComment.trim() || addComment.isPending}
-                        >
-                            {addComment.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Send className="h-4 w-4" />
-                            )}
-                        </Button>
-                    </div>
+                    <CommentThread
+                        comments={comments}
+                        isLoading={commentsLoading}
+                        onAddComment={handleAddComment}
+                        isAddingComment={addComment.isPending}
+                    />
                 </div>
             </div>
         </DialogContent>

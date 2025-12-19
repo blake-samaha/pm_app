@@ -192,3 +192,121 @@ class TestActionService:
         ):
             result = service.get_by_jira_id("12345")
             assert result == sample_action
+
+
+class TestActionServiceComments:
+    """Tests for ActionService comment functionality."""
+
+    def test_client_can_comment_on_assigned_project(
+        self, mock_session, client_user, sample_action, sample_project
+    ):
+        """Clients can comment on actions for projects they're assigned to."""
+        service = ActionService(mock_session)
+        sample_action.project_id = sample_project.id
+        sample_project.is_published = True
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with patch.object(
+                service.project_repository, "get_by_id", return_value=sample_project
+            ):
+                with patch.object(
+                    service.project_repository, "user_has_access", return_value=True
+                ):
+                    with patch.object(service.comment_repository, "create"):
+                        # Should not raise
+                        _ = service.add_comment(
+                            sample_action.id, "Test comment", client_user
+                        )
+
+    def test_client_cannot_comment_on_unassigned_project(
+        self, mock_session, client_user, sample_action, sample_project
+    ):
+        """Clients cannot comment on actions for unassigned projects."""
+        service = ActionService(mock_session)
+        sample_action.project_id = sample_project.id
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with patch.object(
+                service.project_repository, "get_by_id", return_value=sample_project
+            ):
+                with patch.object(
+                    service.project_repository, "user_has_access", return_value=False
+                ):
+                    with pytest.raises(AuthorizationError):
+                        service.add_comment(
+                            sample_action.id, "Test comment", client_user
+                        )
+
+    def test_cogniter_can_comment_on_any_project(
+        self, mock_session, cogniter_user, sample_action
+    ):
+        """Cogniters can comment on any action."""
+        service = ActionService(mock_session)
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with patch.object(service.comment_repository, "create"):
+                # Should not raise - Cogniters bypass project access check
+                _ = service.add_comment(sample_action.id, "PM comment", cogniter_user)
+
+    def test_empty_comment_rejected(self, mock_session, cogniter_user, sample_action):
+        """Empty comments should be rejected."""
+        from exceptions import ValidationError
+
+        service = ActionService(mock_session)
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with pytest.raises(ValidationError):
+                service.add_comment(sample_action.id, "", cogniter_user)
+
+    def test_whitespace_comment_rejected(
+        self, mock_session, cogniter_user, sample_action
+    ):
+        """Whitespace-only comments should be rejected."""
+        from exceptions import ValidationError
+
+        service = ActionService(mock_session)
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with pytest.raises(ValidationError):
+                service.add_comment(sample_action.id, "   ", cogniter_user)
+
+    def test_get_comments_requires_project_access(
+        self, mock_session, client_user, sample_action, sample_project
+    ):
+        """Getting comments requires project access."""
+        service = ActionService(mock_session)
+        sample_action.project_id = sample_project.id
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with patch.object(
+                service.project_repository, "get_by_id", return_value=sample_project
+            ):
+                with patch.object(
+                    service.project_repository, "user_has_access", return_value=False
+                ):
+                    with pytest.raises(AuthorizationError):
+                        service.get_comments(sample_action.id, client_user)
+
+    def test_comment_returns_author_info(
+        self, mock_session, cogniter_user, sample_action
+    ):
+        """Added comment should include author information."""
+        from models import Comment
+
+        service = ActionService(mock_session)
+        mock_comment = Comment(
+            id=uuid4(),
+            action_item_id=sample_action.id,
+            user_id=cogniter_user.id,
+            content="Test comment",
+        )
+
+        with patch.object(service.repository, "get_by_id", return_value=sample_action):
+            with patch.object(
+                service.comment_repository, "create", return_value=mock_comment
+            ):
+                comment, author = service.add_comment(
+                    sample_action.id, "Test comment", cogniter_user
+                )
+                assert comment == mock_comment
+                assert author == cogniter_user

@@ -3,7 +3,7 @@
 import uuid
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from models import UserRole
 
@@ -24,14 +24,13 @@ class UserCreate(UserBase):
 class UserRead(BaseModel):
     """Schema for reading user data."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     email: str
     name: str
     role: UserRole
     is_pending: bool = False
-
-    class Config:
-        from_attributes = True
 
 
 class InviteUserRequest(BaseModel):

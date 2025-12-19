@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from models import ActionStatus, Priority, RiskImpact, RiskProbability, RiskStatus
 from schemas.auth import GoogleLoginRequest, SuperuserLoginRequest, Token
@@ -42,12 +42,13 @@ class ActionItemCreate(ActionItemBase):
 class ActionItemRead(ActionItemBase):
     """Schema for reading action item data."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     project_id: uuid.UUID
     last_synced_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    # Comment count for badge display (populated via grouped query)
+    comment_count: int = 0
 
 
 # Risk Schemas
@@ -74,6 +75,8 @@ class RiskCreate(RiskBase):
 class RiskRead(RiskBase):
     """Schema for reading risk data."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     project_id: uuid.UUID
     # Resolution fields
@@ -84,9 +87,6 @@ class RiskRead(RiskBase):
     reopen_reason: Optional[str] = None
     reopened_at: Optional[datetime] = None
     reopened_by_id: Optional[uuid.UUID] = None
-
-    class Config:
-        from_attributes = True
 
 
 class RiskResolve(BaseModel):
@@ -124,15 +124,17 @@ class CommentCreate(BaseModel):
 class CommentRead(BaseModel):
     """Schema for reading comment data."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     content: str
     created_at: datetime
     action_item_id: Optional[uuid.UUID] = None
     risk_id: Optional[uuid.UUID] = None
-
-    class Config:
-        from_attributes = True
+    # Author identity (populated from joined User)
+    author_name: Optional[str] = None
+    author_email: Optional[str] = None
 
 
 __all__ = [
