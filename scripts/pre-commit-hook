@@ -14,17 +14,17 @@ BACKEND_VENV="$REPO_ROOT/backend/.venv/bin/python"
 # 1. Use uv run from the backend directory (works without venv activation)
 if command -v uv > /dev/null 2>&1; then
     cd "$REPO_ROOT/backend"
-    exec uv run pre-commit hook-impl --config=../.pre-commit-config.yaml --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
+    exec uv run pre-commit hook-impl --config="$REPO_ROOT/.pre-commit-config.yaml" --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
 fi
 
 # 2. Use the venv Python directly if it exists
 if [ -x "$BACKEND_VENV" ]; then
-    exec "$BACKEND_VENV" -mpre_commit hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
+    exec "$BACKEND_VENV" -mpre_commit hook-impl --config="$REPO_ROOT/.pre-commit-config.yaml" --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
 fi
 
 # 3. Use global pre-commit if available
 if command -v pre-commit > /dev/null 2>&1; then
-    exec pre-commit hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
+    exec pre-commit hook-impl --config="$REPO_ROOT/.pre-commit-config.yaml" --hook-type=pre-commit --hook-dir "$HERE" -- "$@"
 fi
 
 # 4. If nothing works, provide helpful error
