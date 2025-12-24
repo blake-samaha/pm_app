@@ -1,4 +1,4 @@
-import { Project } from "@/types";
+import type { Project } from "@/lib/api/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
 import { format, differenceInDays, isValid, parseISO } from "date-fns";

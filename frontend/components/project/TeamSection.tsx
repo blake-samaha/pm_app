@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { User, UserRole } from "@/types";
+import type { User } from "@/lib/api/types";
+import { USER_ROLE } from "@/lib/domain/enums";
 import { useProjectUsers, useRemoveUser } from "@/hooks/useUsers";
 import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, UserPlus, X, Loader2, Clock } from "lucide-react";
+import { getAvatarColor, getInitials } from "@/lib/avatar";
+import { getErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 import { AssignUserModal } from "./AssignUserModal";
 
@@ -14,42 +17,10 @@ interface TeamSectionProps {
     projectId: string;
 }
 
-/**
- * Get initials from a name (up to 2 characters)
- */
-const getInitials = (name: string): string => {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-};
-
-/**
- * Generate a consistent color based on a string (for avatar backgrounds)
- */
-const getAvatarColor = (str: string): string => {
-    const colors = [
-        "bg-blue-500",
-        "bg-emerald-500",
-        "bg-amber-500",
-        "bg-rose-500",
-        "bg-violet-500",
-        "bg-cyan-500",
-        "bg-fuchsia-500",
-        "bg-lime-500",
-    ];
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-};
-
 export const TeamSection = ({ projectId }: TeamSectionProps) => {
     const currentUser = useEffectiveUser();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const canManageTeam = !!currentUser && currentUser.role === UserRole.COGNITER;
+    const canManageTeam = !!currentUser && currentUser.role === USER_ROLE.COGNITER;
     const { data: users, isLoading, isError } = useProjectUsers(projectId, canManageTeam);
     const removeUser = useRemoveUser();
 
@@ -67,10 +38,9 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                         description: `${user.name} has been removed from this project.`,
                     });
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     toast.error("Failed to remove user", {
-                        description:
-                            error.response?.data?.detail || "An unexpected error occurred.",
+                        description: getErrorMessage(error),
                     });
                 },
             }
@@ -151,7 +121,7 @@ export const TeamSection = ({ projectId }: TeamSectionProps) => {
                                     <div className="flex items-center space-x-3">
                                         <span
                                             className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                                                user.role === UserRole.COGNITER
+                                                user.role === USER_ROLE.COGNITER
                                                     ? "border border-blue-100 bg-blue-50 text-blue-700"
                                                     : "border border-slate-200 bg-slate-100 text-slate-600"
                                             }`}

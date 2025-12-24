@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useCreateProject } from "@/hooks/useProjects";
-import { ProjectType, ReportingCycle } from "@/types";
+import { ProjectType, ReportingCycle } from "@/lib/api/types";
 import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { uploadLogo } from "@/lib/api";
+import { getErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 
 interface CreateProjectModalProps {
@@ -44,9 +45,9 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
             try {
                 setIsUploading(true);
                 finalLogoUrl = await uploadLogo(logoFile);
-            } catch (error: any) {
+            } catch (error) {
                 toast.error("Failed to upload logo", {
-                    description: error.response?.data?.detail || "Please try again.",
+                    description: getErrorMessage(error),
                 });
                 setIsUploading(false);
                 return;
@@ -54,7 +55,7 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
             setIsUploading(false);
         }
 
-        const data = {
+        const projectData = {
             name: formData.get("name") as string,
             precursive_url: formData.get("precursive_url") as string,
             jira_url: formData.get("jira_url") as string,
@@ -63,20 +64,23 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
             client_logo_url: finalLogoUrl ?? undefined,
         };
 
-        createProject.mutate(data, {
-            onSuccess: () => {
-                toast.success("Project created", {
-                    description: `"${data.name}" has been created successfully.`,
-                });
-                resetForm();
-                onClose();
-            },
-            onError: (error: any) => {
-                toast.error("Failed to create project", {
-                    description: error.response?.data?.detail || "An unexpected error occurred.",
-                });
-            },
-        });
+        createProject.mutate(
+            { data: projectData },
+            {
+                onSuccess: () => {
+                    toast.success("Project created", {
+                        description: `"${projectData.name}" has been created successfully.`,
+                    });
+                    resetForm();
+                    onClose();
+                },
+                onError: (error) => {
+                    toast.error("Failed to create project", {
+                        description: getErrorMessage(error),
+                    });
+                },
+            }
+        );
     };
 
     if (!isOpen) return null;
@@ -94,8 +98,7 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
                 <form onSubmit={handleSubmit} className="space-y-4 p-6">
                     {createProject.isError && (
                         <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
-                            {(createProject.error as any)?.response?.data?.detail ||
-                                "Failed to create project"}
+                            {getErrorMessage(createProject.error)}
                         </div>
                     )}
 

@@ -1,17 +1,30 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Home, Folder, LogOut, Laptop } from "lucide-react";
-import { useAuthStore } from "@/store/authStore";
-import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 
-export function CommandMenu() {
+/**
+ * Props for the CommandMenuUI component.
+ * All business logic is injected via props to keep this component pure.
+ */
+interface CommandMenuUIProps {
+    /** Current user's display name, or null if not logged in */
+    userName: string | null;
+    /** Called when user selects the logout action */
+    onLogout: () => void;
+    /** Called when user wants to navigate to a path */
+    onNavigate: (path: string) => void;
+}
+
+/**
+ * Pure presentational command menu component.
+ *
+ * This component is in components/ui/ and must not import from hooks/ or store/.
+ * All business logic (auth, routing) is passed in via props.
+ */
+export function CommandMenuUI({ userName, onLogout, onNavigate }: CommandMenuUIProps) {
     const [open, setOpen] = React.useState(false);
-    const router = useRouter();
-    const { logout } = useAuthStore();
-    const user = useEffectiveUser();
 
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -23,6 +36,11 @@ export function CommandMenu() {
         document.addEventListener("keydown", down);
         return () => document.removeEventListener("keydown", down);
     }, []);
+
+    const handleSelect = (action: () => void) => {
+        setOpen(false);
+        action();
+    };
 
     return (
         <Command.Dialog
@@ -46,20 +64,14 @@ export function CommandMenu() {
                         className="px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-slate-400"
                     >
                         <Command.Item
-                            onSelect={() => {
-                                setOpen(false);
-                                router.push("/");
-                            }}
+                            onSelect={() => handleSelect(() => onNavigate("/"))}
                             className="flex cursor-pointer items-center rounded-md px-2 py-2.5 text-sm text-slate-700 transition-colors aria-selected:bg-slate-100 aria-selected:text-slate-900"
                         >
                             <Home className="mr-2 h-4 w-4 text-slate-500" />
                             Home
                         </Command.Item>
                         <Command.Item
-                            onSelect={() => {
-                                setOpen(false);
-                                router.push("/");
-                            }}
+                            onSelect={() => handleSelect(() => onNavigate("/"))}
                             className="flex cursor-pointer items-center rounded-md px-2 py-2.5 text-sm text-slate-700 transition-colors aria-selected:bg-slate-100 aria-selected:text-slate-900"
                         >
                             <Folder className="mr-2 h-4 w-4 text-slate-500" />
@@ -71,18 +83,14 @@ export function CommandMenu() {
                         heading="Account"
                         className="mt-2 px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-slate-400"
                     >
-                        {user && (
+                        {userName && (
                             <div className="flex items-center px-2 py-1.5 text-sm text-slate-500">
                                 <Laptop className="mr-2 h-4 w-4 opacity-50" />
-                                Signed in as {user.name}
+                                Signed in as {userName}
                             </div>
                         )}
                         <Command.Item
-                            onSelect={() => {
-                                setOpen(false);
-                                logout();
-                                router.push("/login");
-                            }}
+                            onSelect={() => handleSelect(onLogout)}
                             className="flex cursor-pointer items-center rounded-md px-2 py-2.5 text-sm text-red-600 transition-colors aria-selected:bg-red-50 aria-selected:text-red-700"
                         >
                             <LogOut className="mr-2 h-4 w-4" />

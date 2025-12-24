@@ -1,0 +1,2890 @@
+{
+  "discovery_timestamp": "2025-12-23T21:05:23.555542",
+  "instance_url": "https://cognite.my.salesforce.com",
+  "api_calls_made": 9,
+  "discovery_complete": true,
+  "all_record_types": [
+    {
+      "sobject": "preempt__Phase__c",
+      "name": "Phase - Fees & Hours",
+      "developerName": "Phase_Fees_Hours",
+      "description": null
+    },
+    {
+      "sobject": "preempt__Phase__c",
+      "name": "Phase - Time & Hours",
+      "developerName": "Phase_Time_Hours",
+      "description": null
+    },
+    {
+      "sobject": "preempt__Phase__c",
+      "name": "Phase - Fees & Days",
+      "developerName": "Phase_Fees_Days",
+      "description": null
+    },
+    {
+      "sobject": "preempt__Phase__c",
+      "name": "Phase - Time & Days",
+      "developerName": "Phase_Time_Days",
+      "description": null
+    },
+    {
+      "sobject": "preempt__PrecursiveProject__c",
+      "name": "Project -  Fees & Hours",
+      "developerName": "Project_Fees_Hours",
+      "description": null
+    },
+    {
+      "sobject": "preempt__PrecursiveProject__c",
+      "name": "Project -  Fees & Days",
+      "developerName": "Project_Fees_Days",
+      "description": null
+    },
+    {
+      "sobject": "preempt__PrecursiveProject__c",
+      "name": "Project - Time & Hours",
+      "developerName": "Project_Time_Hours",
+      "description": null
+    },
+    {
+      "sobject": "preempt__PrecursiveProject__c",
+      "name": "Project - Time & Days",
+      "developerName": "Project_Time_Days",
+      "description": null
+    },
+    {
+      "sobject": "Account",
+      "name": "Customer",
+      "developerName": "Customer",
+      "description": "Current, potential & former customers"
+    },
+    {
+      "sobject": "Account",
+      "name": "Other",
+      "developerName": "Other",
+      "description": "Competitors, Vendors, PR/Marketing, other"
+    },
+    {
+      "sobject": "Account",
+      "name": "Partner",
+      "developerName": "Partner",
+      "description": "Current, potential & former partners"
+    },
+    {
+      "sobject": "Lead",
+      "name": "Partner Lead",
+      "developerName": "Partner_Lead",
+      "description": null
+    },
+    {
+      "sobject": "Lead",
+      "name": "Customer Lead",
+      "developerName": "Customer_Lead",
+      "description": null
+    }
+  ],
+  "risk_related_record_types": [],
+  "risk_related_fields_found": [],
+  "accessible_custom_objects": [
+    {
+      "name": "DOZISF__Opsos_Trigger_Setting__c",
+      "label": "Opsos Trigger Setting",
+      "keyPrefix": "a3Z",
+      "queryable": true
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_Configuration__c",
+      "label": "ZoomInfo Opsos Configuration",
+      "keyPrefix": "a3a",
+      "queryable": true
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_Matching_Criteria__c",
+      "label": "ZoomInfo Opsos Matching Criteria",
+      "keyPrefix": "a3b",
+      "queryable": true
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_System_Setting__c",
+      "label": "ZoomInfo Opsos System Setting",
+      "keyPrefix": "a3c",
+      "queryable": true
+    },
+    {
+      "name": "FMOppMgr__Opportunity_Snapshot__c",
+      "label": "Opportunity Snapshot",
+      "keyPrefix": "a5k",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Amazon_Lead__c",
+      "label": "Amazon Lead",
+      "keyPrefix": "a2n",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__CPPO__c",
+      "label": "CPPO",
+      "keyPrefix": "a2o",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_Amazon_Reference__c",
+      "label": "Co-sell Amazon",
+      "keyPrefix": "a2p",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_GCP_Reference__c",
+      "label": "Co-sell GCP",
+      "keyPrefix": "a2q",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_Microsoft__c",
+      "label": "Co-sell Microsoft",
+      "keyPrefix": "a2r",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell__c",
+      "label": "Co-sell",
+      "keyPrefix": "a2s",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_Amazon__c",
+      "label": "Amazon Offering",
+      "keyPrefix": "a2t",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_GCP__c",
+      "label": "GCP Offering",
+      "keyPrefix": "a2u",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_Microsoft__c",
+      "label": "Microsoft Offering",
+      "keyPrefix": "a2v",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Offering__c",
+      "label": "Private Offer",
+      "keyPrefix": "a2w",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Partner_Funding_AWS__c",
+      "label": "Partner-Funding-AWS",
+      "keyPrefix": "a6g",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Partner_Funding__c",
+      "label": "Partner Funding",
+      "keyPrefix": "a6h",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Payments__c",
+      "label": "Payment",
+      "keyPrefix": "a2x",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Picklist_Mapping__c",
+      "label": "Picklist Mapping",
+      "keyPrefix": "a2y",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__SaaSify_Configuration__c",
+      "label": "SaaSify Configuration",
+      "keyPrefix": "a2z",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__SaaSify_Logger__c",
+      "label": "Logger",
+      "keyPrefix": "a30",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Scheduler__c",
+      "label": "Scheduler",
+      "keyPrefix": "a31",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Subscription_Meter_Usage__c",
+      "label": "Subscription Meter Usage",
+      "keyPrefix": "a32",
+      "queryable": true
+    },
+    {
+      "name": "Spektra_SaaSify__Subscription__c",
+      "label": "Subscription",
+      "keyPrefix": "a33",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Batch_Settings__c",
+      "label": "Batch Settings",
+      "keyPrefix": "a65",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__ConfigSetup__c",
+      "label": "ConfigSetup",
+      "keyPrefix": "a66",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Contact_Additional_Address__c",
+      "label": "Contact Additional Address",
+      "keyPrefix": "a67",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__CountryRegion__c",
+      "label": "CountryRegion",
+      "keyPrefix": "a68",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Custom_Field_Mapping__c",
+      "label": "Custom Field Mapping",
+      "keyPrefix": "a69",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__DynamicTrigger__c",
+      "label": "DynamicTrigger",
+      "keyPrefix": "a6A",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__EnrichmentConfig__c",
+      "label": "EnrichmentConfig",
+      "keyPrefix": "a6B",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__FTR_Validation_Settings__c",
+      "label": "FTR Validation Settings",
+      "keyPrefix": "a6C",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__FieldMap__c",
+      "label": "FieldMap",
+      "keyPrefix": "a6D",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Matching_Criteria__c",
+      "label": "Matching Criteria",
+      "keyPrefix": "a6E",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__RingLead_Configuration__c",
+      "label": "RingLead Configuration",
+      "keyPrefix": "a6F",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Scanned_Field_Config__c",
+      "label": "Scanned Field Config",
+      "keyPrefix": "a6G",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__Scanned_Field__c",
+      "label": "Scanned Fields Name",
+      "keyPrefix": "a6H",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__connectedAppSettings__c",
+      "label": "Connected App Settings",
+      "keyPrefix": "a6K",
+      "queryable": true
+    },
+    {
+      "name": "UniqueEntry__systemSettings__c",
+      "label": "Unique Entry System Settings",
+      "keyPrefix": "a6L",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Participant__c",
+      "label": "Participant",
+      "keyPrefix": "a2M",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Phase__c",
+      "label": "Phase",
+      "keyPrefix": "a2Q",
+      "queryable": true
+    },
+    {
+      "name": "preempt__PrecursiveProject__c",
+      "label": "Precursive Project",
+      "keyPrefix": "a2X",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Resource__c",
+      "label": "Resource",
+      "keyPrefix": "a2g",
+      "queryable": true
+    }
+  ],
+  "precursive_objects": [
+    {
+      "name": "preempt__Participant__c",
+      "label": "Participant",
+      "keyPrefix": "a2M",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Phase__c",
+      "label": "Phase",
+      "keyPrefix": "a2Q",
+      "queryable": true
+    },
+    {
+      "name": "preempt__PrecursiveProject__c",
+      "label": "Precursive Project",
+      "keyPrefix": "a2X",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Resource__c",
+      "label": "Resource",
+      "keyPrefix": "a2g",
+      "queryable": true
+    }
+  ],
+  "project_schema": {
+    "object_name": "preempt__PrecursiveProject__c",
+    "label": "Precursive Project",
+    "field_count": 142,
+    "record_types": [
+      {
+        "name": "Project -  Fees & Days",
+        "developerName": "Project_Fees_Days"
+      },
+      {
+        "name": "Project -  Fees & Hours",
+        "developerName": "Project_Fees_Hours"
+      },
+      {
+        "name": "Project - Time & Days",
+        "developerName": "Project_Time_Days"
+      },
+      {
+        "name": "Project - Time & Hours",
+        "developerName": "Project_Time_Hours"
+      },
+      {
+        "name": "Master",
+        "developerName": "Master"
+      }
+    ],
+    "child_relationships": [
+      {
+        "childSObject": "AttachedContentDocument",
+        "relationshipName": "AttachedContentDocuments",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "AttachedContentNote",
+        "relationshipName": "AttachedContentNotes",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "Attachment",
+        "relationshipName": "Attachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "CollaborationGroupRecord",
+        "relationshipName": "RecordAssociatedGroups",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "CombinedAttachment",
+        "relationshipName": "CombinedAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ContentDocumentLink",
+        "relationshipName": "ContentDocumentLinks",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "EntitySubscription",
+        "relationshipName": "FeedSubscriptionsForEntity",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "FlowOrchestrationWorkItem",
+        "relationshipName": "FlowOrchestrationWorkItems",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "Note",
+        "relationshipName": "Notes",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "NoteAndAttachment",
+        "relationshipName": "NotesAndAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ProcessInstance",
+        "relationshipName": "ProcessInstances",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "ProcessInstanceHistory",
+        "relationshipName": "ProcessSteps",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "RecordAction",
+        "relationshipName": "RecordActions",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "RecordActionHistory",
+        "relationshipName": "RecordActionHistories",
+        "field": "ParentRecordId"
+      },
+      {
+        "childSObject": "TopicAssignment",
+        "relationshipName": "TopicAssignments",
+        "field": "EntityId"
+      },
+      {
+        "childSObject": "VoiceCall",
+        "relationshipName": "RelatedRecords",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "preempt__Phase__c",
+        "relationshipName": "preempt__Phases__r",
+        "field": "preempt__project__c"
+      },
+      {
+        "childSObject": "preempt__PrecursiveProject__Feed",
+        "relationshipName": "Feeds",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "preempt__PrecursiveProject__History",
+        "relationshipName": "Histories",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "preempt__PrecursiveProject__Share",
+        "relationshipName": "Shares",
+        "field": "ParentId"
+      }
+    ],
+    "fields": [
+      {
+        "name": "Id",
+        "label": "Record ID",
+        "type": "id"
+      },
+      {
+        "name": "OwnerId",
+        "label": "Owner ID",
+        "type": "reference",
+        "referenceTo": [
+          "Group",
+          "User"
+        ],
+        "relationshipName": "Owner"
+      },
+      {
+        "name": "IsDeleted",
+        "label": "Deleted",
+        "type": "boolean"
+      },
+      {
+        "name": "Name",
+        "label": "Project Name",
+        "type": "string"
+      },
+      {
+        "name": "CurrencyIsoCode",
+        "label": "Currency ISO Code",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "GBP",
+            "label": "British Pound"
+          },
+          {
+            "value": "EUR",
+            "label": "Euro"
+          },
+          {
+            "value": "JPY",
+            "label": "Japanese Yen"
+          },
+          {
+            "value": "NOK",
+            "label": "Norwegian Krone"
+          },
+          {
+            "value": "USD",
+            "label": "U.S. Dollar"
+          }
+        ]
+      },
+      {
+        "name": "RecordTypeId",
+        "label": "Record Type ID",
+        "type": "reference",
+        "referenceTo": [
+          "RecordType"
+        ],
+        "relationshipName": "RecordType"
+      },
+      {
+        "name": "CreatedDate",
+        "label": "Created Date",
+        "type": "datetime"
+      },
+      {
+        "name": "CreatedById",
+        "label": "Created By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "CreatedBy"
+      },
+      {
+        "name": "LastModifiedDate",
+        "label": "Last Modified Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastModifiedById",
+        "label": "Last Modified By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "LastModifiedBy"
+      },
+      {
+        "name": "SystemModstamp",
+        "label": "System Modstamp",
+        "type": "datetime"
+      },
+      {
+        "name": "LastViewedDate",
+        "label": "Last Viewed Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastReferencedDate",
+        "label": "Last Referenced Date",
+        "type": "datetime"
+      },
+      {
+        "name": "preempt__Status__c",
+        "label": "Phase",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Icebox",
+            "label": "Icebox"
+          },
+          {
+            "value": "Defining",
+            "label": "Defining"
+          },
+          {
+            "value": "Phase 0",
+            "label": "Phase 0/ Mobilization"
+          },
+          {
+            "value": "Delivery",
+            "label": "Delivery"
+          },
+          {
+            "value": "Completed",
+            "label": "Completed"
+          },
+          {
+            "value": "Internal Delivery",
+            "label": "Internal Delivery"
+          }
+        ]
+      },
+      {
+        "name": "preempt__account__c",
+        "label": "Account",
+        "type": "reference",
+        "referenceTo": [
+          "Account"
+        ],
+        "relationshipName": "preempt__account__r"
+      },
+      {
+        "name": "preempt__budgetBy__c",
+        "label": "Budget By",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Fees",
+            "label": "Fees"
+          },
+          {
+            "value": "Time",
+            "label": "Time"
+          }
+        ]
+      },
+      {
+        "name": "preempt__budgetUnit__c",
+        "label": "Budget Unit",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Days",
+            "label": "Days"
+          },
+          {
+            "value": "Hours",
+            "label": "Hours"
+          }
+        ]
+      },
+      {
+        "name": "preempt__currency__c",
+        "label": "Currency",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "USD",
+            "label": "USD"
+          },
+          {
+            "value": "EUR",
+            "label": "EUR"
+          },
+          {
+            "value": "GBP",
+            "label": "GBP"
+          },
+          {
+            "value": "JPY",
+            "label": "JPY"
+          },
+          {
+            "value": "NOK",
+            "label": "NOK"
+          }
+        ]
+      },
+      {
+        "name": "preempt__projectCategory__c",
+        "label": "Project Category",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Conventional",
+            "label": "Conventional"
+          },
+          {
+            "value": "High Volume",
+            "label": "High Volume"
+          },
+          {
+            "value": "Internal - Project",
+            "label": "Internal - Project"
+          },
+          {
+            "value": "Land",
+            "label": "Land"
+          },
+          {
+            "value": "Product Migration",
+            "label": "Product Migration"
+          },
+          {
+            "value": "Scale",
+            "label": "Scale"
+          },
+          {
+            "value": "Success Track",
+            "label": "Success Track"
+          },
+          {
+            "value": "Top Account Program",
+            "label": "Top Account Program"
+          },
+          {
+            "value": "Expand",
+            "label": "Expand"
+          },
+          {
+            "value": "Leave",
+            "label": "Leave"
+          },
+          {
+            "value": "Japan (Auto Approval timesheet)",
+            "label": "Japan (Auto Approval timesheet)"
+          }
+        ]
+      },
+      {
+        "name": "Account_Manager__c",
+        "label": "Account Executive",
+        "type": "string"
+      },
+      {
+        "name": "CSM__c",
+        "label": "CSM",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "CSM__r"
+      },
+      {
+        "name": "Delivery_Manager__c",
+        "label": "Delivery Manager",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "Delivery_Manager__r"
+      },
+      {
+        "name": "Project_Manager__c",
+        "label": "Project Manager",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "Project_Manager__r"
+      },
+      {
+        "name": "Project_TShirt_Size__c",
+        "label": "Project TShirt Size",
+        "type": "string"
+      },
+      {
+        "name": "Vertical_Industry__c",
+        "label": "Industry",
+        "type": "string"
+      },
+      {
+        "name": "Current_User_YN__c",
+        "label": "Current User YN",
+        "type": "boolean"
+      },
+      {
+        "name": "Project_Crew__c",
+        "label": "Project Crew",
+        "type": "multipicklist"
+      },
+      {
+        "name": "Pod_Account_Owner__c",
+        "label": "Pod Account Owner",
+        "type": "string"
+      },
+      {
+        "name": "Pod_CSM__c",
+        "label": "Pod CSM",
+        "type": "string"
+      },
+      {
+        "name": "Proposal_Start_Date__c",
+        "label": "Proposal Start Date",
+        "type": "date"
+      },
+      {
+        "name": "Proposal_Delivery_Date__c",
+        "label": "Proposal Delivery Date",
+        "type": "date"
+      },
+      {
+        "name": "SOW_Start_Date__c",
+        "label": "SOW Start Date",
+        "type": "date"
+      },
+      {
+        "name": "SOW_Delivery_Date__c",
+        "label": "SOW Delivery Date",
+        "type": "date"
+      },
+      {
+        "name": "Proposal_Turnaround_Days__c",
+        "label": "Proposal Turnaround Days",
+        "type": "double"
+      },
+      {
+        "name": "SOW_Turnaround_Days__c",
+        "label": "SOW Turnaround Days",
+        "type": "double"
+      },
+      {
+        "name": "Solution_Infrastructure__c",
+        "label": "Solution Infrastructure",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Cognite",
+            "label": "Cognite"
+          },
+          {
+            "value": "Customer",
+            "label": "Customer"
+          },
+          {
+            "value": "Hybrid",
+            "label": "Hybrid"
+          }
+        ]
+      },
+      {
+        "name": "Delivery_Responsible__c",
+        "label": "Delivery Responsible",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Cognite - Strategic Customer Services",
+            "label": "Cognite - Strategic Customer Services"
+          },
+          {
+            "value": "Co-delivery with Partner",
+            "label": "Co-delivery with Partner"
+          },
+          {
+            "value": "Co-develop with Product/Engineering",
+            "label": "Co-develop with Product & Engineering"
+          }
+        ]
+      },
+      {
+        "name": "Partner__c",
+        "label": "Partner",
+        "type": "reference",
+        "referenceTo": [
+          "Account"
+        ],
+        "relationshipName": "Partner__r"
+      },
+      {
+        "name": "Total_FTEs__c",
+        "label": "Contractual FTE Days",
+        "type": "double"
+      },
+      {
+        "name": "Baseline_Duration_Weeks__c",
+        "label": "Baseline Duration (# Weeks)",
+        "type": "double"
+      },
+      {
+        "name": "Traveling_Required__c",
+        "label": "Traveling Required",
+        "type": "boolean"
+      },
+      {
+        "name": "Special_Considerations__c",
+        "label": "Special Considerations",
+        "type": "textarea"
+      },
+      {
+        "name": "Total_Days_Actuals_Planned__c",
+        "label": "Total Days (Actuals + Planned)",
+        "type": "double"
+      },
+      {
+        "name": "Scope_Prerequisites__c",
+        "label": "Scope & Prerequisites",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "FTE_Day_Price__c",
+        "label": "FTE/Day Price",
+        "type": "currency"
+      },
+      {
+        "name": "Project_Risk_Level__c",
+        "label": "Project Risk Level",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "High",
+            "label": "High"
+          },
+          {
+            "value": "Medium",
+            "label": "Medium"
+          },
+          {
+            "value": "Low",
+            "label": "Low"
+          }
+        ]
+      },
+      {
+        "name": "Risk_Description__c",
+        "label": "Risk Description",
+        "type": "textarea"
+      },
+      {
+        "name": "Budgeted_Days_in_Delivery_Phase__c",
+        "label": "Budgeted Days in Delivery Phase",
+        "type": "double"
+      },
+      {
+        "name": "Turnaround_SLA_Met__c",
+        "label": "Proposal Turnaround SLA Met",
+        "type": "boolean"
+      },
+      {
+        "name": "Customer_Success_Director__c",
+        "label": "Customer Success Director",
+        "type": "string"
+      },
+      {
+        "name": "Delivery_Start_Date__c",
+        "label": "Delivery Start Date",
+        "type": "date"
+      },
+      {
+        "name": "Delivery_End_Date__c",
+        "label": "Delivery End Date",
+        "type": "date"
+      },
+      {
+        "name": "Account_Location__c",
+        "label": "Account Location",
+        "type": "string"
+      },
+      {
+        "name": "Duration_Weeks__c",
+        "label": "Duration (# Weeks)",
+        "type": "double"
+      },
+      {
+        "name": "Vertical__c",
+        "label": "Project Region",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "EMEA",
+            "label": "EMEA"
+          },
+          {
+            "value": "AMER",
+            "label": "AMER"
+          },
+          {
+            "value": "JAPAN",
+            "label": "JAPAN"
+          },
+          {
+            "value": "MENA",
+            "label": "MENA"
+          },
+          {
+            "value": "India",
+            "label": "INDIA"
+          },
+          {
+            "value": "Admin",
+            "label": "Admin"
+          },
+          {
+            "value": "SEA",
+            "label": "SEA"
+          }
+        ]
+      },
+      {
+        "name": "Current_User_PM_or_Owner__c",
+        "label": "Current User = PM or Owner",
+        "type": "boolean"
+      },
+      {
+        "name": "SOW_Turnaround_SLA_Met__c",
+        "label": "SOW Turnaround SLA Met",
+        "type": "boolean"
+      },
+      {
+        "name": "Deliverables__c",
+        "label": "Deliverables",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "Product_Dependencies__c",
+        "label": "Product Dependencies",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "Create_Default_Phases_Activities__c",
+        "label": "Create Default Phases + Activities?",
+        "type": "boolean"
+      },
+      {
+        "name": "Duration_Difference_Weeks__c",
+        "label": "Duration Difference (# Weeks)",
+        "type": "double"
+      },
+      {
+        "name": "Scope_Status__c",
+        "label": "Product Dependency",
+        "type": "string"
+      },
+      {
+        "name": "Time_Status__c",
+        "label": "Time Status",
+        "type": "string"
+      },
+      {
+        "name": "Which_Products_Engineering_Team_s__c",
+        "label": "Which Products & Engineering Team(s)?",
+        "type": "multipicklist"
+      },
+      {
+        "name": "First_Billable_Booking_Date__c",
+        "label": "First Billable Booking Date",
+        "type": "date"
+      },
+      {
+        "name": "Overrun_Investment__c",
+        "label": "Total Overrun Investment",
+        "type": "currency"
+      },
+      {
+        "name": "Overrun_Investment_Diff__c",
+        "label": "Overrun Investment Diff",
+        "type": "percent"
+      },
+      {
+        "name": "Cost_Status__c",
+        "label": "Cost Status",
+        "type": "string"
+      },
+      {
+        "name": "PM_Budget__c",
+        "label": "PM Budget",
+        "type": "double"
+      },
+      {
+        "name": "SA_Budget__c",
+        "label": "SA Budget",
+        "type": "double"
+      },
+      {
+        "name": "DE_Budget__c",
+        "label": "DE Budget",
+        "type": "double"
+      },
+      {
+        "name": "DS_Budget__c",
+        "label": "DS Budget",
+        "type": "double"
+      },
+      {
+        "name": "PM_Projection_Hours__c",
+        "label": "PM Projection (Hours)",
+        "type": "double"
+      },
+      {
+        "name": "DE_Projection_Hours__c",
+        "label": "DE Projection (Hours)",
+        "type": "double"
+      },
+      {
+        "name": "SA_Projection_Hours__c",
+        "label": "SA Projection (Hours)",
+        "type": "double"
+      },
+      {
+        "name": "DS_Projection_Hours__c",
+        "label": "DS Projection (Hours)",
+        "type": "double"
+      },
+      {
+        "name": "PM_Budgeted_FTE__c",
+        "label": "PM Budgeted FTE",
+        "type": "double"
+      },
+      {
+        "name": "DE_Budgeted_FTE__c",
+        "label": "DE Budgeted FTE",
+        "type": "double"
+      },
+      {
+        "name": "DS_Budgeted_FTE__c",
+        "label": "DS Budgeted FTE",
+        "type": "double"
+      },
+      {
+        "name": "SA_Budgeted_FTE__c",
+        "label": "SA Budgeted FTE",
+        "type": "double"
+      },
+      {
+        "name": "PM_Actual_FTE__c",
+        "label": "PM Actual FTE",
+        "type": "double"
+      },
+      {
+        "name": "DE_Actual_FTE__c",
+        "label": "DE Actual FTE",
+        "type": "double"
+      },
+      {
+        "name": "DS_Actual_FTE__c",
+        "label": "DS Actual FTE",
+        "type": "double"
+      },
+      {
+        "name": "SA_Actual_FTE__c",
+        "label": "SA Actual FTE",
+        "type": "double"
+      },
+      {
+        "name": "PM_FTE_Difference__c",
+        "label": "PM FTE Difference",
+        "type": "percent"
+      },
+      {
+        "name": "DE_FTE_Difference__c",
+        "label": "DE FTE Difference",
+        "type": "percent"
+      },
+      {
+        "name": "DS_FTE_Difference__c",
+        "label": "DS FTE Difference",
+        "type": "percent"
+      },
+      {
+        "name": "SA_FTE_Difference__c",
+        "label": "SA FTE Difference",
+        "type": "percent"
+      },
+      {
+        "name": "Resources_Status__c",
+        "label": "Deprecated_Resources Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "Project_Status__c",
+        "label": "Project Status",
+        "type": "string"
+      },
+      {
+        "name": "Cost_Comments2__c",
+        "label": "Cost Comments",
+        "type": "textarea"
+      },
+      {
+        "name": "Scope_Comments2__c",
+        "label": "Overall Status Summary",
+        "type": "textarea"
+      },
+      {
+        "name": "Time_Comments2__c",
+        "label": "Time Comments",
+        "type": "textarea"
+      },
+      {
+        "name": "Resources_Comments2__c",
+        "label": "Resources Comments",
+        "type": "textarea"
+      },
+      {
+        "name": "Product_Teams__c",
+        "label": "Product Teams",
+        "type": "multipicklist"
+      },
+      {
+        "name": "Prognosis_status__c",
+        "label": "Prognosis status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Signed",
+            "label": "Signed"
+          },
+          {
+            "value": "Pipeline",
+            "label": "Pipeline"
+          }
+        ]
+      },
+      {
+        "name": "Type_of_service_Secondary__c",
+        "label": "Type of service (Secondary)",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Standard product",
+            "label": "Standard product"
+          },
+          {
+            "value": "Custom solution",
+            "label": "Custom solution"
+          },
+          {
+            "value": "Co-development",
+            "label": "Co-development"
+          }
+        ]
+      },
+      {
+        "name": "Last_Project_Status_Update__c",
+        "label": "DEPRECATED Last Project Status Update",
+        "type": "datetime"
+      },
+      {
+        "name": "Project_Status_Last_Updated_By__c",
+        "label": "Project Status Last Updated By",
+        "type": "string"
+      },
+      {
+        "name": "Amber_Subcategories__c",
+        "label": "# Amber Subcategories",
+        "type": "double"
+      },
+      {
+        "name": "Resources_Status2__c",
+        "label": "Resources Status",
+        "type": "string"
+      },
+      {
+        "name": "Budgeted_Hours_in_Delivery_Phase__c",
+        "label": "Budgeted Hours in Delivery Phase",
+        "type": "double"
+      },
+      {
+        "name": "PM_FTE_Difference_Status__c",
+        "label": "PM FTE Status",
+        "type": "string"
+      },
+      {
+        "name": "SA_FTE_Status__c",
+        "label": "SA FTE Status",
+        "type": "string"
+      },
+      {
+        "name": "DE_FTE_Status__c",
+        "label": "DE FTE Status",
+        "type": "string"
+      },
+      {
+        "name": "DS_FTE_Status__c",
+        "label": "DS FTE Status",
+        "type": "string"
+      },
+      {
+        "name": "Last_Project_Status_Update2__c",
+        "label": "Last Project Status Update",
+        "type": "datetime"
+      },
+      {
+        "name": "Mobilizing_Actual_Days__c",
+        "label": "Mobilizing Actual Days",
+        "type": "double"
+      },
+      {
+        "name": "Mobilizing_Plan_to_Complete_Days__c",
+        "label": "Mobilizing Plan to Complete Days",
+        "type": "double"
+      },
+      {
+        "name": "Mobilizing_Total_FTE_Days__c",
+        "label": "Mobilizing Total FTE Days",
+        "type": "double"
+      },
+      {
+        "name": "Mobilizing_Overrun__c",
+        "label": "Mobilizing Overrun",
+        "type": "currency"
+      },
+      {
+        "name": "GTM_Play__c",
+        "label": "GTM Play",
+        "type": "string"
+      },
+      {
+        "name": "Time_Status_Pick__c",
+        "label": "Time Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          },
+          {
+            "value": "N/A",
+            "label": "N/A"
+          }
+        ]
+      },
+      {
+        "name": "Scope_Status_Pick__c",
+        "label": "Product Dependency",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          },
+          {
+            "value": "N/A",
+            "label": "N/A"
+          }
+        ]
+      },
+      {
+        "name": "Cost_Status_Pick__c",
+        "label": "Cost Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          },
+          {
+            "value": "N/A",
+            "label": "N/A"
+          }
+        ]
+      },
+      {
+        "name": "Resources_Status_Pick__c",
+        "label": "Resources Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          },
+          {
+            "value": "N/A",
+            "label": "N/A"
+          }
+        ]
+      },
+      {
+        "name": "Project_Status_Pick__c",
+        "label": "Project Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "Duration_Difference_Percentual__c",
+        "label": "Duration Difference (%)",
+        "type": "percent"
+      },
+      {
+        "name": "Force_Update__c",
+        "label": "Force Update",
+        "type": "boolean"
+      },
+      {
+        "name": "Last_Billable_Booking_Date__c",
+        "label": "Last Billable Booking Date",
+        "type": "date"
+      },
+      {
+        "name": "Resources_Status_3__c",
+        "label": "Resources Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "On track",
+            "label": "On track"
+          },
+          {
+            "value": "Minor deviations",
+            "label": "Minor deviations"
+          },
+          {
+            "value": "Requires attention",
+            "label": "Requires attention"
+          }
+        ]
+      },
+      {
+        "name": "Type_of_service_Primary__c",
+        "label": "Type of service (Primary)",
+        "type": "multipicklist"
+      },
+      {
+        "name": "AKER_ASA_affiliated_customer__c",
+        "label": "AKER ASA affiliated customer",
+        "type": "boolean"
+      },
+      {
+        "name": "Require_Investment__c",
+        "label": "Require Investment",
+        "type": "boolean"
+      },
+      {
+        "name": "Solution_Type__c",
+        "label": "Solution Type",
+        "type": "multipicklist"
+      },
+      {
+        "name": "Success_Criteria__c",
+        "label": "Success Criteria",
+        "type": "textarea"
+      },
+      {
+        "name": "Partnership__c",
+        "label": "Partnership",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "PartnerLed",
+            "label": "PartnerLed"
+          },
+          {
+            "value": "CogniteLed",
+            "label": "CogniteLed"
+          },
+          {
+            "value": "CogniteOnly",
+            "label": "CogniteOnly"
+          },
+          {
+            "value": "PartnerOnly",
+            "label": "PartnerOnly"
+          },
+          {
+            "value": "Hybrid",
+            "label": "Hybrid"
+          }
+        ]
+      },
+      {
+        "name": "Solution_Support__c",
+        "label": "Solution Support",
+        "type": "boolean"
+      },
+      {
+        "name": "Product_Dependencies_Comments__c",
+        "label": "Product Dependencies Comments",
+        "type": "textarea"
+      },
+      {
+        "name": "LT_Comments__c",
+        "label": "Project Status Comments",
+        "type": "textarea"
+      },
+      {
+        "name": "Standard_Product__c",
+        "label": "Standard Product",
+        "type": "multipicklist"
+      },
+      {
+        "name": "Customer_value__c",
+        "label": "Customer Value",
+        "type": "textarea"
+      },
+      {
+        "name": "TargetMAU__c",
+        "label": "TargetMAU",
+        "type": "double"
+      },
+      {
+        "name": "ActualMAU__c",
+        "label": "ActualMAUWeekly",
+        "type": "double"
+      },
+      {
+        "name": "PlatinumSuccessTrack__c",
+        "label": "Platinum / Success Track",
+        "type": "boolean"
+      },
+      {
+        "name": "Atlas_AI__c",
+        "label": "Atlas AI",
+        "type": "boolean"
+      },
+      {
+        "name": "Opportunity_Close_Date__c",
+        "label": "Opportunity Close Date",
+        "type": "date"
+      },
+      {
+        "name": "Capacity_Scenario__c",
+        "label": "Capacity Scenario",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Expansion Motions",
+            "label": "Expansion Motions"
+          },
+          {
+            "value": "Sales Plan",
+            "label": "Sales Plan"
+          },
+          {
+            "value": "Signed Backlog",
+            "label": "Signed Backlog"
+          },
+          {
+            "value": "Success Track",
+            "label": "Success Track"
+          },
+          {
+            "value": "Not included",
+            "label": "Not included"
+          },
+          {
+            "value": "Investment",
+            "label": "Investment"
+          }
+        ]
+      },
+      {
+        "name": "Account_MAIA_Stage__c",
+        "label": "Account MAIA Stage",
+        "type": "string"
+      },
+      {
+        "name": "Remaining_Budget__c",
+        "label": "Remaining Budget in Fees",
+        "type": "double"
+      },
+      {
+        "name": "Remaining_Budget_in_Fees_org__c",
+        "label": "Remaining Budget in Fees (Org Cur.)",
+        "type": "double"
+      },
+      {
+        "name": "Active_Status__c",
+        "label": "Resource Booking Status",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Reserved",
+            "label": "Reserved"
+          },
+          {
+            "value": "Confirmed",
+            "label": "Confirmed"
+          },
+          {
+            "value": "Not signed/No reservations",
+            "label": "Not signed/No reservations"
+          },
+          {
+            "value": "On Hold",
+            "label": "On Hold"
+          }
+        ]
+      }
+    ]
+  },
+  "phase_schema": {
+    "object_name": "preempt__Phase__c",
+    "label": "Phase",
+    "field_count": 32,
+    "record_types": [
+      {
+        "name": "Phase - Fees & Days",
+        "developerName": "Phase_Fees_Days"
+      },
+      {
+        "name": "Phase - Fees & Hours",
+        "developerName": "Phase_Fees_Hours"
+      },
+      {
+        "name": "Phase - Time & Days",
+        "developerName": "Phase_Time_Days"
+      },
+      {
+        "name": "Phase - Time & Hours",
+        "developerName": "Phase_Time_Hours"
+      },
+      {
+        "name": "Master",
+        "developerName": "Master"
+      }
+    ],
+    "child_relationships": [
+      {
+        "childSObject": "AttachedContentDocument",
+        "relationshipName": "AttachedContentDocuments",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "AttachedContentNote",
+        "relationshipName": "AttachedContentNotes",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "Attachment",
+        "relationshipName": "Attachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "CollaborationGroupRecord",
+        "relationshipName": "RecordAssociatedGroups",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "CombinedAttachment",
+        "relationshipName": "CombinedAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ContentDocumentLink",
+        "relationshipName": "ContentDocumentLinks",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "EntitySubscription",
+        "relationshipName": "FeedSubscriptionsForEntity",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "FlowOrchestrationWorkItem",
+        "relationshipName": "FlowOrchestrationWorkItems",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "Note",
+        "relationshipName": "Notes",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "NoteAndAttachment",
+        "relationshipName": "NotesAndAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ProcessInstance",
+        "relationshipName": "ProcessInstances",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "ProcessInstanceHistory",
+        "relationshipName": "ProcessSteps",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "RecordAction",
+        "relationshipName": "RecordActions",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "RecordActionHistory",
+        "relationshipName": "RecordActionHistories",
+        "field": "ParentRecordId"
+      },
+      {
+        "childSObject": "TopicAssignment",
+        "relationshipName": "TopicAssignments",
+        "field": "EntityId"
+      },
+      {
+        "childSObject": "VoiceCall",
+        "relationshipName": "RelatedRecords",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "preempt__Participant__c",
+        "relationshipName": "preempt__Participants__r",
+        "field": "preempt__phase__c"
+      },
+      {
+        "childSObject": "preempt__Phase__Share",
+        "relationshipName": "Shares",
+        "field": "ParentId"
+      }
+    ],
+    "fields": [
+      {
+        "name": "Id",
+        "label": "Record ID",
+        "type": "id"
+      },
+      {
+        "name": "OwnerId",
+        "label": "Owner ID",
+        "type": "reference",
+        "referenceTo": [
+          "Group",
+          "User"
+        ],
+        "relationshipName": "Owner"
+      },
+      {
+        "name": "IsDeleted",
+        "label": "Deleted",
+        "type": "boolean"
+      },
+      {
+        "name": "Name",
+        "label": "Phase Name",
+        "type": "string"
+      },
+      {
+        "name": "CurrencyIsoCode",
+        "label": "Currency ISO Code",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "GBP",
+            "label": "British Pound"
+          },
+          {
+            "value": "EUR",
+            "label": "Euro"
+          },
+          {
+            "value": "JPY",
+            "label": "Japanese Yen"
+          },
+          {
+            "value": "NOK",
+            "label": "Norwegian Krone"
+          },
+          {
+            "value": "USD",
+            "label": "U.S. Dollar"
+          }
+        ]
+      },
+      {
+        "name": "RecordTypeId",
+        "label": "Record Type ID",
+        "type": "reference",
+        "referenceTo": [
+          "RecordType"
+        ],
+        "relationshipName": "RecordType"
+      },
+      {
+        "name": "CreatedDate",
+        "label": "Created Date",
+        "type": "datetime"
+      },
+      {
+        "name": "CreatedById",
+        "label": "Created By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "CreatedBy"
+      },
+      {
+        "name": "LastModifiedDate",
+        "label": "Last Modified Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastModifiedById",
+        "label": "Last Modified By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "LastModifiedBy"
+      },
+      {
+        "name": "SystemModstamp",
+        "label": "System Modstamp",
+        "type": "datetime"
+      },
+      {
+        "name": "LastViewedDate",
+        "label": "Last Viewed Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastReferencedDate",
+        "label": "Last Referenced Date",
+        "type": "datetime"
+      },
+      {
+        "name": "preempt__project__c",
+        "label": "Project",
+        "type": "reference",
+        "referenceTo": [
+          "preempt__PrecursiveProject__c"
+        ],
+        "relationshipName": "preempt__project__r"
+      },
+      {
+        "name": "preempt__firstBookingStartDate__c",
+        "label": "First Booking Start Date",
+        "type": "date"
+      },
+      {
+        "name": "preempt__lastBookingEndDate__c",
+        "label": "Last Booking End Date",
+        "type": "date"
+      },
+      {
+        "name": "preempt__participants__c",
+        "label": "Participants",
+        "type": "double"
+      },
+      {
+        "name": "Budgeted_Days_in_Total__c",
+        "label": "Budgeted Days in Total",
+        "type": "double"
+      },
+      {
+        "name": "Category__c",
+        "label": "Phase Category",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Mobilization/Phase 0",
+            "label": "Mobilization/Phase 0"
+          },
+          {
+            "value": "Delivery",
+            "label": "Delivery"
+          },
+          {
+            "value": "Internal Improvement",
+            "label": "Internal - Delivery"
+          },
+          {
+            "value": "Investment",
+            "label": "Investment"
+          }
+        ]
+      },
+      {
+        "name": "PM_Budget__c",
+        "label": "PM Budget",
+        "type": "double"
+      },
+      {
+        "name": "DE_Budget__c",
+        "label": "DE Budget",
+        "type": "double"
+      },
+      {
+        "name": "DS_Budget__c",
+        "label": "DS Budget",
+        "type": "double"
+      },
+      {
+        "name": "SA_Budget__c",
+        "label": "SA Budget",
+        "type": "double"
+      },
+      {
+        "name": "PM_Projection_Hours__c",
+        "label": "PM Projection Hours",
+        "type": "double"
+      },
+      {
+        "name": "DS_Projection_Hours__c",
+        "label": "DS Projection Hours",
+        "type": "double"
+      },
+      {
+        "name": "DE_Projection_Hours__c",
+        "label": "DE Projection Hours",
+        "type": "double"
+      },
+      {
+        "name": "SA_Projection_Hours__c",
+        "label": "SA Projection Hours",
+        "type": "double"
+      },
+      {
+        "name": "PCU_Investment_Funding__c",
+        "label": "Investment Funding",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Sales Investment",
+            "label": "Sales Investment"
+          },
+          {
+            "value": "Product Investment",
+            "label": "Product Investment"
+          },
+          {
+            "value": "VD Investment",
+            "label": "VD Investment"
+          }
+        ]
+      },
+      {
+        "name": "PCU_Investment_Type__c",
+        "label": "Investment Type",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Early Start",
+            "label": "Early Start/ Working with revenue at risk"
+          },
+          {
+            "value": "Extension",
+            "label": "Extension"
+          },
+          {
+            "value": "Full Investment",
+            "label": "Full Investment"
+          },
+          {
+            "value": "Increased Capacity",
+            "label": "Increased Capacity"
+          },
+          {
+            "value": "DM Migration",
+            "label": "DM Migration"
+          },
+          {
+            "value": "SLB Investment",
+            "label": "SLB Investment"
+          },
+          {
+            "value": "Rate discount/lump sum investment",
+            "label": "Lump sum sales investment"
+          },
+          {
+            "value": "Maia Factory",
+            "label": "Maia Factory"
+          },
+          {
+            "value": "Toolkit/Marketplace",
+            "label": "Toolkit/Marketplace"
+          },
+          {
+            "value": "Top Account Program",
+            "label": "Top Account Program"
+          }
+        ]
+      },
+      {
+        "name": "Related_Opportunity_ID_c__c",
+        "label": "Related Opportunity ID",
+        "type": "string"
+      },
+      {
+        "name": "Remaining_Budget_in_Fees__c",
+        "label": "Remaining Budget in Fees",
+        "type": "double"
+      },
+      {
+        "name": "Remaining_Budget_in_Fees_Org_Cur__c",
+        "label": "Remaining Budget in Fees (Org Cur.)",
+        "type": "double"
+      }
+    ]
+  },
+  "participant_schema": {
+    "object_name": "preempt__Participant__c",
+    "label": "Participant",
+    "field_count": 21,
+    "record_types": [
+      {
+        "name": "Master",
+        "developerName": "Master"
+      }
+    ],
+    "child_relationships": [
+      {
+        "childSObject": "AttachedContentDocument",
+        "relationshipName": "AttachedContentDocuments",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "AttachedContentNote",
+        "relationshipName": "AttachedContentNotes",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "Attachment",
+        "relationshipName": "Attachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "CollaborationGroupRecord",
+        "relationshipName": "RecordAssociatedGroups",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "CombinedAttachment",
+        "relationshipName": "CombinedAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ContentDocumentLink",
+        "relationshipName": "ContentDocumentLinks",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "EntitySubscription",
+        "relationshipName": "FeedSubscriptionsForEntity",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "FlowOrchestrationWorkItem",
+        "relationshipName": "FlowOrchestrationWorkItems",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "Note",
+        "relationshipName": "Notes",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "NoteAndAttachment",
+        "relationshipName": "NotesAndAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ProcessInstance",
+        "relationshipName": "ProcessInstances",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "ProcessInstanceHistory",
+        "relationshipName": "ProcessSteps",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "RecordAction",
+        "relationshipName": "RecordActions",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "RecordActionHistory",
+        "relationshipName": "RecordActionHistories",
+        "field": "ParentRecordId"
+      },
+      {
+        "childSObject": "TopicAssignment",
+        "relationshipName": "TopicAssignments",
+        "field": "EntityId"
+      },
+      {
+        "childSObject": "VoiceCall",
+        "relationshipName": "RelatedRecords",
+        "field": "RelatedRecordId"
+      }
+    ],
+    "fields": [
+      {
+        "name": "Id",
+        "label": "Record ID",
+        "type": "id"
+      },
+      {
+        "name": "IsDeleted",
+        "label": "Deleted",
+        "type": "boolean"
+      },
+      {
+        "name": "Name",
+        "label": "Participant ID",
+        "type": "string"
+      },
+      {
+        "name": "CurrencyIsoCode",
+        "label": "Currency ISO Code",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "GBP",
+            "label": "British Pound"
+          },
+          {
+            "value": "EUR",
+            "label": "Euro"
+          },
+          {
+            "value": "JPY",
+            "label": "Japanese Yen"
+          },
+          {
+            "value": "NOK",
+            "label": "Norwegian Krone"
+          },
+          {
+            "value": "USD",
+            "label": "U.S. Dollar"
+          }
+        ]
+      },
+      {
+        "name": "CreatedDate",
+        "label": "Created Date",
+        "type": "datetime"
+      },
+      {
+        "name": "CreatedById",
+        "label": "Created By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "CreatedBy"
+      },
+      {
+        "name": "LastModifiedDate",
+        "label": "Last Modified Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastModifiedById",
+        "label": "Last Modified By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "LastModifiedBy"
+      },
+      {
+        "name": "SystemModstamp",
+        "label": "System Modstamp",
+        "type": "datetime"
+      },
+      {
+        "name": "LastViewedDate",
+        "label": "Last Viewed Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastReferencedDate",
+        "label": "Last Referenced Date",
+        "type": "datetime"
+      },
+      {
+        "name": "preempt__phase__c",
+        "label": "Phase",
+        "type": "reference",
+        "referenceTo": [
+          "preempt__Phase__c"
+        ],
+        "relationshipName": "preempt__phase__r"
+      },
+      {
+        "name": "preempt__resource__c",
+        "label": "Resource",
+        "type": "reference",
+        "referenceTo": [
+          "preempt__Resource__c"
+        ],
+        "relationshipName": "preempt__resource__r"
+      },
+      {
+        "name": "preempt__firstBookingStartDate__c",
+        "label": "First Booking Start Date",
+        "type": "date"
+      },
+      {
+        "name": "preempt__lastBookingEndDate__c",
+        "label": "Last Booking End Date",
+        "type": "date"
+      },
+      {
+        "name": "FTE__c",
+        "label": "FTE",
+        "type": "double"
+      },
+      {
+        "name": "Budgeted_Days_Consumed__c",
+        "label": "Budgeted Days Consumed",
+        "type": "double"
+      },
+      {
+        "name": "Budgeted_Days__c",
+        "label": "Budgeted Days",
+        "type": "double"
+      },
+      {
+        "name": "Budgeted_Hours_Consumed__c",
+        "label": "Budgeted Hours Consumed",
+        "type": "double"
+      },
+      {
+        "name": "Budgeted_Hours__c",
+        "label": "Budgeted Hours",
+        "type": "double"
+      },
+      {
+        "name": "Actual_Hours_Plan_to_Complete_Hours__c",
+        "label": "Actual Hours + Plan to Complete Hours",
+        "type": "double"
+      }
+    ]
+  },
+  "resource_schema": {
+    "object_name": "preempt__Resource__c",
+    "label": "Resource",
+    "field_count": 27,
+    "record_types": [
+      {
+        "name": "Master",
+        "developerName": "Master"
+      }
+    ],
+    "child_relationships": [
+      {
+        "childSObject": "AttachedContentDocument",
+        "relationshipName": "AttachedContentDocuments",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "AttachedContentNote",
+        "relationshipName": "AttachedContentNotes",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "Attachment",
+        "relationshipName": "Attachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "CollaborationGroupRecord",
+        "relationshipName": "RecordAssociatedGroups",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "CombinedAttachment",
+        "relationshipName": "CombinedAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ContentDocumentLink",
+        "relationshipName": "ContentDocumentLinks",
+        "field": "LinkedEntityId"
+      },
+      {
+        "childSObject": "EntitySubscription",
+        "relationshipName": "FeedSubscriptionsForEntity",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "FlowOrchestrationWorkItem",
+        "relationshipName": "FlowOrchestrationWorkItems",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "Note",
+        "relationshipName": "Notes",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "NoteAndAttachment",
+        "relationshipName": "NotesAndAttachments",
+        "field": "ParentId"
+      },
+      {
+        "childSObject": "ProcessInstance",
+        "relationshipName": "ProcessInstances",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "ProcessInstanceHistory",
+        "relationshipName": "ProcessSteps",
+        "field": "TargetObjectId"
+      },
+      {
+        "childSObject": "RecordAction",
+        "relationshipName": "RecordActions",
+        "field": "RecordId"
+      },
+      {
+        "childSObject": "RecordActionHistory",
+        "relationshipName": "RecordActionHistories",
+        "field": "ParentRecordId"
+      },
+      {
+        "childSObject": "TopicAssignment",
+        "relationshipName": "TopicAssignments",
+        "field": "EntityId"
+      },
+      {
+        "childSObject": "VoiceCall",
+        "relationshipName": "RelatedRecords",
+        "field": "RelatedRecordId"
+      },
+      {
+        "childSObject": "preempt__Participant__c",
+        "relationshipName": "preempt__Participants__r",
+        "field": "preempt__resource__c"
+      },
+      {
+        "childSObject": "preempt__Resource__Share",
+        "relationshipName": "Shares",
+        "field": "ParentId"
+      }
+    ],
+    "fields": [
+      {
+        "name": "Id",
+        "label": "Record ID",
+        "type": "id"
+      },
+      {
+        "name": "OwnerId",
+        "label": "Owner ID",
+        "type": "reference",
+        "referenceTo": [
+          "Group",
+          "User"
+        ],
+        "relationshipName": "Owner"
+      },
+      {
+        "name": "IsDeleted",
+        "label": "Deleted",
+        "type": "boolean"
+      },
+      {
+        "name": "Name",
+        "label": "Resource ID",
+        "type": "string"
+      },
+      {
+        "name": "CurrencyIsoCode",
+        "label": "Currency ISO Code",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "GBP",
+            "label": "British Pound"
+          },
+          {
+            "value": "EUR",
+            "label": "Euro"
+          },
+          {
+            "value": "JPY",
+            "label": "Japanese Yen"
+          },
+          {
+            "value": "NOK",
+            "label": "Norwegian Krone"
+          },
+          {
+            "value": "USD",
+            "label": "U.S. Dollar"
+          }
+        ]
+      },
+      {
+        "name": "CreatedDate",
+        "label": "Created Date",
+        "type": "datetime"
+      },
+      {
+        "name": "CreatedById",
+        "label": "Created By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "CreatedBy"
+      },
+      {
+        "name": "LastModifiedDate",
+        "label": "Last Modified Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastModifiedById",
+        "label": "Last Modified By ID",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "LastModifiedBy"
+      },
+      {
+        "name": "SystemModstamp",
+        "label": "System Modstamp",
+        "type": "datetime"
+      },
+      {
+        "name": "LastViewedDate",
+        "label": "Last Viewed Date",
+        "type": "datetime"
+      },
+      {
+        "name": "LastReferencedDate",
+        "label": "Last Referenced Date",
+        "type": "datetime"
+      },
+      {
+        "name": "preempt__contact__c",
+        "label": "Contact",
+        "type": "reference",
+        "referenceTo": [
+          "Contact"
+        ],
+        "relationshipName": "preempt__contact__r"
+      },
+      {
+        "name": "preempt__resourceName__c",
+        "label": "Resource Name",
+        "type": "string"
+      },
+      {
+        "name": "preempt__user__c",
+        "label": "User",
+        "type": "reference",
+        "referenceTo": [
+          "User"
+        ],
+        "relationshipName": "preempt__user__r"
+      },
+      {
+        "name": "Crew__c",
+        "label": "Crew",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "TBC",
+            "label": "TBC"
+          },
+          {
+            "value": "Subsurface and Well Delivery",
+            "label": "Subsurface and Well Delivery"
+          },
+          {
+            "value": "INSO POOL",
+            "label": "INSO POOL"
+          },
+          {
+            "value": "DataOps",
+            "label": "DataOps"
+          },
+          {
+            "value": "Emerging Industries",
+            "label": "Emerging Industries"
+          },
+          {
+            "value": "Power & Utilities",
+            "label": "Power & Utilities"
+          },
+          {
+            "value": "Production Optimisation",
+            "label": "Production Optimisation"
+          },
+          {
+            "value": "Smart Maintenance",
+            "label": "Smart Maintenance"
+          },
+          {
+            "value": "Solutions Enablement",
+            "label": "Solutions Enablement"
+          },
+          {
+            "value": "Project Delivery",
+            "label": "Project Delivery"
+          }
+        ]
+      },
+      {
+        "name": "Is_Contractor__c",
+        "label": "Is Contractor",
+        "type": "boolean"
+      },
+      {
+        "name": "Partner_Account__c",
+        "label": "Partner Account",
+        "type": "reference",
+        "referenceTo": [
+          "Account"
+        ],
+        "relationshipName": "Partner_Account__r"
+      },
+      {
+        "name": "Self_as_supervisor__c",
+        "label": "Self as supervisor",
+        "type": "boolean"
+      },
+      {
+        "name": "User_Name__c",
+        "label": "User Name",
+        "type": "string"
+      },
+      {
+        "name": "Division__c",
+        "label": "Division",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Global Customer Success",
+            "label": "Global Strategic Services"
+          }
+        ]
+      },
+      {
+        "name": "Vertical__c",
+        "label": "Vertical",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Japan",
+            "label": "Japan"
+          },
+          {
+            "value": "AMER",
+            "label": "AMER"
+          },
+          {
+            "value": "EMEA",
+            "label": "EMEA"
+          },
+          {
+            "value": "India",
+            "label": "India"
+          },
+          {
+            "value": "MENA/SEA",
+            "label": "MENA/SEA"
+          }
+        ]
+      },
+      {
+        "name": "Update_Resource__c",
+        "label": "Update Resource",
+        "type": "boolean"
+      },
+      {
+        "name": "Billable_Pool__c",
+        "label": "Billable Pool",
+        "type": "picklist",
+        "picklistValues": [
+          {
+            "value": "Services Billable Pool",
+            "label": "Services Billable Pool"
+          },
+          {
+            "value": "Discretionary Billable Pool",
+            "label": "Discretionary Billable Pool"
+          },
+          {
+            "value": "SaaS Billable Pool",
+            "label": "SaaS Billable Pool"
+          },
+          {
+            "value": "External Consultant",
+            "label": "External Consultant"
+          },
+          {
+            "value": "Not VD",
+            "label": "Not VD"
+          }
+        ]
+      },
+      {
+        "name": "psx__externalId__c",
+        "label": "External Id",
+        "type": "string"
+      },
+      {
+        "name": "psx__personalReference__c",
+        "label": "Personal Reference",
+        "type": "string"
+      },
+      {
+        "name": "psx__supervisorExternalId__c",
+        "label": "Supervisor External Id",
+        "type": "string"
+      }
+    ]
+  },
+  "project_child_relationships": [
+    {
+      "childSObject": "AttachedContentDocument",
+      "relationshipName": "AttachedContentDocuments",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "AttachedContentNote",
+      "relationshipName": "AttachedContentNotes",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "Attachment",
+      "relationshipName": "Attachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "CollaborationGroupRecord",
+      "relationshipName": "RecordAssociatedGroups",
+      "field": "RecordId"
+    },
+    {
+      "childSObject": "CombinedAttachment",
+      "relationshipName": "CombinedAttachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "ContentDocumentLink",
+      "relationshipName": "ContentDocumentLinks",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "EntitySubscription",
+      "relationshipName": "FeedSubscriptionsForEntity",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "FlowOrchestrationWorkItem",
+      "relationshipName": "FlowOrchestrationWorkItems",
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "Note",
+      "relationshipName": "Notes",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "NoteAndAttachment",
+      "relationshipName": "NotesAndAttachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "ProcessInstance",
+      "relationshipName": "ProcessInstances",
+      "field": "TargetObjectId"
+    },
+    {
+      "childSObject": "ProcessInstanceHistory",
+      "relationshipName": "ProcessSteps",
+      "field": "TargetObjectId"
+    },
+    {
+      "childSObject": "RecordAction",
+      "relationshipName": "RecordActions",
+      "field": "RecordId"
+    },
+    {
+      "childSObject": "RecordActionHistory",
+      "relationshipName": "RecordActionHistories",
+      "field": "ParentRecordId"
+    },
+    {
+      "childSObject": "TopicAssignment",
+      "relationshipName": "TopicAssignments",
+      "field": "EntityId"
+    },
+    {
+      "childSObject": "VoiceCall",
+      "relationshipName": "RelatedRecords",
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "preempt__Phase__c",
+      "relationshipName": "preempt__Phases__r",
+      "field": "preempt__project__c"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__Feed",
+      "relationshipName": "Feeds",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__History",
+      "relationshipName": "Histories",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__Share",
+      "relationshipName": "Shares",
+      "field": "ParentId"
+    }
+  ],
+  "sample_project_with_children": {
+    "project_id": "a2X3X000002chIAUAY",
+    "project_name": "Holiday",
+    "phase_count": 1,
+    "phases": [
+      {
+        "id": "a2Q3X00000FVxxfUAD",
+        "name": "Holiday"
+      }
+    ]
+  },
+  "risk_schema": null,
+  "risk_objects_found": [],
+  "sample_risk": null,
+  "errors": [],
+
+  "discovery_conclusions": {
+    "summary": "Comprehensive API discovery completed with 9 API calls. No Risk object is accessible via the current API credentials.",
+    
+    "findings": {
+      "accessible_precursive_objects": [
+        "preempt__PrecursiveProject__c (142 fields)",
+        "preempt__Phase__c (32 fields)",
+        "preempt__Participant__c (21 fields)",
+        "preempt__Resource__c (27 fields)"
+      ],
+      "total_record_types_in_org": 13,
+      "risk_related_record_types": 0,
+      "embedded_risk_fields_on_project": [
+        "Project_Risk_Level__c (picklist: High, Medium, Low)",
+        "Risk_Description__c (textarea)"
+      ],
+      "project_child_relationships": "20 total, only 1 custom: preempt__Phase__c",
+      "phase_child_relationships": "18 total, all standard Salesforce objects"
+    },
+    
+    "root_cause": "The Risk object visible in the Precursive UI (as shown in the screenshot with 'Project Risks' related list and 'Record Type: Risk') is NOT accessible via the current API credentials. This is a Salesforce permissions issue.",
+    
+    "evidence": [
+      "RecordType query returned 0 Risk-related record types (out of 13 total)",
+      "Project object has no child relationship to a Risk object",
+      "Phase object has no child relationship to a Risk object",
+      "Tooling API field search returned 400 error (permission denied)",
+      "Only 4 preempt__ objects are accessible vs potentially more in the managed package"
+    ],
+    
+    "current_implementation_status": {
+      "what_works": "Syncing embedded project-level risk via Project_Risk_Level__c and Risk_Description__c fields",
+      "what_doesnt_work": "Syncing individual risk records shown in 'Project Risks' related list",
+      "code_location": "backend/services/sync_service.py - _sync_precursive_embedded_risk()"
+    },
+    
+    "required_actions": {
+      "action_1": "Contact Salesforce Admin to identify the Risk object API name",
+      "action_2": "Grant the Connected App read access to the Risk object",
+      "action_3": "Grant access to the RecordType with DeveloperName containing 'Risk'",
+      "action_4": "Re-run this discovery script to get full Risk schema",
+      "action_5": "Update salesforce_precursive_client.py get_project_risks() to query the Risk object"
+    },
+    
+    "questions_for_salesforce_admin": [
+      "What is the API name of the Risk object? (e.g., Risk__c, Project_Risk__c, preempt__Risk__c)",
+      "What Permission Set controls access for the PM App Connected App?",
+      "Can you add Read access to the Risk object and all its fields?",
+      "Is there a 'Risk' Record Type that needs to be made visible?"
+    ]
+  }
+}

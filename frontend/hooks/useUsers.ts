@@ -1,13 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { User, UserRole, InviteUserResponse } from "@/types";
+import type { User, InviteUserResponse } from "@/lib/api/types";
+import { UserRole } from "@/lib/api/types";
 import { useAuthStore } from "@/store/authStore";
 
 /**
  * Fetch all users with optional filtering.
  * Requires Cogniter authentication.
+ *
+ * @param search - Optional search term
+ * @param role - Optional role filter
+ * @param enabled - Whether to enable the query (default: true). Set to false to prevent
+ *                  fetching (useful when modal is closed or search term is too short)
  */
-export const useUsers = (search?: string, role?: UserRole) => {
+export const useUsers = (search?: string, role?: UserRole, enabled: boolean = true) => {
     const { isAuthenticated } = useAuthStore();
 
     return useQuery({
@@ -21,7 +27,7 @@ export const useUsers = (search?: string, role?: UserRole) => {
             const { data } = await api.get<User[]>(url);
             return data;
         },
-        enabled: isAuthenticated,
+        enabled: isAuthenticated && enabled,
     });
 };
 

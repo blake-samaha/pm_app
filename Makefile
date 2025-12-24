@@ -58,6 +58,31 @@ lint:
 	cd backend && uv run ruff check . --fix
 	cd backend && uv run ty check
 
+# OpenAPI export and code generation
+.PHONY: openapi api-generate
+
+openapi:
+	cd backend && uv run python scripts/export_openapi.py --output ../frontend/openapi.json
+
+api-generate: openapi
+	cd frontend && npm run api:generate
+	cd frontend && npm run format
+
+# Architecture checks
+.PHONY: arch-check arch-check-backend arch-check-frontend
+
+arch-check-backend:
+	cd backend && uv run pytest tests/unit/test_architecture.py -v
+
+arch-check-frontend:
+	cd frontend && npm run arch:check
+
+arch-check: arch-check-backend arch-check-frontend
+
+# Full check (lint + architecture)
+.PHONY: check
+check: lint arch-check
+
 setup-hooks:
 	@echo "Installing robust pre-commit hook..."
 	cp scripts/pre-commit-hook .git/hooks/pre-commit

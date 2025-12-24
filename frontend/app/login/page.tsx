@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
+import type { User as FirebaseUser } from "firebase/auth";
 import {
     auth,
     googleProvider,
@@ -10,9 +11,26 @@ import {
     sendPasswordResetEmail,
 } from "@/lib/firebase";
 import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/error";
 import { useAuthStore } from "@/store/authStore";
 import { useState } from "react";
 import { Loader2, Mail, Lock, Eye, EyeOff, Shield } from "lucide-react";
+
+const getFirebaseErrorCode = (error: unknown): string | undefined => {
+    if (typeof error === "object" && error !== null && "code" in error) {
+        const code = (error as { code?: unknown }).code;
+        return typeof code === "string" ? code : undefined;
+    }
+    return undefined;
+};
+
+const getFirebaseErrorMessage = (error: unknown): string | undefined => {
+    if (typeof error === "object" && error !== null && "message" in error) {
+        const message = (error as { message?: unknown }).message;
+        return typeof message === "string" ? message : undefined;
+    }
+    return undefined;
+};
 
 export default function LoginPage() {
     const router = useRouter();
@@ -38,7 +56,7 @@ export default function LoginPage() {
      * Completes the login flow by sending the Firebase token to the backend
      * and storing the resulting JWT token.
      */
-    const completeLogin = async (firebaseUser: any) => {
+    const completeLogin = async (firebaseUser: FirebaseUser) => {
         try {
             // Now we can set loading since the sensitive interaction is done
             setLoading(true);
@@ -59,7 +77,7 @@ export default function LoginPage() {
             // Store in Zustand
             setAuth(user, access_token);
             router.push("/");
-        } catch (err: any) {
+        } catch (err) {
             console.error("Login completion failed", err);
             setError("Failed to complete login. Please try again.");
             setLoading(false);
@@ -82,18 +100,21 @@ export default function LoginPage() {
             const result = await signInWithPopup(auth, googleProvider);
             // Login successful on Firebase side, now sync with backend
             await completeLogin(result.user);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Google login failed", err);
             setLoading(false);
 
-            if (err.code === "auth/popup-closed-by-user") {
+            const code = getFirebaseErrorCode(err);
+            const message = getFirebaseErrorMessage(err);
+
+            if (code === "auth/popup-closed-by-user") {
                 setError("Sign-in was cancelled. Please try again.");
-            } else if (err.code === "auth/popup-blocked") {
+            } else if (code === "auth/popup-blocked") {
                 setError("Pop-up was blocked. Please allow pop-ups for this site.");
-            } else if (err.code === "auth/configuration-not-found") {
+            } else if (code === "auth/configuration-not-found") {
                 setError("Google Sign-In is not configured. Please contact support.");
             } else {
-                setError(err.message || "Google login failed. Please try again.");
+                setError(message || "Google login failed. Please try again.");
             }
 
             localStorage.removeItem("accessToken");
@@ -121,11 +142,14 @@ export default function LoginPage() {
             }
 
             await completeLogin(userCredential.user);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Email login failed", err);
 
+            const code = getFirebaseErrorCode(err);
+            const message = getFirebaseErrorMessage(err);
+
             // Handle Firebase auth errors with user-friendly messages
-            switch (err.code) {
+            switch (code) {
                 case "auth/user-not-found":
                     setError(
                         "No account found with this email. Click 'Create Account' to register."
@@ -150,7 +174,7 @@ export default function LoginPage() {
                     setError("Too many failed attempts. Please try again later.");
                     break;
                 default:
-                    setError(err.message || "Authentication failed. Please try again.");
+                    setError(message || "Authentication failed. Please try again.");
             }
 
             localStorage.removeItem("accessToken");
@@ -183,9 +207,9 @@ export default function LoginPage() {
             // Store in Zustand with superuser flag
             setAuth(user, access_token, is_superuser);
             router.push("/");
-        } catch (err: any) {
+        } catch (err) {
             console.error("Superuser login failed", err);
-            setError(err.response?.data?.detail || "Invalid superuser credentials");
+            setError(getErrorMessage(err));
             setLoading(false);
         }
     };
@@ -204,10 +228,13 @@ export default function LoginPage() {
             setSuccess("Password reset email sent! Check your inbox.");
             setShowForgotPassword(false);
             setForgotEmail("");
-        } catch (err: any) {
+        } catch (err) {
             console.error("Password reset failed", err);
 
-            switch (err.code) {
+            const code = getFirebaseErrorCode(err);
+            const message = getFirebaseErrorMessage(err);
+
+            switch (code) {
                 case "auth/user-not-found":
                     setError("No account found with this email address.");
                     break;
@@ -215,7 +242,7 @@ export default function LoginPage() {
                     setError("Please enter a valid email address.");
                     break;
                 default:
-                    setError(err.message || "Failed to send reset email. Please try again.");
+                    setError(message || "Failed to send reset email. Please try again.");
             }
         } finally {
             setLoading(false);

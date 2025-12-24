@@ -1,9 +1,8 @@
 """Sync service for orchestrating data synchronization from external APIs."""
 
-import random
 import re
-from datetime import date, datetime, timedelta
-from typing import List, Optional
+from datetime import datetime, timedelta
+from typing import Optional
 from uuid import UUID
 
 import structlog
@@ -11,7 +10,7 @@ from sqlmodel import Session, select
 
 from config import Settings
 from exceptions import ResourceNotFoundError
-from integrations import JiraClient, PrecursiveClient
+from integrations import JiraClient, SalesforcePrecursiveClient
 from models import (
     ActionItem,
     ActionStatus,
@@ -21,10 +20,21 @@ from models import (
     RiskImpact,
     RiskProbability,
     RiskStatus,
+    SyncJob,
+    SyncJobType,
 )
-from schemas.sync import JiraSyncResult, PrecursiveSyncResult, SyncResult, SyncStatus
+from schemas.sync import (
+    JiraSyncResult,
+    PrecursiveSyncResult,
+    SyncJobSummary,
+    SyncResult,
+    SyncStatus,
+)
 
 logger = structlog.get_logger()
+
+# Backfill window to avoid missing updates due to clock skew
+INCREMENTAL_SYNC_BACKFILL_MINUTES = 5
 
 
 class SyncService:
@@ -34,104 +44,94 @@ class SyncService:
         self.session = session
         self.settings = settings
         self.jira = JiraClient(settings)
-        self.precursive = PrecursiveClient(settings)
+        self.precursive = SalesforcePrecursiveClient(settings)
+        # Import here to avoid circular dependency (sync_job_service imports models which sync_service also uses)
+        from services.sync_job_service import SyncJobService
+
+        self._sync_job_service = SyncJobService(session)
 
     async def close(self):
         """Close API client connections."""
         await self.jira.close()
         await self.precursive.close()
 
+    def _safe_rollback(self) -> None:
+        """Best-effort rollback to return the session to a usable state."""
+        try:
+            self.session.rollback()
+        except Exception as e:
+            # Intentionally swallow rollback errors (session may already be closed/broken),
+            # but emit a debug log to aid investigations.
+            logger.debug("Session rollback failed", error=str(e), exc_info=True)
+
     # =========================================================================
     # Status
     # =========================================================================
 
+    def _job_to_summary(self, job: Optional[SyncJob]) -> Optional[SyncJobSummary]:
+        """Convert a SyncJob model to a SyncJobSummary schema."""
+        if not job:
+            return None
+        return SyncJobSummary(
+            id=job.id,
+            job_type=job.job_type,
+            status=job.status,
+            created_at=job.created_at,
+            started_at=job.started_at,
+            completed_at=job.completed_at,
+            items_synced=job.items_synced,
+            error=job.error,
+        )
+
     def get_sync_status(self, project_id: UUID) -> SyncStatus:
-        """Get the current sync status for a project."""
+        """
+        Get the current sync status for a project.
+
+        Returns rich status including:
+        - Integration configured (credentials set in settings)
+        - Project linked (project has URL/key/ID)
+        - Active and last completed jobs for each integration
+        """
         project = self.session.get(Project, project_id)
         if not project:
             raise ResourceNotFoundError(f"Project {project_id} not found")
 
         assert project.id is not None, "Project must have an ID"
+
+        # Get active and last completed jobs for each type via service
+        jira_active = self._sync_job_service.get_active_job(
+            project_id, SyncJobType.JIRA
+        )
+        jira_last = self._sync_job_service.get_last_completed_job(
+            project_id, SyncJobType.JIRA
+        )
+        precursive_active = self._sync_job_service.get_active_job(
+            project_id, SyncJobType.PRECURSIVE
+        )
+        precursive_last = self._sync_job_service.get_last_completed_job(
+            project_id, SyncJobType.PRECURSIVE
+        )
+
         return SyncStatus(
             project_id=project.id,
             last_synced_at=project.last_synced_at,
-            jira_configured=bool(project.jira_project_key or project.jira_url),
-            precursive_configured=bool(project.precursive_id or project.precursive_url),
+            # Integration configured (from settings/credentials)
+            jira_integration_configured=self.jira.is_configured,
+            precursive_integration_configured=self.precursive.is_configured,
+            # Project linked (has URL/key/ID)
+            jira_project_linked=bool(project.jira_project_key or project.jira_url),
+            precursive_project_linked=bool(
+                project.precursive_id or project.precursive_url
+            ),
+            # Project-level info
             jira_project_key=project.jira_project_key,
             jira_project_name=project.jira_project_name,
+            # Job summaries
+            jira_active_job=self._job_to_summary(jira_active),
+            jira_last_job=self._job_to_summary(jira_last),
+            precursive_active_job=self._job_to_summary(precursive_active),
+            precursive_last_job=self._job_to_summary(precursive_last),
         )
-
-    # =========================================================================
-    # Fake Data Generation
-    # =========================================================================
-
-    def _generate_fake_risks(self, project_id: UUID) -> List[Risk]:
-        """Generate realistic fake risks for a project."""
-        risk_templates = [
-            {
-                "title": "Stakeholder Availability Risk",
-                "description": "Key stakeholder unavailability during UAT phase",
-                "mitigation": "Schedule backup stakeholders and extend UAT window by 1 week.",
-                "category": "Resource",
-            },
-            {
-                "title": "API Rate Limit Risk",
-                "description": "Integration API rate limits might bottleneck data sync",
-                "mitigation": "Implement exponential backoff and caching layer.",
-                "category": "Technical",
-            },
-            {
-                "title": "Scope Creep Risk",
-                "description": "Scope creep in reporting requirements",
-                "mitigation": "Strict change request process and weekly scope reviews.",
-                "category": "Scope",
-            },
-            {
-                "title": "Vendor Delay Risk",
-                "description": "Third-party vendor delay in delivering credentials",
-                "mitigation": "Escalate to vendor management and prepare mock data for dev.",
-                "category": "Vendor",
-            },
-            {
-                "title": "Data Quality Risk",
-                "description": "Data quality issues in legacy system export",
-                "mitigation": "Run preliminary data profiling scripts and allocate cleanup sprint.",
-                "category": "Data",
-            },
-            {
-                "title": "Knowledge Gap Risk",
-                "description": "Team knowledge gap on new tech stack",
-                "mitigation": "Conduct workshops and pair programming sessions.",
-                "category": "People",
-            },
-            {
-                "title": "Budget Overrun Risk",
-                "description": "Budget overrun due to extended discovery phase",
-                "mitigation": "Re-estimate remaining phases and seek budget approval.",
-                "category": "Financial",
-            },
-        ]
-
-        risks = []
-        # Generate 5-8 random risks
-        num_risks = random.randint(5, 8)
-        selected = random.sample(risk_templates, num_risks)
-
-        for tmpl in selected:
-            risk = Risk(
-                project_id=project_id,
-                title=tmpl["title"],
-                description=tmpl["description"],
-                mitigation_plan=tmpl["mitigation"],
-                category=tmpl["category"],
-                probability=random.choice(list(RiskProbability)),
-                impact=random.choice(list(RiskImpact)),
-                status=RiskStatus.OPEN,
-                date_identified=datetime.now() - timedelta(days=random.randint(1, 30)),
-            )
-            risks.append(risk)
-
-        return risks
 
     # =========================================================================
     # Sync Logic
@@ -168,10 +168,7 @@ class SyncService:
                 result.jira.success = False
                 result.jira.error = str(e)
                 # Ensure session is in a good state
-                try:
-                    self.session.rollback()
-                except Exception:
-                    pass  # Ignore rollback errors
+                self._safe_rollback()
         else:
             result.jira.message = "Jira not configured"
 
@@ -188,10 +185,7 @@ class SyncService:
             result.precursive.success = False
             result.precursive.error = str(e)
             # Ensure session is in a good state
-            try:
-                self.session.rollback()
-            except Exception:
-                pass  # Ignore rollback errors
+            self._safe_rollback()
 
         # 3. Update Project Last Synced
         # Re-fetch project to ensure we have latest state
@@ -203,15 +197,30 @@ class SyncService:
                 self.session.commit()
         except Exception as e:
             logger.error("Failed to update last_synced_at", error=str(e))
-            try:
-                self.session.rollback()
-            except Exception:
-                pass
+            self._safe_rollback()
 
         return result
 
-    async def sync_jira_data(self, project: Project) -> JiraSyncResult:
-        """Sync data from Jira."""
+    def _get_last_successful_jira_sync(self, project_id: UUID) -> Optional[datetime]:
+        """Get the completion time of the last successful Jira sync job."""
+        last_job = self._sync_job_service.get_last_successful_job(
+            project_id, SyncJobType.JIRA
+        )
+
+        if last_job and last_job.completed_at:
+            return last_job.completed_at
+        return None
+
+    async def sync_jira_data(
+        self, project: Project, force_full: bool = False
+    ) -> JiraSyncResult:
+        """
+        Sync data from Jira.
+
+        Args:
+            project: The project to sync
+            force_full: If True, ignore last sync time and do a full sync
+        """
         res = JiraSyncResult(success=True)
 
         # Try to extract project key from URL if missing
@@ -251,20 +260,43 @@ class SyncService:
                 except Exception as e:
                     logger.warning("Failed to fetch Jira boards", error=str(e))
 
-            # Fetch Actions (Issues)
-            issues = await self.jira.get_project_issues(project.jira_project_key)
+            # Determine incremental sync window
+            updated_since = None
+            if not force_full and project.id:
+                last_sync_time = self._get_last_successful_jira_sync(project.id)
+                if last_sync_time:
+                    # Apply backfill window to avoid missing updates
+                    sync_cutoff = last_sync_time - timedelta(
+                        minutes=INCREMENTAL_SYNC_BACKFILL_MINUTES
+                    )
+                    updated_since = sync_cutoff.strftime("%Y-%m-%d")
+                    logger.info(
+                        "Using incremental Jira sync",
+                        project_id=str(project.id),
+                        updated_since=updated_since,
+                    )
+
+            # Fetch Actions (Issues) - incremental if we have a last sync time
+            issues = await self.jira.get_project_issues(
+                project.jira_project_key,
+                max_results=500,
+                updated_since=updated_since,
+            )
             res.actions_count = len(issues)
+
+            # Pre-fetch all existing actions for this project to avoid N+1 queries
+            existing_actions = self.session.exec(
+                select(ActionItem).where(ActionItem.project_id == project.id)
+            ).all()
+            action_by_jira_key: dict[str, ActionItem] = {
+                a.jira_key: a for a in existing_actions if a.jira_key
+            }
 
             # Update DB
             for issue in issues:
                 try:
-                    # Check existence using jira_key (indexed field) for better query performance
-                    existing = self.session.exec(
-                        select(ActionItem).where(
-                            ActionItem.project_id == project.id,
-                            ActionItem.jira_key == issue.key,
-                        )
-                    ).first()
+                    # O(1) lookup instead of per-issue database query
+                    existing = action_by_jira_key.get(issue.key)
 
                     if existing:
                         # Update existing action item
@@ -343,10 +375,7 @@ class SyncService:
             res.success = False
             res.error = str(e)
             # Rollback on error
-            try:
-                self.session.rollback()
-            except Exception:
-                pass
+            self._safe_rollback()
 
         return res
 
@@ -369,27 +398,8 @@ class SyncService:
                         project.name = precursive_project.name
                     if precursive_project.client_name:
                         project.client_name = precursive_project.client_name
-                    # Sync dates for timeline
-                    if precursive_project.start_date:
-                        try:
-                            project.start_date = datetime.strptime(
-                                precursive_project.start_date, "%Y-%m-%d"
-                            ).date()
-                        except ValueError:
-                            logger.warning(
-                                "Invalid start_date format",
-                                start_date=precursive_project.start_date,
-                            )
-                    if precursive_project.end_date:
-                        try:
-                            project.end_date = datetime.strptime(
-                                precursive_project.end_date, "%Y-%m-%d"
-                            ).date()
-                        except ValueError:
-                            logger.warning(
-                                "Invalid end_date format",
-                                end_date=precursive_project.end_date,
-                            )
+                    # Sync dates for timeline (use delivery_start_date/delivery_end_date)
+                    self._sync_precursive_dates(project, precursive_project)
                     self.session.add(project)
                     logger.info(
                         "Extracted Precursive project ID from URL",
@@ -400,40 +410,26 @@ class SyncService:
                     "Failed to get Precursive project from URL", error=str(e)
                 )
 
-        # Also try to get project details if we have precursive_id but no dates
-        if project.precursive_id and (not project.start_date or not project.end_date):
+        # Also try to get project details if we have precursive_id but haven't fetched it yet
+        if project.precursive_id and not precursive_project:
             try:
-                if not precursive_project:
-                    # Get project by ID to ensure we get the correct project
-                    precursive_project = await self.precursive.get_project_by_id(
-                        project.precursive_id
-                    )
+                precursive_project = await self.precursive.get_project_by_id(
+                    project.precursive_id
+                )
                 if precursive_project:
-                    if not project.start_date and precursive_project.start_date:
-                        try:
-                            project.start_date = datetime.strptime(
-                                precursive_project.start_date, "%Y-%m-%d"
-                            ).date()
-                        except ValueError:
-                            logger.warning(
-                                "Invalid start_date format",
-                                start_date=precursive_project.start_date,
-                            )
-                    if not project.end_date and precursive_project.end_date:
-                        try:
-                            project.end_date = datetime.strptime(
-                                precursive_project.end_date, "%Y-%m-%d"
-                            ).date()
-                        except ValueError:
-                            logger.warning(
-                                "Invalid end_date format",
-                                end_date=precursive_project.end_date,
-                            )
+                    self._sync_precursive_dates(project, precursive_project)
+                    if precursive_project.client_name:
+                        project.client_name = precursive_project.client_name
                     self.session.add(project)
             except Exception as e:
                 logger.warning(
                     "Failed to fetch Precursive project details", error=str(e)
                 )
+
+        # Step 1.5: Sync health indicators from Precursive project
+        if precursive_project:
+            self._sync_precursive_health_indicators(project, precursive_project)
+            self.session.add(project)
 
         # Step 2: Sync Financials
         try:
@@ -448,66 +444,88 @@ class SyncService:
                         "Failed to fetch Precursive financials", error=str(e)
                     )
 
-            if financials and financials.total_budget:
-                project.total_budget = financials.total_budget
-                project.spent_budget = financials.spent_budget
-                project.remaining_budget = financials.remaining_budget
-                project.currency = financials.currency
-                self.session.add(project)
-                res.financials_updated = True
-                res.message = "Synced financials from Precursive"
-            else:
-                # Optionally generate synthetic financials in development/demo only.
-                allow_synthetic = (
-                    self.settings.environment == "development"
-                    or self.settings.allow_synthetic_demo_data
+            if financials and financials.has_any_financial_data():
+                # Use the dataclass methods for computing budget values
+                computed_total = financials.compute_total_budget()
+                computed_spent = financials.compute_spent_budget()
+
+                logger.info(
+                    "Processing Precursive financials",
+                    project_id=str(project.id),
+                    computed_total_budget=computed_total,
+                    computed_spent_budget=computed_spent,
+                    remaining_budget=financials.remaining_budget,
+                    currency=financials.currency,
                 )
-                if allow_synthetic and not project.total_budget:
-                    logger.info(
-                        "No Precursive financials found. Generating synthetic financials."
-                    )
-                    project.total_budget = random.uniform(200000, 500000)
-                    project.spent_budget = project.total_budget * random.uniform(
-                        0.2, 0.6
-                    )
-                    project.remaining_budget = (
-                        project.total_budget - project.spent_budget
-                    )
-                    project.currency = "USD"
+
+                updated = False
+
+                if computed_total is not None and computed_total > 0:
+                    project.total_budget = computed_total
+                    if computed_spent is not None:
+                        project.spent_budget = computed_spent
+                    if financials.remaining_budget is not None:
+                        project.remaining_budget = financials.remaining_budget
+                    updated = True
+                elif financials.remaining_budget is not None:
+                    # Only remaining_budget available - still useful
+                    project.remaining_budget = financials.remaining_budget
+                    updated = True
+
+                # Always update the additional financial details if we have any data
+                if financials.overrun_investment is not None:
+                    project.overrun_investment = financials.overrun_investment
+                    updated = True
+                if financials.total_days_actuals_planned is not None:
+                    project.total_days_actuals = financials.total_days_actuals_planned
+                    updated = True
+                if financials.budgeted_days_delivery is not None:
+                    project.budgeted_days_delivery = financials.budgeted_days_delivery
+                    updated = True
+                if financials.budgeted_hours_delivery is not None:
+                    project.budgeted_hours_delivery = financials.budgeted_hours_delivery
+                    updated = True
+
+                if updated:
+                    project.currency = financials.currency
                     self.session.add(project)
                     res.financials_updated = True
-                    res.message = "Generated synthetic financials"
+                    res.message = "Synced financials from Precursive"
+                else:
+                    logger.warning(
+                        "Precursive returned financial data but could not compute budget",
+                        project_id=str(project.id),
+                        has_fte_days=financials.total_fte_days is not None,
+                        has_fte_price=financials.fte_day_price is not None,
+                        has_role_budgets=any(
+                            [
+                                financials.pm_budget,
+                                financials.sa_budget,
+                                financials.de_budget,
+                                financials.ds_budget,
+                            ]
+                        ),
+                    )
+            elif financials:
+                logger.info(
+                    "Precursive financials query succeeded but no data available",
+                    project_id=str(project.id),
+                )
 
         except Exception as e:
             errors.append(f"Financials sync failed: {str(e)}")
 
-        # Step 2.5: Generate fake dates if none exist (for timeline)
-        allow_synthetic = (
-            self.settings.environment == "development"
-            or self.settings.allow_synthetic_demo_data
-        )
-        if allow_synthetic and (not project.start_date or not project.end_date):
-            logger.info(
-                "No Precursive dates found. Generating synthetic dates for timeline."
-            )
-            today = date.today()
-            if not project.start_date:
-                # Start date: 3-6 months ago
-                months_ago = random.randint(3, 6)
-                project.start_date = today - timedelta(days=months_ago * 30)
-            if not project.end_date:
-                # End date: 3-9 months from now
-                months_ahead = random.randint(3, 9)
-                project.end_date = today + timedelta(days=months_ahead * 30)
-            self.session.add(project)
-            logger.info(
-                "Generated synthetic dates",
-                start_date=project.start_date,
-                end_date=project.end_date,
-            )
-
         # Step 3: Sync Risks
         try:
+            risks_synced = 0
+
+            # First, try to sync embedded project-level risk from Precursive
+            if precursive_project and precursive_project.risk_level:
+                risks_synced += self._sync_precursive_embedded_risk(
+                    project, precursive_project
+                )
+
+            # Also try to get any additional risks from Precursive (for mock compatibility)
             risks_data = []
             if project.precursive_id:
                 try:
@@ -578,31 +596,20 @@ class SyncService:
                         )
                         self.session.add(new_risk)
 
-                res.risks_count = len(risks_data)
+                risks_synced += len(risks_data)
+
+            if risks_synced > 0:
+                res.risks_count = risks_synced
                 if not res.message:
                     res.message = "Synced risks from Precursive"
             else:
-                # NO DATA or NO ID -> FAKE IT
-                # Check if we already have risks
+                # No external risk data available - report existing risks count
                 existing_risks = self.session.exec(
                     select(Risk).where(Risk.project_id == project.id)
                 ).all()
-
-                if not existing_risks:
-                    logger.info(
-                        "No existing risks and no external data. Generating fake risks."
-                    )
-                    assert project.id is not None, "Project must have an ID"
-                    fake_risks = self._generate_fake_risks(project.id)
-                    for r in fake_risks:
-                        self.session.add(r)
-                    res.risks_count = len(fake_risks)
-                    if not res.message:
-                        res.message = "Generated synthetic risks"
-                else:
-                    res.risks_count = len(existing_risks)
-                    if not res.message:
-                        res.message = f"Found {len(existing_risks)} existing risks"
+                res.risks_count = len(existing_risks)
+                if existing_risks and not res.message:
+                    res.message = f"Found {len(existing_risks)} existing risks"
 
             self.session.commit()
 
@@ -667,3 +674,143 @@ class SyncService:
         elif s in ["mitigated", "mitigation"]:
             return RiskStatus.MITIGATED
         return RiskStatus.OPEN
+
+    def _sync_precursive_dates(self, project: Project, precursive_project) -> None:
+        """Sync delivery dates from Precursive project to local project."""
+        # Use delivery_start_date/delivery_end_date from new dataclass
+        start_date_str = getattr(
+            precursive_project, "delivery_start_date", None
+        ) or getattr(precursive_project, "start_date", None)
+        end_date_str = getattr(
+            precursive_project, "delivery_end_date", None
+        ) or getattr(precursive_project, "end_date", None)
+
+        if start_date_str and not project.start_date:
+            try:
+                project.start_date = datetime.strptime(
+                    start_date_str, "%Y-%m-%d"
+                ).date()
+            except ValueError:
+                logger.warning(
+                    "Invalid start_date format",
+                    start_date=start_date_str,
+                )
+
+        if end_date_str and not project.end_date:
+            try:
+                project.end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                logger.warning(
+                    "Invalid end_date format",
+                    end_date=end_date_str,
+                )
+
+    def _sync_precursive_health_indicators(
+        self, project: Project, precursive_project
+    ) -> None:
+        """Sync health indicators from Precursive project to local project."""
+        # Map Precursive health indicators to project fields
+        project.precursive_project_health = getattr(
+            precursive_project, "project_health", None
+        )
+        project.precursive_time_health = getattr(
+            precursive_project, "time_health", None
+        )
+        project.precursive_cost_health = getattr(
+            precursive_project, "cost_health", None
+        )
+        project.precursive_resources_health = getattr(
+            precursive_project, "resources_health", None
+        )
+        project.precursive_status_summary = getattr(
+            precursive_project, "overall_status_summary", None
+        )
+
+        logger.info(
+            "Synced Precursive health indicators",
+            project_id=str(project.id),
+            project_health=project.precursive_project_health,
+            time_health=project.precursive_time_health,
+            cost_health=project.precursive_cost_health,
+            resources_health=project.precursive_resources_health,
+        )
+
+    def _sync_precursive_embedded_risk(
+        self, project: Project, precursive_project
+    ) -> int:
+        """Sync embedded project-level risk from Precursive.
+
+        Returns the number of risks synced (0 or 1).
+        """
+        risk_level = getattr(precursive_project, "risk_level", None)
+        risk_description = getattr(precursive_project, "risk_description", None)
+
+        if not risk_level:
+            return 0
+
+        # Look for existing Precursive-sourced risk
+        existing_precursive_risk = self.session.exec(
+            select(Risk).where(
+                Risk.project_id == project.id,
+                Risk.source == "precursive",
+            )
+        ).first()
+
+        probability = self._map_risk_level_to_probability(risk_level)
+        impact = self._map_risk_level_to_impact(risk_level)
+
+        if existing_precursive_risk:
+            # Update existing risk
+            existing_precursive_risk.description = (
+                risk_description or "Project-level risk from Precursive"
+            )
+            existing_precursive_risk.probability = probability
+            existing_precursive_risk.impact = impact
+            self.session.add(existing_precursive_risk)
+            logger.info(
+                "Updated existing Precursive risk",
+                risk_id=str(existing_precursive_risk.id),
+                risk_level=risk_level,
+            )
+        else:
+            # Create new risk from Precursive
+            new_risk = Risk(
+                project_id=project.id,
+                title="Overall Project Risk",
+                description=risk_description or "Project-level risk from Precursive",
+                probability=probability,
+                impact=impact,
+                status=RiskStatus.OPEN,
+                source="precursive",
+                date_identified=datetime.now(),
+            )
+            self.session.add(new_risk)
+            logger.info(
+                "Created new Precursive risk",
+                project_id=str(project.id),
+                risk_level=risk_level,
+            )
+
+        return 1
+
+    def _map_risk_level_to_probability(self, risk_level: str) -> RiskProbability:
+        """Map Precursive risk level to probability."""
+        if not risk_level:
+            return RiskProbability.MEDIUM
+        level = risk_level.lower()
+        if "high" in level:
+            return RiskProbability.HIGH
+        if "low" in level:
+            return RiskProbability.LOW
+        return RiskProbability.MEDIUM
+
+    def _map_risk_level_to_impact(self, risk_level: str) -> RiskImpact:
+        """Map Precursive risk level to impact."""
+        if not risk_level:
+            return RiskImpact.MEDIUM
+        level = risk_level.lower()
+        if "high" in level:
+            return RiskImpact.HIGH
+        if "low" in level:
+            return RiskImpact.LOW
+        return RiskImpact.MEDIUM

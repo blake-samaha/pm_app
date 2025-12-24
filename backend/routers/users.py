@@ -3,10 +3,10 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 
 from dependencies import CogniterUser, UserServiceDep
-from exceptions import ResourceNotFoundError
+from exceptions import AuthorizationError
 from models import UserRole
 from schemas import UserRead
 from schemas.user import UserRoleUpdate
@@ -23,16 +23,20 @@ async def list_users(
     user_service: UserServiceDep,
     search: Optional[str] = None,
     role: Optional[UserRole] = None,
+    limit: int = 50,
 ):
     """
     List users with optional filtering.
 
     - **search**: Optional search string for name or email (case-insensitive)
     - **role**: Optional filter by role (Cogniter, Client + Financials, or Client)
+    - **limit**: Maximum number of results to return (default 50, max 200)
 
     Only Cogniters can access this endpoint.
     """
-    return user_service.search_users(search=search, role=role)
+    # Cap limit to prevent abuse
+    effective_limit = min(limit, 200) if limit > 0 else 50
+    return user_service.search_users(search=search, role=role, limit=effective_limit)
 
 
 @router.patch("/{user_id}/role", response_model=UserRead)
@@ -53,12 +57,7 @@ async def update_user_role(
     """
     # Security: Cannot promote to Cogniter
     if role_data.role == UserRole.COGNITER:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cannot promote users to Cogniter role",
-        )
+        raise AuthorizationError("Cannot promote users to Cogniter role")
 
-    try:
-        return user_service.update_role(user_id, role_data.role)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    # ResourceNotFoundError -> 404 via global handler
+    return user_service.update_role(user_id, role_data.role)

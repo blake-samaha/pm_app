@@ -83,7 +83,20 @@ const nextConfig = {
                 source: "/api/sync/:path*",
                 destination: `${backendUrl}/sync/:path*`,
             },
-            // Uploads endpoints (for serving uploaded files - no /api prefix needed)
+            // Uploads API endpoints (for uploading files)
+            {
+                source: "/api/uploads",
+                destination: `${backendUrl}/uploads/`,
+            },
+            {
+                source: "/api/uploads/",
+                destination: `${backendUrl}/uploads/`,
+            },
+            {
+                source: "/api/uploads/:path*",
+                destination: `${backendUrl}/uploads/:path*`,
+            },
+            // Static uploads (for serving uploaded files - no /api prefix needed)
             {
                 source: "/uploads/:path*",
                 destination: `${backendUrl}/uploads/:path*`,

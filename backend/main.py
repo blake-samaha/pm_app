@@ -26,7 +26,7 @@ from exceptions import (
     ResourceNotFoundError,
     ValidationError,
 )
-from integrations import JiraClient, PrecursiveClient
+from integrations import JiraClient, SalesforcePrecursiveClient
 from middleware import RequestContextMiddleware, RequestLoggingMiddleware
 from routers import actions, auth, projects, risks, sync, uploads, users
 
@@ -130,7 +130,7 @@ def validate_required_config():
 def log_integration_status():
     """Log the status of optional integrations."""
     jira_client = JiraClient(settings)
-    precursive_client = PrecursiveClient(settings)
+    precursive_client = SalesforcePrecursiveClient(settings)
 
     if jira_client.is_configured:
         logger.info(
@@ -155,6 +155,62 @@ def log_integration_status():
             status="not configured",
             hint="Set PRECURSIVE_INSTANCE_URL and credentials",
         )
+
+
+def _ensure_qa_setup_on_startup() -> None:
+    """Ensure QA personas exist and are assigned to all projects.
+
+    Development only. Idempotent - safe to call on every startup.
+    """
+    from sqlmodel import Session, select
+
+    from database import engine
+    from models import Project, UserRole
+    from models.links import UserProjectLink
+    from services.user_service import UserService
+
+    try:
+        with Session(engine) as session:
+            # 1. Ensure QA personas exist
+            user_service = UserService(session)
+            personas = user_service.ensure_qa_personas()
+            logger.info("QA personas ready", count=len(personas))
+
+            # 2. Get client personas for assignment
+            client_personas = [
+                p
+                for p in personas
+                if p.role in (UserRole.CLIENT, UserRole.CLIENT_FINANCIALS)
+            ]
+
+            # 3. Publish all projects and assign client personas
+            projects = list(session.exec(select(Project)).all())
+            for project in projects:
+                if not project.is_published:
+                    project.is_published = True
+                    session.add(project)
+
+                for persona in client_personas:
+                    existing = session.exec(
+                        select(UserProjectLink).where(
+                            UserProjectLink.project_id == project.id,
+                            UserProjectLink.user_id == persona.id,
+                        )
+                    ).first()
+                    if not existing:
+                        session.add(
+                            UserProjectLink(project_id=project.id, user_id=persona.id)
+                        )
+
+            session.commit()
+            if projects:
+                logger.info(
+                    "QA setup complete",
+                    projects_published=len(projects),
+                    client_personas_assigned=len(client_personas),
+                )
+    except Exception as e:
+        logger.warning("Failed to run QA setup on startup", error=str(e))
 
 
 # ============================================================================
@@ -183,6 +239,10 @@ async def lifespan(app: FastAPI):
 
     # Log integration status
     log_integration_status()
+
+    # Seed QA personas in development mode (idempotent)
+    if settings.environment == "development":
+        _ensure_qa_setup_on_startup()
 
     logger.info("Application startup complete")
 
@@ -436,26 +496,19 @@ async def health_check():
     else:
         health_status["services"]["jira"] = {"status": "not_configured"}
 
-    # Check Precursive connection (if configured)
-    precursive_client = PrecursiveClient(settings)
+    # Check Precursive configuration status (no API calls to preserve rate limits)
+    precursive_client = SalesforcePrecursiveClient(settings)
     if precursive_client.is_configured:
-        try:
-            precursive_status = await precursive_client.test_connection()
-            health_status["services"]["precursive"] = precursive_status
-        except IntegrationError as e:
-            health_status["status"] = "degraded"
-            health_status["services"]["precursive"] = {
-                "status": "error",
-                "error": str(e),
-            }
-        finally:
-            await precursive_client.close()
-    else:
-        health_status["status"] = "degraded"
+        # Report configured status without making actual Salesforce API calls
+        # to preserve rate limits. Actual connection is tested on first sync.
         health_status["services"]["precursive"] = {
-            "status": "error",
-            "error": "Precursive integration required but not configured",
+            "status": "configured",
+            "type": "salesforce",
+            "note": "Connection tested on first sync to preserve API rate limits",
         }
+    else:
+        # Precursive is optional - not having it configured is not an error
+        health_status["services"]["precursive"] = {"status": "not_configured"}
 
     # Set appropriate HTTP status code
     status_code = 200 if health_status["status"] == "healthy" else 503

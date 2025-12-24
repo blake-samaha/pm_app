@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/store/authStore";
-import type { User } from "@/types";
+import type { User } from "@/lib/api/types";
 
 /**
  * Returns the user whose perspective the UI should render under.

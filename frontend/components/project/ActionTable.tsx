@@ -1,7 +1,9 @@
 "use client";
 
 import { useActions, useActionComments, useAddActionComment } from "@/hooks/useActions";
-import { ActionItem, ActionStatus, Priority } from "@/types/actions-risks";
+import type { ActionItem } from "@/lib/api/types";
+import { ActionStatus, Priority } from "@/lib/api/types";
+import { ACTION_STATUS, PRIORITY } from "@/lib/domain/enums";
 import {
     Loader2,
     CheckCircle2,
@@ -23,34 +25,35 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
+import { getErrorMessage } from "@/lib/error";
 import { useEffect, useState, useMemo } from "react";
-import { useProject } from "@/hooks/useProjects";
 import { CommentThread } from "@/components/comments/CommentThread";
 
 interface ActionTableProps {
     projectId: string;
+    jiraUrl?: string;
 }
 
 const ITEMS_PER_PAGE = 25;
 
 const statusIcons = {
-    [ActionStatus.TO_DO]: Circle,
-    [ActionStatus.IN_PROGRESS]: Clock,
-    [ActionStatus.COMPLETE]: CheckCircle2,
-    [ActionStatus.NO_STATUS]: HelpCircle,
+    [ACTION_STATUS.TO_DO]: Circle,
+    [ACTION_STATUS.IN_PROGRESS]: Clock,
+    [ACTION_STATUS.COMPLETE]: CheckCircle2,
+    [ACTION_STATUS.NO_STATUS]: HelpCircle,
 };
 
 const statusColors = {
-    [ActionStatus.TO_DO]: "text-slate-400",
-    [ActionStatus.IN_PROGRESS]: "text-blue-500",
-    [ActionStatus.COMPLETE]: "text-emerald-500",
-    [ActionStatus.NO_STATUS]: "text-slate-300",
+    [ACTION_STATUS.TO_DO]: "text-slate-400",
+    [ACTION_STATUS.IN_PROGRESS]: "text-blue-500",
+    [ACTION_STATUS.COMPLETE]: "text-emerald-500",
+    [ACTION_STATUS.NO_STATUS]: "text-slate-300",
 };
 
 const priorityColors = {
-    [Priority.HIGH]: "bg-red-100 text-red-800",
-    [Priority.MEDIUM]: "bg-amber-100 text-amber-800",
-    [Priority.LOW]: "bg-emerald-100 text-emerald-800",
+    [PRIORITY.HIGH]: "bg-red-100 text-red-800",
+    [PRIORITY.MEDIUM]: "bg-amber-100 text-amber-800",
+    [PRIORITY.LOW]: "bg-emerald-100 text-emerald-800",
 };
 
 type DueDateFilter = "overdue" | "due_today" | "due_this_week" | "due_this_month" | "no_due_date";
@@ -63,9 +66,8 @@ type FilterState = {
     search: string;
 };
 
-export const ActionTable = ({ projectId }: ActionTableProps) => {
+export const ActionTable = ({ projectId, jiraUrl }: ActionTableProps) => {
     const { data: actions, isLoading, isError, error, refetch } = useActions(projectId);
-    const { data: project } = useProject(projectId);
 
     // Filter States
     const [filters, setFilters] = useState<FilterState>({
@@ -89,11 +91,11 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
 
     // Helper to construct Jira Issue URL
     const getJiraIssueUrl = (jiraId: string) => {
-        // Fallback if project.jira_url isn't set but we have an ID (e.g. assume cloud hostname if we could, but better to just require the URL)
-        if (!project?.jira_url || !jiraId) return null;
+        // Fallback if jiraUrl isn't set but we have an ID
+        if (!jiraUrl || !jiraId) return null;
 
         // Ensure no trailing slash on base URL
-        const baseUrl = project.jira_url.replace(/\/$/, "");
+        const baseUrl = jiraUrl.replace(/\/$/, "");
         return `${baseUrl}/browse/${jiraId}`;
     };
 
@@ -138,7 +140,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                     }
 
                     const dueDate = new Date(action.due_date);
-                    const isOverdue = dueDate < today && action.status !== ActionStatus.COMPLETE;
+                    const isOverdue = dueDate < today && action.status !== ACTION_STATUS.COMPLETE;
                     const isDueToday = dueDate.getTime() === today.getTime();
                     const isDueThisWeek = dueDate >= today && dueDate <= endOfWeek;
                     const isDueThisMonth = dueDate >= today && dueDate <= endOfMonth;
@@ -208,7 +210,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
         return (
             <ApiErrorDisplay
                 title="Failed to load actions"
-                error={(error as any)?.response?.data ?? error ?? "Unknown error"}
+                error={getErrorMessage(error)}
                 onRetry={() => refetch()}
             />
         );
@@ -520,7 +522,7 @@ export const ActionTable = ({ projectId }: ActionTableProps) => {
                                     const isPastDue =
                                         action.due_date &&
                                         new Date(action.due_date) < new Date() &&
-                                        action.status !== ActionStatus.COMPLETE;
+                                        action.status !== ACTION_STATUS.COMPLETE;
 
                                     const jiraUrl = getJiraIssueUrl(action.jira_id || "");
                                     const absoluteIndex =
@@ -720,8 +722,7 @@ const ActionCommentsDialogContent = ({
     const handleAddComment = async (content: string) => {
         await addComment.mutateAsync({
             actionId: action.id,
-            projectId: projectId,
-            content,
+            data: { content },
         });
     };
 

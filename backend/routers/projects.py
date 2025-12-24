@@ -3,10 +3,10 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from dependencies import CogniterUser, CurrentUser, ProjectServiceDep, UserServiceDep
-from exceptions import AuthorizationError, DuplicateResourceError, ResourceNotFoundError
+from exceptions import AuthorizationError
 from permissions import can_view_financials, is_internal_user
 from schemas import (
     InviteUserRequest,
@@ -58,13 +58,9 @@ async def create_project(
     Create a new project.
     Only Cogniters can create projects.
     """
-    try:
-        project = project_service.create_project(project_data, current_user)
-        return project
-    except DuplicateResourceError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # DuplicateResourceError -> 409, AuthorizationError -> 403 via global handlers
+    project = project_service.create_project(project_data, current_user)
+    return project
 
 
 @router.get("/{project_id}", response_model=ProjectRead)
@@ -75,27 +71,19 @@ async def get_project(
     Get a specific project by ID.
     User must have access to the project.
     """
-    try:
-        project = project_service.get_project_by_id(project_id)
+    # ResourceNotFoundError -> 404 via global handler
+    project = project_service.get_project_by_id(project_id)
 
-        # Access rules:
-        # - Cogniters: all projects
-        # - Clients: must be assigned AND project must be published
-        if not is_internal_user(current_user):
-            if not project.is_published:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="This project is not published",
-                )
-            if not project_service.user_has_access_to_project(project_id, current_user):
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="You don't have access to this project",
-                )
+    # Access rules:
+    # - Cogniters: all projects
+    # - Clients: must be assigned AND project must be published
+    if not is_internal_user(current_user):
+        if not project.is_published:
+            raise AuthorizationError("This project is not published")
+        if not project_service.user_has_access_to_project(project_id, current_user):
+            raise AuthorizationError("You don't have access to this project")
 
-        return _to_project_read(project, current_user)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return _to_project_read(project, current_user)
 
 
 @router.patch("/{project_id}", response_model=ProjectRead)
@@ -109,13 +97,9 @@ async def update_project(
     Update a project.
     Only Cogniters can update projects.
     """
-    try:
-        project = project_service.update_project(project_id, project_data, current_user)
-        return project
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # ResourceNotFoundError -> 404, AuthorizationError -> 403 via global handlers
+    project = project_service.update_project(project_id, project_data, current_user)
+    return project
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -128,12 +112,8 @@ async def delete_project(
     Delete a project.
     Only Cogniters can delete projects.
     """
-    try:
-        project_service.delete_project(project_id, current_user)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # ResourceNotFoundError -> 404, AuthorizationError -> 403 via global handlers
+    project_service.delete_project(project_id, current_user)
 
 
 @router.post("/{project_id}/publish", response_model=ProjectRead)
@@ -144,13 +124,9 @@ async def publish_project(
     Publish a project (make it visible to assigned clients).
     Only Cogniters can publish projects.
     """
-    try:
-        project = project_service.publish_project(project_id, current_user)
-        return project
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # ResourceNotFoundError -> 404, AuthorizationError -> 403 via global handlers
+    project = project_service.publish_project(project_id, current_user)
+    return project
 
 
 @router.post("/{project_id}/unpublish", response_model=ProjectRead)
@@ -161,13 +137,9 @@ async def unpublish_project(
     Unpublish a project (hide from clients).
     Only Cogniters can unpublish projects.
     """
-    try:
-        project = project_service.unpublish_project(project_id, current_user)
-        return project
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # ResourceNotFoundError -> 404, AuthorizationError -> 403 via global handlers
+    project = project_service.unpublish_project(project_id, current_user)
+    return project
 
 
 @router.get("/{project_id}/users", response_model=List[UserRead])
@@ -180,10 +152,8 @@ async def get_project_users(
     Get all users assigned to a project.
     Only Cogniters can access this endpoint.
     """
-    try:
-        return project_service.get_project_users(project_id)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    # ResourceNotFoundError -> 404 via global handler
+    return project_service.get_project_users(project_id)
 
 
 @router.post("/{project_id}/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -197,12 +167,8 @@ async def assign_user_to_project(
     Assign a user to a project.
     Only Cogniters can assign users.
     """
-    try:
-        project_service.assign_user_to_project(project_id, user_id, current_user)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # ResourceNotFoundError -> 404, AuthorizationError -> 403 via global handlers
+    project_service.assign_user_to_project(project_id, user_id, current_user)
 
 
 @router.delete("/{project_id}/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -216,10 +182,8 @@ async def remove_user_from_project(
     Remove a user from a project.
     Only Cogniters can remove users.
     """
-    try:
-        project_service.remove_user_from_project(project_id, user_id, current_user)
-    except AuthorizationError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    # AuthorizationError -> 403 via global handler
+    project_service.remove_user_from_project(project_id, user_id, current_user)
 
 
 @router.post("/{project_id}/invite", response_model=InviteUserResponse)
@@ -237,11 +201,8 @@ async def invite_user_to_project(
 
     Only Cogniters can invite users.
     """
-    # Verify project exists
-    try:
-        project_service.get_project_by_id(project_id)
-    except ResourceNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    # Verify project exists (ResourceNotFoundError -> 404 via global handler)
+    project_service.get_project_by_id(project_id)
 
     email = invite_data.email.lower().strip()
 
@@ -250,31 +211,22 @@ async def invite_user_to_project(
 
     if existing_user:
         # User exists - just assign them
-        try:
-            project_service.assign_user_to_project(
-                project_id, existing_user.id, current_user
-            )
-            return InviteUserResponse(
-                user=UserRead.model_validate(existing_user),
-                was_created=False,
-                message=f"{existing_user.name} has been assigned to the project.",
-            )
-        except DuplicateResourceError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{existing_user.name} is already assigned to this project.",
-            )
+        # DuplicateResourceError -> 409 via global handler (user already assigned)
+        project_service.assign_user_to_project(
+            project_id, existing_user.id, current_user
+        )
+        return InviteUserResponse(
+            user=UserRead.model_validate(existing_user),
+            was_created=False,
+            message=f"{existing_user.name} has been assigned to the project.",
+        )
     else:
         # Create placeholder user and assign
-        try:
-            new_user = user_service.create_pending_user(email)
-            project_service.assign_user_to_project(
-                project_id, new_user.id, current_user
-            )
-            return InviteUserResponse(
-                user=UserRead.model_validate(new_user),
-                was_created=True,
-                message=f"Invitation created for {email}. They will have access once they register.",
-            )
-        except DuplicateResourceError as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        # DuplicateResourceError -> 409 via global handler
+        new_user = user_service.create_pending_user(email)
+        project_service.assign_user_to_project(project_id, new_user.id, current_user)
+        return InviteUserResponse(
+            user=UserRead.model_validate(new_user),
+            was_created=True,
+            message=f"Invitation created for {email}. They will have access once they register.",
+        )

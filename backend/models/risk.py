@@ -17,7 +17,7 @@ class Risk(SQLModel, table=True):
     """Risk model for project risk tracking."""
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    project_id: uuid.UUID = Field(foreign_key="project.id")
+    project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
     title: str = Field(default="")
     description: str
     category: Optional[str] = None
@@ -27,6 +27,9 @@ class Risk(SQLModel, table=True):
     impact: RiskImpact
     status: RiskStatus = Field(default=RiskStatus.OPEN)
     mitigation_plan: Optional[str] = None
+
+    # Source tracking: "manual" for user-created, "precursive" for synced from Salesforce
+    source: Optional[str] = Field(default="manual")
 
     # Resolution tracking (set when status changes to CLOSED or MITIGATED)
     decision_record: Optional[str] = None

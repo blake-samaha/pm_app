@@ -1,6 +1,6 @@
 "use client";
 
-import { Comment } from "@/types/actions-risks";
+import type { Comment } from "@/lib/api/types";
 import { Loader2, Send, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

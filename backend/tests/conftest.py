@@ -145,6 +145,7 @@ def sample_project(session) -> Project:
         name="Test Project",
         type=ProjectType.FIXED_PRICE,
         precursive_url="https://precursive.example.com/projects/123",
+        jira_url="https://jira.example.com/projects/TEST",
         is_published=False,
         health_status=HealthStatus.GREEN,
     )
@@ -164,6 +165,7 @@ def second_project(session) -> Project:
         name="Second Project",
         type=ProjectType.FIXED_PRICE,
         precursive_url="https://precursive.example.com/projects/456",
+        jira_url="https://jira.example.com/projects/SECOND",
         is_published=False,
         health_status=HealthStatus.GREEN,
     )
@@ -235,6 +237,38 @@ def client_fixture(session, test_settings, engine):
 
     try:
         with TestClient(app) as client:
+            yield client
+    finally:
+        # Restore original engine
+        database.engine = original_engine
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="client_no_raise")
+def client_no_raise_fixture(session, test_settings, engine):
+    """
+    Test client that returns 500 responses instead of re-raising server exceptions.
+
+    Useful for asserting on global error-handler response envelopes.
+    """
+
+    def get_session_override():
+        yield session
+
+    def get_settings_override():
+        return test_settings
+
+    # Override database engine before app startup
+    import database
+
+    original_engine = database.engine
+    database.engine = engine
+
+    app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_settings] = get_settings_override
+
+    try:
+        with TestClient(app, raise_server_exceptions=False) as client:
             yield client
     finally:
         # Restore original engine

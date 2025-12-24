@@ -1,6 +1,8 @@
 "use client";
 
-import { Risk, RiskImpact, RiskProbability } from "@/types/actions-risks";
+import type { Risk } from "@/lib/api/types";
+import { RiskImpact, RiskProbability } from "@/lib/api/types";
+import { RISK_IMPACT, RISK_PROBABILITY } from "@/lib/domain/enums";
 import { cn } from "@/lib/utils";
 
 interface RiskMatrixProps {
@@ -29,19 +31,19 @@ export const RiskMatrix = ({ risks, selectedCell, onCellClick }: RiskMatrixProps
     // Cell configuration
     const cells = [
         // Top Row (High Probability)
-        { prob: RiskProbability.HIGH, impact: RiskImpact.LOW, severity: "medium" },
-        { prob: RiskProbability.HIGH, impact: RiskImpact.MEDIUM, severity: "high" },
-        { prob: RiskProbability.HIGH, impact: RiskImpact.HIGH, severity: "critical" },
+        { prob: RISK_PROBABILITY.HIGH, impact: RISK_IMPACT.LOW, severity: "medium" },
+        { prob: RISK_PROBABILITY.HIGH, impact: RISK_IMPACT.MEDIUM, severity: "high" },
+        { prob: RISK_PROBABILITY.HIGH, impact: RISK_IMPACT.HIGH, severity: "critical" },
 
         // Middle Row (Medium Probability)
-        { prob: RiskProbability.MEDIUM, impact: RiskImpact.LOW, severity: "low" },
-        { prob: RiskProbability.MEDIUM, impact: RiskImpact.MEDIUM, severity: "medium" },
-        { prob: RiskProbability.MEDIUM, impact: RiskImpact.HIGH, severity: "high" },
+        { prob: RISK_PROBABILITY.MEDIUM, impact: RISK_IMPACT.LOW, severity: "low" },
+        { prob: RISK_PROBABILITY.MEDIUM, impact: RISK_IMPACT.MEDIUM, severity: "medium" },
+        { prob: RISK_PROBABILITY.MEDIUM, impact: RISK_IMPACT.HIGH, severity: "high" },
 
         // Bottom Row (Low Probability)
-        { prob: RiskProbability.LOW, impact: RiskImpact.LOW, severity: "low" },
-        { prob: RiskProbability.LOW, impact: RiskImpact.MEDIUM, severity: "low" },
-        { prob: RiskProbability.LOW, impact: RiskImpact.HIGH, severity: "medium" },
+        { prob: RISK_PROBABILITY.LOW, impact: RISK_IMPACT.LOW, severity: "low" },
+        { prob: RISK_PROBABILITY.LOW, impact: RISK_IMPACT.MEDIUM, severity: "low" },
+        { prob: RISK_PROBABILITY.LOW, impact: RISK_IMPACT.HIGH, severity: "medium" },
     ];
 
     const getSeverityColor = (severity: string) => {

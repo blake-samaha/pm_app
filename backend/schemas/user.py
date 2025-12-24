@@ -22,15 +22,19 @@ class UserCreate(UserBase):
 
 
 class UserRead(BaseModel):
-    """Schema for reading user data."""
+    """Schema for reading user data.
+
+    All fields are explicitly defined to ensure OpenAPI required/nullable is accurate.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
+    # All fields are always present and never null
     id: uuid.UUID
     email: str
     name: str
     role: UserRole
-    is_pending: bool = False
+    is_pending: bool
 
 
 class InviteUserRequest(BaseModel):

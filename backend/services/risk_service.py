@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlmodel import Session
 
 from exceptions import AuthorizationError, ResourceNotFoundError, ValidationError
-from models import Comment, Risk, RiskStatus, User
+from models import Comment, Project, Risk, RiskStatus, User
 from permissions import (
     can_delete_risk,
     can_reopen_risk,
@@ -30,26 +30,45 @@ class RiskService:
         self.project_repository = ProjectRepository(session)
         self.comment_repository = CommentRepository(session)
 
-    def _check_project_access(self, project_id: UUID, user: User) -> None:
-        """Verify user has access to the project. Raises AuthorizationError if not."""
+    def _check_project_access(self, project: Project, user: User) -> None:
+        """Verify user has access to the project. Raises AuthorizationError if not.
+
+        Note: Project must be pre-fetched by caller to avoid duplicate queries.
+        """
         if is_internal_user(user):
             return  # Cogniters have access to all projects
-
-        project = self.project_repository.get_by_id(project_id)
-        if not project:
-            raise ResourceNotFoundError(f"Project with ID {project_id} not found")
 
         if not project.is_published:
             raise AuthorizationError("This project is not published")
 
-        if not self.project_repository.user_has_access(project_id, user.id):
+        # project.id is guaranteed to be set after fetching from DB
+        assert project.id is not None
+        if not self.project_repository.user_has_access(project.id, user.id):
             raise AuthorizationError("You don't have access to this project")
 
     def get_risk_by_id(self, risk_id: UUID) -> Risk:
-        """Get a risk by ID."""
+        """Get a risk by ID (no access check)."""
         risk = self.repository.get_by_id(risk_id)
         if not risk:
             raise ResourceNotFoundError(f"Risk with ID {risk_id} not found")
+        return risk
+
+    def get_risk_for_user(self, risk_id: UUID, user: User) -> Risk:
+        """Get a risk by ID with access check.
+
+        This is the public method routers should use when fetching a single risk.
+        It verifies the user has access to the risk's project before returning.
+        """
+        risk = self.get_risk_by_id(risk_id)
+
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
+        # Verify access to project
+        self._check_project_access(project, user)
+
         return risk
 
     def get_project_risks(self, project_id: UUID, user: User) -> List[Risk]:
@@ -59,8 +78,8 @@ class RiskService:
         if not project:
             raise ResourceNotFoundError(f"Project with ID {project_id} not found")
 
-        # Verify access
-        self._check_project_access(project_id, user)
+        # Verify access (pass already-fetched project)
+        self._check_project_access(project, user)
 
         return self.repository.get_by_project(project_id)
 
@@ -71,8 +90,8 @@ class RiskService:
         if not project:
             raise ResourceNotFoundError(f"Project with ID {data.project_id} not found")
 
-        # Verify access
-        self._check_project_access(data.project_id, user)
+        # Verify access (pass already-fetched project)
+        self._check_project_access(project, user)
 
         risk = Risk.model_validate(data)
         return self.repository.create(risk)
@@ -81,8 +100,13 @@ class RiskService:
         """Update a risk's details (not status)."""
         risk = self.get_risk_by_id(risk_id)
 
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
         # Verify access
-        self._check_project_access(risk.project_id, user)
+        self._check_project_access(project, user)
 
         # Only Cogniters can update risks
         if not can_update_risk(user):
@@ -110,8 +134,13 @@ class RiskService:
         """
         risk = self.get_risk_by_id(risk_id)
 
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
         # Verify access to project
-        self._check_project_access(risk.project_id, user)
+        self._check_project_access(project, user)
 
         # Only Cogniters can resolve risks
         if not can_resolve_risk(user):
@@ -150,8 +179,13 @@ class RiskService:
         """
         risk = self.get_risk_by_id(risk_id)
 
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
         # Verify access to project
-        self._check_project_access(risk.project_id, user)
+        self._check_project_access(project, user)
 
         # Only Cogniters can reopen risks
         if not can_reopen_risk(user):
@@ -189,8 +223,13 @@ class RiskService:
         """
         risk = self.get_risk_by_id(risk_id)
 
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
         # Verify access to project
-        self._check_project_access(risk.project_id, user)
+        self._check_project_access(project, user)
 
         # Validate content
         if not content or not content.strip():
@@ -205,8 +244,13 @@ class RiskService:
         """Get all comments for a risk."""
         risk = self.get_risk_by_id(risk_id)
 
+        # Fetch project for access check
+        project = self.project_repository.get_by_id(risk.project_id)
+        if not project:
+            raise ResourceNotFoundError(f"Project with ID {risk.project_id} not found")
+
         # Verify access to project
-        self._check_project_access(risk.project_id, user)
+        self._check_project_access(project, user)
 
         # Get comments with authors
         return self.comment_repository.list_for_risk(risk_id)

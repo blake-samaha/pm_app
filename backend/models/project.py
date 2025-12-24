@@ -33,8 +33,9 @@ class HealthStatus(str, Enum):
 
 class ProjectBase(SQLModel):
     name: str = Field(index=True)
-    precursive_url: Optional[str] = None
-    jira_url: Optional[str] = None
+    # Required integration URLs - both are essential for app functionality
+    precursive_url: str
+    jira_url: str
     client_logo_url: Optional[str] = None
     type: ProjectType = Field(default=ProjectType.FIXED_PRICE)
     reporting_cycle: ReportingCycle = Field(default=ReportingCycle.WEEKLY)
@@ -60,11 +61,25 @@ class ProjectBase(SQLModel):
     remaining_budget: Optional[float] = None
     currency: str = Field(default="USD")
 
+    # Additional Financial Details
+    overrun_investment: Optional[float] = None
+    total_days_actuals: Optional[float] = None
+    budgeted_days_delivery: Optional[float] = None
+    budgeted_hours_delivery: Optional[float] = None
+
     # Dates
     start_date: Optional[date] = None
     end_date: Optional[date] = None
 
     client_name: Optional[str] = None
+
+    # Precursive Health Indicators (RAG status from Precursive)
+    # These are stored separately from health_status which can be manually overridden
+    precursive_project_health: Optional[str] = None  # On track, Minor deviations, etc.
+    precursive_time_health: Optional[str] = None
+    precursive_cost_health: Optional[str] = None
+    precursive_resources_health: Optional[str] = None
+    precursive_status_summary: Optional[str] = None  # Overall status summary text
 
 
 class Project(ProjectBase, table=True):

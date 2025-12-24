@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { User, UserRole } from "@/types";
+import type { User } from "@/lib/api/types";
+import { USER_ROLE } from "@/lib/domain/enums";
 import { useUsers, useAssignUser, useInviteUser } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import { X, Search, UserPlus, Loader2, Users, Mail, Clock } from "lucide-react";
+import { getAvatarColor, getInitials } from "@/lib/avatar";
+import { getErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 
 interface AssignUserModalProps {
@@ -13,38 +16,6 @@ interface AssignUserModalProps {
     onClose: () => void;
     assignedUserIds: string[];
 }
-
-/**
- * Get initials from a name (up to 2 characters)
- */
-const getInitials = (name: string): string => {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-};
-
-/**
- * Generate a consistent color based on a string (for avatar backgrounds)
- */
-const getAvatarColor = (str: string): string => {
-    const colors = [
-        "bg-blue-500",
-        "bg-emerald-500",
-        "bg-amber-500",
-        "bg-rose-500",
-        "bg-violet-500",
-        "bg-cyan-500",
-        "bg-fuchsia-500",
-        "bg-lime-500",
-    ];
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
-};
 
 /**
  * Simple email validation
@@ -80,7 +51,14 @@ export const AssignUserModal = ({
         }
     }, [isOpen]);
 
-    const { data: allUsers, isLoading } = useUsers(debouncedSearch || undefined, undefined);
+    // Only fetch users when modal is open. Show first N users on open, or search results
+    // when user starts typing. This prevents unnecessary API calls when modal is closed.
+    const shouldFetchUsers = isOpen;
+    const { data: allUsers, isLoading } = useUsers(
+        debouncedSearch || undefined,
+        undefined,
+        shouldFetchUsers
+    );
     const assignUser = useAssignUser();
     const inviteUser = useInviteUser();
 
@@ -110,10 +88,9 @@ export const AssignUserModal = ({
                     });
                     setAssigningUserId(null);
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     toast.error("Failed to assign user", {
-                        description:
-                            error.response?.data?.detail || "An unexpected error occurred.",
+                        description: getErrorMessage(error),
                     });
                     setAssigningUserId(null);
                 },
@@ -140,10 +117,9 @@ export const AssignUserModal = ({
                     setSearchTerm("");
                     setIsInviting(false);
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     toast.error("Failed to invite user", {
-                        description:
-                            error.response?.data?.detail || "An unexpected error occurred.",
+                        description: getErrorMessage(error),
                     });
                     setIsInviting(false);
                 },
@@ -272,7 +248,7 @@ export const AssignUserModal = ({
                                                 </p>
                                                 <span
                                                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                                                        user.role === UserRole.COGNITER
+                                                        user.role === USER_ROLE.COGNITER
                                                             ? "bg-blue-100 text-blue-700"
                                                             : "bg-gray-100 text-gray-600"
                                                     }`}

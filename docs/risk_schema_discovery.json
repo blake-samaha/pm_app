@@ -1,0 +1,386 @@
+{
+  "discovery_timestamp": "2025-12-23T20:46:54.617590",
+  "instance_url": "https://cognite.my.salesforce.com",
+  "api_calls_made": 6,
+  "risk_objects_found": [],
+  "risk_schema": null,
+  "sample_risks": [],
+  "project_risk_relationship": null,
+  "errors": [],
+  "risk_record_types": [],
+  "all_preempt_objects": [
+    {
+      "name": "preempt__Participant__c",
+      "label": "Participant",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Phase__c",
+      "label": "Phase",
+      "queryable": true
+    },
+    {
+      "name": "preempt__PrecursiveProject__c",
+      "label": "Precursive Project",
+      "queryable": true
+    },
+    {
+      "name": "preempt__Resource__c",
+      "label": "Resource",
+      "queryable": true
+    }
+  ],
+  "phase_record_types": [
+    {
+      "name": "Phase - Fees & Days",
+      "developerName": "Phase_Fees_Days"
+    },
+    {
+      "name": "Phase - Fees & Hours",
+      "developerName": "Phase_Fees_Hours"
+    },
+    {
+      "name": "Phase - Time & Days",
+      "developerName": "Phase_Time_Days"
+    },
+    {
+      "name": "Phase - Time & Hours",
+      "developerName": "Phase_Time_Hours"
+    },
+    {
+      "name": "Master",
+      "developerName": "Master"
+    }
+  ],
+  "all_custom_objects": [
+    {
+      "name": "DOZISF__Opsos_Trigger_Setting__c",
+      "label": "Opsos Trigger Setting"
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_Configuration__c",
+      "label": "ZoomInfo Opsos Configuration"
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_Matching_Criteria__c",
+      "label": "ZoomInfo Opsos Matching Criteria"
+    },
+    {
+      "name": "DOZISF__ZoomInfo_Opsos_System_Setting__c",
+      "label": "ZoomInfo Opsos System Setting"
+    },
+    {
+      "name": "FMOppMgr__Opportunity_Snapshot__c",
+      "label": "Opportunity Snapshot"
+    },
+    {
+      "name": "Spektra_SaaSify__Amazon_Lead__c",
+      "label": "Amazon Lead"
+    },
+    {
+      "name": "Spektra_SaaSify__CPPO__c",
+      "label": "CPPO"
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_Amazon_Reference__c",
+      "label": "Co-sell Amazon"
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_GCP_Reference__c",
+      "label": "Co-sell GCP"
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell_Microsoft__c",
+      "label": "Co-sell Microsoft"
+    },
+    {
+      "name": "Spektra_SaaSify__Cosell__c",
+      "label": "Co-sell"
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_Amazon__c",
+      "label": "Amazon Offering"
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_GCP__c",
+      "label": "GCP Offering"
+    },
+    {
+      "name": "Spektra_SaaSify__Offering_Microsoft__c",
+      "label": "Microsoft Offering"
+    },
+    {
+      "name": "Spektra_SaaSify__Offering__c",
+      "label": "Private Offer"
+    },
+    {
+      "name": "Spektra_SaaSify__Partner_Funding_AWS__c",
+      "label": "Partner-Funding-AWS"
+    },
+    {
+      "name": "Spektra_SaaSify__Partner_Funding__c",
+      "label": "Partner Funding"
+    },
+    {
+      "name": "Spektra_SaaSify__Payments__c",
+      "label": "Payment"
+    },
+    {
+      "name": "Spektra_SaaSify__Picklist_Mapping__c",
+      "label": "Picklist Mapping"
+    },
+    {
+      "name": "Spektra_SaaSify__SaaSify_Configuration__c",
+      "label": "SaaSify Configuration"
+    },
+    {
+      "name": "Spektra_SaaSify__SaaSify_Logger__c",
+      "label": "Logger"
+    },
+    {
+      "name": "Spektra_SaaSify__Scheduler__c",
+      "label": "Scheduler"
+    },
+    {
+      "name": "Spektra_SaaSify__Subscription_Meter_Usage__c",
+      "label": "Subscription Meter Usage"
+    },
+    {
+      "name": "Spektra_SaaSify__Subscription__c",
+      "label": "Subscription"
+    },
+    {
+      "name": "UniqueEntry__Batch_Settings__c",
+      "label": "Batch Settings"
+    },
+    {
+      "name": "UniqueEntry__ConfigSetup__c",
+      "label": "ConfigSetup"
+    },
+    {
+      "name": "UniqueEntry__Contact_Additional_Address__c",
+      "label": "Contact Additional Address"
+    },
+    {
+      "name": "UniqueEntry__CountryRegion__c",
+      "label": "CountryRegion"
+    },
+    {
+      "name": "UniqueEntry__Custom_Field_Mapping__c",
+      "label": "Custom Field Mapping"
+    },
+    {
+      "name": "UniqueEntry__DynamicTrigger__c",
+      "label": "DynamicTrigger"
+    },
+    {
+      "name": "UniqueEntry__EnrichmentConfig__c",
+      "label": "EnrichmentConfig"
+    },
+    {
+      "name": "UniqueEntry__FTR_Validation_Settings__c",
+      "label": "FTR Validation Settings"
+    },
+    {
+      "name": "UniqueEntry__FieldMap__c",
+      "label": "FieldMap"
+    },
+    {
+      "name": "UniqueEntry__Matching_Criteria__c",
+      "label": "Matching Criteria"
+    },
+    {
+      "name": "UniqueEntry__RingLead_Configuration__c",
+      "label": "RingLead Configuration"
+    },
+    {
+      "name": "UniqueEntry__Scanned_Field_Config__c",
+      "label": "Scanned Field Config"
+    },
+    {
+      "name": "UniqueEntry__Scanned_Field__c",
+      "label": "Scanned Fields Name"
+    },
+    {
+      "name": "UniqueEntry__connectedAppSettings__c",
+      "label": "Connected App Settings"
+    },
+    {
+      "name": "UniqueEntry__systemSettings__c",
+      "label": "Unique Entry System Settings"
+    },
+    {
+      "name": "preempt__Participant__c",
+      "label": "Participant"
+    },
+    {
+      "name": "preempt__Phase__c",
+      "label": "Phase"
+    },
+    {
+      "name": "preempt__PrecursiveProject__c",
+      "label": "Precursive Project"
+    },
+    {
+      "name": "preempt__Resource__c",
+      "label": "Resource"
+    }
+  ],
+  "project_child_relationships": [
+    {
+      "childSObject": "AttachedContentDocument",
+      "relationshipName": "AttachedContentDocuments",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "AttachedContentNote",
+      "relationshipName": "AttachedContentNotes",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "Attachment",
+      "relationshipName": "Attachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "CollaborationGroupRecord",
+      "relationshipName": "RecordAssociatedGroups",
+      "field": "RecordId"
+    },
+    {
+      "childSObject": "CombinedAttachment",
+      "relationshipName": "CombinedAttachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "ContentDistribution",
+      "relationshipName": null,
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "ContentDocumentLink",
+      "relationshipName": "ContentDocumentLinks",
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "ContentDocumentLinkChangeEvent",
+      "relationshipName": null,
+      "field": "LinkedEntityId"
+    },
+    {
+      "childSObject": "ContentVersion",
+      "relationshipName": null,
+      "field": "FirstPublishLocationId"
+    },
+    {
+      "childSObject": "ContentVersionChangeEvent",
+      "relationshipName": null,
+      "field": "FirstPublishLocationId"
+    },
+    {
+      "childSObject": "EntitySubscription",
+      "relationshipName": "FeedSubscriptionsForEntity",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "FeedComment",
+      "relationshipName": null,
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "FeedItem",
+      "relationshipName": null,
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "FlowOrchestrationWorkItem",
+      "relationshipName": "FlowOrchestrationWorkItems",
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "FlowRecordRelation",
+      "relationshipName": null,
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "NetworkFeedResponseMetric",
+      "relationshipName": null,
+      "field": "ParentRecordId"
+    },
+    {
+      "childSObject": "Note",
+      "relationshipName": "Notes",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "NoteAndAttachment",
+      "relationshipName": "NotesAndAttachments",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "ProcessExceptionEvent",
+      "relationshipName": null,
+      "field": "AttachedToId"
+    },
+    {
+      "childSObject": "ProcessInstance",
+      "relationshipName": "ProcessInstances",
+      "field": "TargetObjectId"
+    },
+    {
+      "childSObject": "ProcessInstanceChangeEvent",
+      "relationshipName": null,
+      "field": "TargetObjectId"
+    },
+    {
+      "childSObject": "ProcessInstanceHistory",
+      "relationshipName": "ProcessSteps",
+      "field": "TargetObjectId"
+    },
+    {
+      "childSObject": "RecordAction",
+      "relationshipName": "RecordActions",
+      "field": "RecordId"
+    },
+    {
+      "childSObject": "RecordActionHistory",
+      "relationshipName": "RecordActionHistories",
+      "field": "ParentRecordId"
+    },
+    {
+      "childSObject": "TopicAssignment",
+      "relationshipName": "TopicAssignments",
+      "field": "EntityId"
+    },
+    {
+      "childSObject": "VoiceCall",
+      "relationshipName": "RelatedRecords",
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "VoiceCallChangeEvent",
+      "relationshipName": null,
+      "field": "RelatedRecordId"
+    },
+    {
+      "childSObject": "preempt__Phase__c",
+      "relationshipName": "preempt__Phases__r",
+      "field": "preempt__project__c"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__Feed",
+      "relationshipName": "Feeds",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__History",
+      "relationshipName": "Histories",
+      "field": "ParentId"
+    },
+    {
+      "childSObject": "preempt__PrecursiveProject__Share",
+      "relationshipName": "Shares",
+      "field": "ParentId"
+    }
+  ]
+}

@@ -11,6 +11,16 @@ Role Hierarchy:
 
 All client roles (CLIENT, CLIENT_FINANCIALS) require explicit project assignment
 to access project data. This is enforced at the router/service level, not here.
+
+Note on Redundancy:
+Several functions below (can_manage_team, can_edit_project, can_create_project,
+can_resolve_risk, can_reopen_risk, can_delete_action, can_update_risk, can_delete_risk,
+can_publish_project) have identical implementations: `return user.role == UserRole.COGNITER`.
+
+This is intentional for:
+1. Semantic clarity - each function documents a specific capability
+2. Future flexibility - permissions can evolve independently without refactoring callers
+3. Explicit access control - callers import the specific permission they need
 """
 
 from models import User, UserRole
@@ -23,16 +33,6 @@ def is_internal_user(user: User) -> bool:
     Internal users have full access to all features and all projects.
     """
     return user.role == UserRole.COGNITER
-
-
-def is_client_role(user: User) -> bool:
-    """
-    Check if user has any client-type role.
-
-    Client roles require explicit project assignment to access data.
-    This includes both CLIENT and CLIENT_FINANCIALS roles.
-    """
-    return user.role in (UserRole.CLIENT, UserRole.CLIENT_FINANCIALS)
 
 
 def can_view_financials(user: User) -> bool:
@@ -89,16 +89,6 @@ def can_reopen_risk(user: User) -> bool:
     Check if user can reopen a resolved risk.
 
     Only internal users (Cogniters) can reopen risks.
-    """
-    return user.role == UserRole.COGNITER
-
-
-def can_trigger_sync(user: User) -> bool:
-    """
-    Check if user can trigger data synchronization (Jira, Precursive).
-
-    Only internal users (Cogniters) can trigger syncs.
-    Clients (both CLIENT and CLIENT_FINANCIALS) cannot sync.
     """
     return user.role == UserRole.COGNITER
 

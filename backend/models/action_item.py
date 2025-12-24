@@ -17,7 +17,7 @@ class ActionItem(SQLModel, table=True):
     """Action Item model for project tasks and actions."""
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    project_id: uuid.UUID = Field(foreign_key="project.id")
+    project_id: uuid.UUID = Field(foreign_key="project.id", index=True)
     title: str
     status: ActionStatus = Field(default=ActionStatus.TO_DO)
     assignee: Optional[str] = None

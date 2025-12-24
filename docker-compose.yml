@@ -14,6 +14,8 @@ services:
     environment:
       # Backend URL for Next.js API proxy (uses Docker service name)
       - BACKEND_URL=http://backend:8000
+      # Bind Next.js dev server to all interfaces so it's accessible from host
+      - HOSTNAME=0.0.0.0
     depends_on:
       - backend
 

@@ -210,14 +210,32 @@ class JiraClient:
             raise IntegrationError(f"Jira API error: {str(e)}") from e
 
     async def get_project_issues(
-        self, project_key: str, max_results: int = 100
+        self,
+        project_key: str,
+        max_results: int = 500,
+        updated_since: Optional[str] = None,
     ) -> list[JiraIssue]:
-        """Fetch issues for a Jira project using the current JQL search API."""
+        """
+        Fetch issues for a Jira project using the current JQL search API.
+
+        Args:
+            project_key: The Jira project key (e.g., "PROJ")
+            max_results: Maximum number of issues to fetch (default 500)
+            updated_since: Optional ISO date string (YYYY-MM-DD) for incremental sync.
+                          If provided, only issues updated on or after this date are fetched.
+        """
         if not self.is_configured:
             raise IntegrationError("Jira is not configured.")
 
         try:
-            jql = f"project = {project_key} ORDER BY created DESC"
+            # Build JQL with optional updated filter for incremental sync
+            jql_parts = [f"project = {project_key}"]
+            if updated_since:
+                # Use Jira date format: "2025-12-01" becomes 'updated >= "2025-12-01"'
+                jql_parts.append(f'updated >= "{updated_since}"')
+            jql_parts.append("ORDER BY updated DESC")
+            jql = " AND ".join(jql_parts[:-1]) + " " + jql_parts[-1]
+
             raw_issues = await self._search_issues(
                 jql=jql,
                 max_results=max_results,

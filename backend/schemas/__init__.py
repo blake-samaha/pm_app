@@ -1,4 +1,10 @@
-"""Schemas package - exports all Pydantic schemas."""
+"""Schemas package - exports all Pydantic schemas.
+
+Response schemas (Read schemas) define field requiredness explicitly to ensure OpenAPI
+accurately reflects the JSON response shape:
+- Required non-null fields: no default, not Optional
+- Required nullable fields: Optional[T] with no default (required in JSON but can be null)
+"""
 
 import uuid
 from datetime import datetime
@@ -9,7 +15,15 @@ from pydantic import BaseModel, ConfigDict
 from models import ActionStatus, Priority, RiskImpact, RiskProbability, RiskStatus
 from schemas.auth import GoogleLoginRequest, SuperuserLoginRequest, Token
 from schemas.project import ProjectBase, ProjectCreate, ProjectRead, ProjectUpdate
-from schemas.sync import JiraSyncResult, PrecursiveSyncResult, SyncResult, SyncStatus
+from schemas.sync import (
+    JiraSyncResult,
+    PrecursiveSyncResult,
+    SyncJobEnqueued,
+    SyncJobRead,
+    SyncJobSummary,
+    SyncResult,
+    SyncStatus,
+)
 from schemas.user import (
     InviteUserRequest,
     InviteUserResponse,
@@ -21,7 +35,7 @@ from schemas.user import (
 
 # Action Item Schemas
 class ActionItemBase(BaseModel):
-    """Base action item schema."""
+    """Base action item schema for creation. Has defaults for optional fields."""
 
     title: str
     status: ActionStatus = ActionStatus.TO_DO
@@ -39,21 +53,43 @@ class ActionItemCreate(ActionItemBase):
     project_id: uuid.UUID
 
 
-class ActionItemRead(ActionItemBase):
-    """Schema for reading action item data."""
+class ActionItemRead(BaseModel):
+    """Schema for reading action item data.
+
+    All fields are explicitly defined to ensure OpenAPI required/nullable is accurate.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
+    # Always present, never null
     id: uuid.UUID
     project_id: uuid.UUID
-    last_synced_at: Optional[datetime] = None
-    # Comment count for badge display (populated via grouped query)
-    comment_count: int = 0
+    title: str
+    status: ActionStatus
+    priority: Priority
+    comment_count: int
+
+    # Always present in JSON, but can be null
+    assignee: Optional[str]
+    due_date: Optional[datetime]
+    jira_id: Optional[str]
+    jira_key: Optional[str]
+    issue_type: Optional[str]
+    last_synced_at: Optional[datetime]
+
+
+class PaginatedActionsResponse(BaseModel):
+    """Paginated response for action items."""
+
+    items: list[ActionItemRead]
+    total: int
+    limit: int
+    offset: int
 
 
 # Risk Schemas
 class RiskBase(BaseModel):
-    """Base risk schema."""
+    """Base risk schema for creation. Has defaults for optional fields."""
 
     title: str
     description: str
@@ -72,21 +108,38 @@ class RiskCreate(RiskBase):
     project_id: uuid.UUID
 
 
-class RiskRead(RiskBase):
-    """Schema for reading risk data."""
+class RiskRead(BaseModel):
+    """Schema for reading risk data.
+
+    All fields are explicitly defined to ensure OpenAPI required/nullable is accurate.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
+    # Always present, never null
     id: uuid.UUID
     project_id: uuid.UUID
-    # Resolution fields
-    decision_record: Optional[str] = None
-    resolved_at: Optional[datetime] = None
-    resolved_by_id: Optional[uuid.UUID] = None
-    # Reopen fields
-    reopen_reason: Optional[str] = None
-    reopened_at: Optional[datetime] = None
-    reopened_by_id: Optional[uuid.UUID] = None
+    title: str
+    description: str
+    probability: RiskProbability
+    impact: RiskImpact
+    status: RiskStatus
+
+    # Always present in JSON, but can be null
+    category: Optional[str]
+    impact_rationale: Optional[str]
+    date_identified: Optional[datetime]
+    mitigation_plan: Optional[str]
+
+    # Resolution fields (null when not resolved)
+    decision_record: Optional[str]
+    resolved_at: Optional[datetime]
+    resolved_by_id: Optional[uuid.UUID]
+
+    # Reopen fields (null when not reopened)
+    reopen_reason: Optional[str]
+    reopened_at: Optional[datetime]
+    reopened_by_id: Optional[uuid.UUID]
 
 
 class RiskResolve(BaseModel):
@@ -122,19 +175,26 @@ class CommentCreate(BaseModel):
 
 
 class CommentRead(BaseModel):
-    """Schema for reading comment data."""
+    """Schema for reading comment data.
+
+    All fields are explicitly defined to ensure OpenAPI required/nullable is accurate.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
+    # Always present, never null
     id: uuid.UUID
     user_id: uuid.UUID
     content: str
     created_at: datetime
-    action_item_id: Optional[uuid.UUID] = None
-    risk_id: Optional[uuid.UUID] = None
+
+    # Always present in JSON, but can be null (only one will be set per comment)
+    action_item_id: Optional[uuid.UUID]
+    risk_id: Optional[uuid.UUID]
+
     # Author identity (populated from joined User)
-    author_name: Optional[str] = None
-    author_email: Optional[str] = None
+    author_name: Optional[str]
+    author_email: Optional[str]
 
 
 __all__ = [
@@ -157,6 +217,7 @@ __all__ = [
     "ActionItemBase",
     "ActionItemCreate",
     "ActionItemRead",
+    "PaginatedActionsResponse",
     # Risks
     "RiskBase",
     "RiskCreate",
@@ -172,4 +233,7 @@ __all__ = [
     "SyncStatus",
     "JiraSyncResult",
     "PrecursiveSyncResult",
+    "SyncJobRead",
+    "SyncJobSummary",
+    "SyncJobEnqueued",
 ]

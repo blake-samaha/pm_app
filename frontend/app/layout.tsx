@@ -6,7 +6,7 @@ import { AuthGuard } from "@/components/providers/AuthGuard";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Toaster } from "sonner";
-import { CommandMenu } from "@/components/ui/command-menu";
+import { CommandMenu } from "@/components/CommandMenu";
 import { ImpersonationBar } from "@/components/ImpersonationBar";
 
 const inter = Inter({ subsets: ["latin"] });

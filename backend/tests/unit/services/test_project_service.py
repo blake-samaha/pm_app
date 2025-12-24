@@ -21,6 +21,7 @@ class TestCreateProject:
             name="New Project",
             type=ProjectType.FIXED_PRICE,
             precursive_url="https://precursive.example.com/new",
+            jira_url="https://jira.example.com/projects/NEW",
         )
 
         project = service.create_project(project_data, cogniter_user)
@@ -35,6 +36,7 @@ class TestCreateProject:
             name="New Project",
             type=ProjectType.FIXED_PRICE,
             precursive_url="https://precursive.example.com/new",
+            jira_url="https://jira.example.com/projects/NEW",
         )
 
         with pytest.raises(AuthorizationError) as exc_info:
@@ -51,6 +53,7 @@ class TestCreateProject:
             name="Duplicate Project",
             type=ProjectType.FIXED_PRICE,
             precursive_url=sample_project.precursive_url,  # Same URL
+            jira_url="https://jira.example.com/projects/DUP",
         )
 
         with pytest.raises(DuplicateResourceError):

@@ -32,6 +32,7 @@ class TestCreateProject:
             "name": "API Test Project",
             "type": "Fixed Price",
             "precursive_url": "https://precursive.example.com/api-test",
+            "jira_url": "https://jira.example.com/projects/APITEST",
         }
 
         response = authenticated_client.post("/projects/", json=project_data)
@@ -50,6 +51,7 @@ class TestCreateProject:
             "name": "Unauthorized Project",
             "type": "Fixed Price",
             "precursive_url": "https://precursive.example.com/unauth",
+            "jira_url": "https://jira.example.com/projects/UNAUTH",
         }
 
         response = client.post("/projects/", json=project_data)

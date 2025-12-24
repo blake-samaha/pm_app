@@ -1,6 +1,7 @@
 """User service for business logic."""
 
 from typing import List, Optional
+from uuid import UUID
 
 from sqlmodel import Session
 
@@ -18,8 +19,6 @@ class UserService:
 
     def get_user_by_id(self, user_id: str) -> User:
         """Get user by ID."""
-        from uuid import UUID
-
         # Convert string UUID to UUID object for database query
         uuid_obj = UUID(user_id) if isinstance(user_id, str) else user_id
         user = self.repository.get_by_id(uuid_obj)
@@ -78,7 +77,10 @@ class UserService:
         return self.repository.get_by_role(UserRole.CLIENT)
 
     def search_users(
-        self, search: Optional[str] = None, role: Optional[UserRole] = None
+        self,
+        search: Optional[str] = None,
+        role: Optional[UserRole] = None,
+        limit: int = 50,
     ) -> List[User]:
         """
         Search users by name or email with optional role filtering.
@@ -86,11 +88,12 @@ class UserService:
         Args:
             search: Optional search string for name or email
             role: Optional role filter
+            limit: Maximum number of results to return (default 50)
 
         Returns:
-            List of matching users
+            List of matching users (limited)
         """
-        return self.repository.search(search=search, role=role)
+        return self.repository.search(search=search, role=role, limit=limit)
 
     def create_pending_user(self, email: str) -> User:
         """
@@ -159,8 +162,6 @@ class UserService:
         Raises:
             ResourceNotFoundError: If user not found
         """
-        from uuid import UUID
-
         uuid_obj = UUID(str(user_id)) if not isinstance(user_id, UUID) else user_id
         user = self.repository.get_by_id(uuid_obj)
         if not user:

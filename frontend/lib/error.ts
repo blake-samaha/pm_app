@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 
 export function getErrorMessage(error: unknown): string {
     if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError<any>;
+        const axiosError = error as AxiosError<{ detail?: string; message?: string }>;
         if (axiosError.response?.data) {
             // Handle specific backend error formats
             if (typeof axiosError.response.data === "string") {
@@ -27,4 +27,15 @@ export function getErrorMessage(error: unknown): string {
     }
 
     return "An unknown error occurred";
+}
+
+/**
+ * Get the HTTP status code from an error, if available.
+ * Returns undefined if the error is not an Axios error or has no response.
+ */
+export function getErrorStatus(error: unknown): number | undefined {
+    if (axios.isAxiosError(error)) {
+        return error.response?.status;
+    }
+    return undefined;
 }

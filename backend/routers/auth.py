@@ -3,7 +3,7 @@
 from typing import List
 
 import structlog
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 
 from dependencies import AuthServiceDep, CurrentUser, SuperuserPayload, UserServiceDep
 from schemas import GoogleLoginRequest, SuperuserLoginRequest, Token, UserRead
@@ -26,15 +26,9 @@ async def login_with_firebase(
     Creates user if doesn't exist.
     Returns JWT access token.
     """
-    try:
-        user, access_token = auth_service.authenticate_with_firebase(request.token)
-        logger.info(
-            "User logged in successfully", user_id=str(user.id), email=user.email
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    except Exception as e:
-        logger.error("Login failed", error=str(e), error_type=type(e).__name__)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    user, access_token = auth_service.authenticate_with_firebase(request.token)
+    logger.info("User logged in successfully", user_id=str(user.id), email=user.email)
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/superuser-login", response_model=Token)
@@ -43,19 +37,15 @@ async def login_superuser(request: SuperuserLoginRequest, auth_service: AuthServ
     Login as superuser with email/password (bypasses Firebase).
     Only works if SUPERUSER_EMAIL and SUPERUSER_PASSWORD are configured.
     """
-    try:
-        user, access_token = auth_service.authenticate_superuser(
-            request.email, request.password
-        )
-        logger.info("Superuser logged in", user_id=str(user.id))
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "is_superuser": True,
-        }
-    except Exception as e:
-        logger.error("Superuser login failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    user, access_token = auth_service.authenticate_superuser(
+        request.email, request.password
+    )
+    logger.info("Superuser logged in", user_id=str(user.id))
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "is_superuser": True,
+    }
 
 
 @router.get("/me", response_model=UserRead)

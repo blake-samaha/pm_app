@@ -1,5 +1,6 @@
-import { HealthStatus } from "@/types";
-import { AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
+import type { HealthStatus } from "@/lib/api/types";
+import { HEALTH_STATUS } from "@/lib/domain/enums";
+import { AlertTriangle, CheckCircle, AlertCircle, LucideIcon } from "lucide-react";
 
 interface HealthIndicatorProps {
     status: HealthStatus;
@@ -8,8 +9,20 @@ interface HealthIndicatorProps {
     variant?: "subtle" | "solid";
 }
 
-const statusConfig = {
-    [HealthStatus.GREEN]: {
+interface StatusStyle {
+    color: string;
+    bg: string;
+}
+
+interface StatusConfigEntry {
+    subtle: StatusStyle;
+    solid: StatusStyle;
+    icon: LucideIcon;
+    text: string;
+}
+
+const statusConfig: Record<HealthStatus, StatusConfigEntry> = {
+    [HEALTH_STATUS.GREEN]: {
         subtle: {
             color: "text-green-700",
             bg: "bg-green-100 border-green-200",
@@ -21,7 +34,7 @@ const statusConfig = {
         icon: CheckCircle,
         text: "On Track",
     },
-    [HealthStatus.YELLOW]: {
+    [HEALTH_STATUS.YELLOW]: {
         subtle: {
             color: "text-yellow-700",
             bg: "bg-yellow-100 border-yellow-200",
@@ -33,7 +46,7 @@ const statusConfig = {
         icon: AlertTriangle,
         text: "Minor Deviation",
     },
-    [HealthStatus.RED]: {
+    [HEALTH_STATUS.RED]: {
         subtle: {
             color: "text-red-700",
             bg: "bg-red-100 border-red-200",

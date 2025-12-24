@@ -39,9 +39,11 @@ class Comment(SQLModel, table=True):
 
     # Parent references (one should be set, not both)
     action_item_id: Optional[uuid.UUID] = Field(
-        default=None, foreign_key="actionitem.id"
+        default=None, foreign_key="actionitem.id", index=True
     )
-    risk_id: Optional[uuid.UUID] = Field(default=None, foreign_key="risk.id")
+    risk_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="risk.id", index=True
+    )
 
     # Relationships
     action_item: Optional["ActionItem"] = Relationship(back_populates="comments")

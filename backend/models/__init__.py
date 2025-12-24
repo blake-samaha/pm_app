@@ -54,6 +54,7 @@ from models.comment import Comment
 from models.links import UserProjectLink
 from models.project import HealthStatus, Project, ProjectType, ReportingCycle
 from models.risk import Risk
+from models.sync_job import SyncJob, SyncJobStatus, SyncJobType
 from models.user import User
 
 __all__ = [
@@ -68,6 +69,8 @@ __all__ = [
     "RiskProbability",
     "RiskImpact",
     "RiskStatus",
+    "SyncJobType",
+    "SyncJobStatus",
     # Models
     "User",
     "Project",
@@ -75,4 +78,5 @@ __all__ = [
     "ActionItem",
     "Comment",
     "Risk",
+    "SyncJob",
 ]

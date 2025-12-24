@@ -41,6 +41,83 @@ def project_with_client_and_action(session, sample_project, client_user, sample_
 
 
 # =============================================================================
+# Single Action Access Control Tests
+# =============================================================================
+
+
+class TestGetActionById:
+    """Tests for GET /actions/{id} endpoint access control."""
+
+    def test_cogniter_can_get_action(self, authenticated_client, sample_action):
+        """Cogniters should be able to get any action by ID."""
+        response = authenticated_client.get(f"/actions/{sample_action.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(sample_action.id)
+        assert data["title"] == sample_action.title
+
+    def test_assigned_client_can_get_action(
+        self,
+        client,
+        client_user,
+        sample_action,
+        create_token,
+        project_with_client_and_action,
+    ):
+        """Client assigned to published project can get action by ID."""
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/actions/{sample_action.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(sample_action.id)
+
+    def test_client_denied_when_project_not_published(
+        self, client, client_user, sample_action, create_token, session, sample_project
+    ):
+        """Client should be denied access when project is not published."""
+        # Assign client but don't publish project
+        link = UserProjectLink(project_id=sample_project.id, user_id=client_user.id)
+        session.add(link)
+        session.commit()
+
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/actions/{sample_action.id}")
+
+        assert response.status_code == 403
+        assert "not published" in response.json()["detail"].lower()
+
+    def test_unassigned_client_denied(
+        self, client, client_user, sample_action, create_token, session, sample_project
+    ):
+        """Client not assigned to project should be denied access."""
+        # Publish project but don't assign client
+        sample_project.is_published = True
+        session.add(sample_project)
+        session.commit()
+
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/actions/{sample_action.id}")
+
+        assert response.status_code == 403
+        assert "access" in response.json()["detail"].lower()
+
+    def test_get_nonexistent_action_returns_404(self, authenticated_client):
+        """Getting non-existent action should return 404."""
+        fake_id = uuid4()
+        response = authenticated_client.get(f"/actions/{fake_id}")
+
+        assert response.status_code == 404
+
+
+# =============================================================================
 # Action Comment Tests
 # =============================================================================
 
@@ -103,13 +180,13 @@ class TestActionComments:
         assert response.status_code == 403
 
     def test_empty_comment_rejected(self, authenticated_client, sample_action):
-        """Empty comments should be rejected with 422."""
+        """Empty comments should be rejected with 400 (business validation)."""
         response = authenticated_client.post(
             f"/actions/{sample_action.id}/comments",
             json={"content": ""},
         )
 
-        assert response.status_code == 422
+        assert response.status_code == 400
 
     def test_whitespace_only_comment_rejected(
         self, authenticated_client, sample_action
@@ -120,7 +197,7 @@ class TestActionComments:
             json={"content": "   "},
         )
 
-        assert response.status_code == 422
+        assert response.status_code == 400
 
     def test_get_comments(self, authenticated_client, sample_action):
         """Should be able to retrieve comments for an action."""

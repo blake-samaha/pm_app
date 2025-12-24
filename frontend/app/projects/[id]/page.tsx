@@ -11,8 +11,9 @@ import { ActionTable } from "@/components/project/ActionTable";
 import { RiskList } from "@/components/project/RiskList";
 import { RiskMatrix } from "@/components/project/RiskMatrix"; // Imported RiskMatrix
 import { useRisks } from "@/hooks/useRisks"; // Import useRisks to pass data to Matrix
-import { RiskImpact, RiskProbability } from "@/types/actions-risks";
-import { SyncButton } from "@/components/project/SyncButton";
+import { RiskImpact, RiskProbability } from "@/lib/api/types";
+import { SyncButtons } from "@/components/project/SyncButton";
+import { SyncStatusCard } from "@/components/project/SyncStatusCard";
 import { SprintGoalsCard } from "@/components/project/SprintGoalsCard";
 import { TeamSection } from "@/components/project/TeamSection";
 import {
@@ -32,7 +33,8 @@ import { getErrorMessage } from "@/lib/error";
 import { API_URL } from "@/lib/api";
 import { useState } from "react";
 import { EditProjectModal } from "@/components/project/EditProjectModal";
-import { HealthStatus, UserRole } from "@/types";
+import { HealthStatus } from "@/lib/api/types";
+import { HEALTH_STATUS, USER_ROLE } from "@/lib/domain/enums";
 import { canViewFinancials } from "@/lib/permissions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,7 +57,7 @@ export default function ProjectDetailsPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [logoError, setLogoError] = useState(false);
     const [activeTab, setActiveTab] = useState("work");
-    const isCogniterUser = !!user && user.role === UserRole.COGNITER;
+    const isCogniterUser = !!user && user.role === USER_ROLE.COGNITER;
     const canSeeFinancials = !!user && canViewFinancials(user.role);
 
     const { data: project, isLoading, isError, error, refetch } = useProject(projectId);
@@ -127,23 +129,24 @@ export default function ProjectDetailsPage() {
     }
 
     const currentHealth = project.health_status_override || project.health_status;
-    const isCritical = currentHealth === HealthStatus.RED || currentHealth === HealthStatus.YELLOW;
+    const isCritical =
+        currentHealth === HEALTH_STATUS.RED || currentHealth === HEALTH_STATUS.YELLOW;
 
     // Define styles based on health status
     const healthStyles = {
-        [HealthStatus.GREEN]: {
+        [HEALTH_STATUS.GREEN]: {
             border: "border-green-500",
             bg: "bg-green-50",
             text: "text-green-700",
             shadow: "shadow-green-100",
         },
-        [HealthStatus.YELLOW]: {
+        [HEALTH_STATUS.YELLOW]: {
             border: "border-yellow-500",
             bg: "bg-yellow-50",
             text: "text-yellow-700",
             shadow: "shadow-yellow-100",
         },
-        [HealthStatus.RED]: {
+        [HEALTH_STATUS.RED]: {
             border: "border-red-500",
             bg: "bg-red-50",
             text: "text-red-700",
@@ -151,7 +154,7 @@ export default function ProjectDetailsPage() {
         },
     };
 
-    const currentStyle = healthStyles[currentHealth] || healthStyles[HealthStatus.GREEN];
+    const currentStyle = healthStyles[currentHealth] || healthStyles[HEALTH_STATUS.GREEN];
 
     return (
         <div className="min-h-screen bg-slate-50 pb-12">
@@ -232,7 +235,7 @@ export default function ProjectDetailsPage() {
 
                             {user?.role === "Cogniter" && (
                                 <>
-                                    <SyncButton projectId={project.id} />
+                                    <SyncButtons projectId={project.id} />
                                     <button
                                         onClick={() => setIsEditModalOpen(true)}
                                         className="rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
@@ -334,7 +337,7 @@ export default function ProjectDetailsPage() {
                                 projectId={project.id}
                                 canEdit={user?.role === "Cogniter"}
                             />
-                            <ActionTable projectId={project.id} />
+                            <ActionTable projectId={project.id} jiraUrl={project.jira_url} />
                         </div>
 
                         {/* Right Column (Sidebar) */}
@@ -356,50 +359,7 @@ export default function ProjectDetailsPage() {
                                     />
                                 )}
                                 {!statusLoading && !statusError && syncStatus && (
-                                    <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-4">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-slate-700">
-                                                Last synced
-                                            </span>
-                                            <span className="text-sm text-slate-600">
-                                                {syncStatus.last_synced_at
-                                                    ? new Date(
-                                                          syncStatus.last_synced_at
-                                                      ).toLocaleString()
-                                                    : "Never"}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium text-slate-700">
-                                                Jira configured
-                                            </span>
-                                            <div className="flex items-center space-x-2">
-                                                {syncStatus.jira_project_key && (
-                                                    <span
-                                                        className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
-                                                        title={
-                                                            syncStatus.jira_project_name ||
-                                                            syncStatus.jira_project_key
-                                                        }
-                                                    >
-                                                        {syncStatus.jira_project_name ? (
-                                                            <>
-                                                                {syncStatus.jira_project_name}
-                                                                <span className="ml-1 opacity-75">
-                                                                    ({syncStatus.jira_project_key})
-                                                                </span>
-                                                            </>
-                                                        ) : (
-                                                            syncStatus.jira_project_key
-                                                        )}
-                                                    </span>
-                                                )}
-                                                <span className="text-sm text-slate-600">
-                                                    {syncStatus.jira_configured ? "Yes" : "No"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <SyncStatusCard syncStatus={syncStatus} userRole={user?.role} />
                                 )}
                             </div>
 

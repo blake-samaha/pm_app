@@ -15,6 +15,7 @@ from services.action_service import ActionService
 from services.auth_service import AuthService
 from services.project_service import ProjectService
 from services.risk_service import RiskService
+from services.sync_job_service import SyncJobService
 from services.sync_service import SyncService
 from services.user_service import UserService
 
@@ -58,6 +59,11 @@ def get_action_service(session: SessionDep) -> ActionService:
     return ActionService(session)
 
 
+def get_sync_job_service(session: SessionDep) -> SyncJobService:
+    """Get SyncJobService instance."""
+    return SyncJobService(session)
+
+
 # Type aliases for common dependencies
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
@@ -65,6 +71,7 @@ AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 SyncServiceDep = Annotated[SyncService, Depends(get_sync_service)]
 RiskServiceDep = Annotated[RiskService, Depends(get_risk_service)]
 ActionServiceDep = Annotated[ActionService, Depends(get_action_service)]
+SyncJobServiceDep = Annotated[SyncJobService, Depends(get_sync_job_service)]
 
 
 # Authentication dependencies

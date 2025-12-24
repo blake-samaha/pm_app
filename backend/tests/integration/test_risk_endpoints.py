@@ -67,6 +67,83 @@ def project_with_client_and_risk(session, sample_project, client_user, sample_ri
 
 
 # =============================================================================
+# Single Risk Access Control Tests
+# =============================================================================
+
+
+class TestGetRiskById:
+    """Tests for GET /risks/{id} endpoint access control."""
+
+    def test_cogniter_can_get_risk(self, authenticated_client, sample_risk):
+        """Cogniters should be able to get any risk by ID."""
+        response = authenticated_client.get(f"/risks/{sample_risk.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(sample_risk.id)
+        assert data["title"] == sample_risk.title
+
+    def test_assigned_client_can_get_risk(
+        self,
+        client,
+        client_user,
+        sample_risk,
+        create_token,
+        project_with_client_and_risk,
+    ):
+        """Client assigned to published project can get risk by ID."""
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/risks/{sample_risk.id}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(sample_risk.id)
+
+    def test_client_denied_when_project_not_published(
+        self, client, client_user, sample_risk, create_token, session, sample_project
+    ):
+        """Client should be denied access when project is not published."""
+        # Assign client but don't publish project
+        link = UserProjectLink(project_id=sample_project.id, user_id=client_user.id)
+        session.add(link)
+        session.commit()
+
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/risks/{sample_risk.id}")
+
+        assert response.status_code == 403
+        assert "not published" in response.json()["detail"].lower()
+
+    def test_unassigned_client_denied(
+        self, client, client_user, sample_risk, create_token, session, sample_project
+    ):
+        """Client not assigned to project should be denied access."""
+        # Publish project but don't assign client
+        sample_project.is_published = True
+        session.add(sample_project)
+        session.commit()
+
+        token = create_token(client_user)
+        client.headers["Authorization"] = f"Bearer {token}"
+
+        response = client.get(f"/risks/{sample_risk.id}")
+
+        assert response.status_code == 403
+        assert "access" in response.json()["detail"].lower()
+
+    def test_get_nonexistent_risk_returns_404(self, authenticated_client):
+        """Getting non-existent risk should return 404."""
+        fake_id = uuid4()
+        response = authenticated_client.get(f"/risks/{fake_id}")
+
+        assert response.status_code == 404
+
+
+# =============================================================================
 # Risk Resolution Tests
 # =============================================================================
 
@@ -118,7 +195,7 @@ class TestRiskResolution:
         )
 
         # Should fail validation
-        assert response.status_code == 422
+        assert response.status_code == 400
 
     def test_resolve_with_mitigated_status(self, authenticated_client, sample_risk):
         """Should be able to resolve with MITIGATED status."""
@@ -143,7 +220,7 @@ class TestRiskReopen:
             f"/risks/{resolved_risk.id}/reopen", json={"reason": ""}
         )
 
-        assert response.status_code == 422
+        assert response.status_code == 400
 
     def test_reopen_endpoint_cogniter_success(
         self, authenticated_client, resolved_risk

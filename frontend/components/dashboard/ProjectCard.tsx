@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Project, HealthStatus } from "@/types";
+import type { Project } from "@/lib/api/types";
+import { HealthStatus } from "@/lib/api/types";
+import { HEALTH_STATUS } from "@/lib/domain/enums";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { HealthIndicator } from "@/components/project/HealthIndicator";
@@ -11,10 +13,10 @@ interface ProjectCardProps {
     project: Project;
 }
 
-const statusBorderColors = {
-    [HealthStatus.GREEN]: "border-t-green-500",
-    [HealthStatus.YELLOW]: "border-t-yellow-500",
-    [HealthStatus.RED]: "border-t-red-600",
+const statusBorderColors: Record<HealthStatus, string> = {
+    [HEALTH_STATUS.GREEN]: "border-t-green-500",
+    [HEALTH_STATUS.YELLOW]: "border-t-yellow-500",
+    [HEALTH_STATUS.RED]: "border-t-red-600",
 };
 
 /**
@@ -31,7 +33,7 @@ const getLogoUrl = (url: string | undefined | null): string | null => {
 };
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
-    const status = project.health_status_override || project.health_status;
+    const status: HealthStatus = project.health_status_override ?? project.health_status;
     const [imageError, setImageError] = useState(false);
 
     const logoUrl = getLogoUrl(project.client_logo_url);

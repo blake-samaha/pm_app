@@ -25,7 +25,10 @@ class UserRepository(BaseRepository[User]):
         return list(self.session.exec(statement).all())
 
     def search(
-        self, search: Optional[str] = None, role: Optional[UserRole] = None
+        self,
+        search: Optional[str] = None,
+        role: Optional[UserRole] = None,
+        limit: int = 50,
     ) -> List[User]:
         """
         Search users by name or email with optional role filtering.
@@ -33,9 +36,10 @@ class UserRepository(BaseRepository[User]):
         Args:
             search: Optional search string for name or email (case-insensitive)
             role: Optional role filter
+            limit: Maximum number of results to return (default 50)
 
         Returns:
-            List of matching users
+            List of matching users (limited)
         """
         statement = select(User)
 
@@ -53,6 +57,9 @@ class UserRepository(BaseRepository[User]):
 
         # Order by name for consistent results
         statement = statement.order_by(User.name)
+
+        # Apply limit to prevent large payloads
+        statement = statement.limit(limit)
 
         return list(self.session.exec(statement).all())
 

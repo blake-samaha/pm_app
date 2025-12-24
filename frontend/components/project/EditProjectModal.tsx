@@ -1,11 +1,13 @@
 "use client";
 
 import { useUpdateProject } from "@/hooks/useProjects";
-import { HealthStatus, Project, ReportingCycle } from "@/types";
+import type { Project, ProjectUpdate } from "@/lib/api/types";
+import { HealthStatus, ReportingCycle } from "@/lib/api/types";
 import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { uploadLogo } from "@/lib/api";
+import { getErrorMessage } from "@/lib/error";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
@@ -69,9 +71,9 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
             try {
                 setIsUploading(true);
                 finalLogoUrl = await uploadLogo(logoFile);
-            } catch (error: any) {
+            } catch (error) {
                 toast.error("Failed to upload logo", {
-                    description: error.response?.data?.detail || "Please try again.",
+                    description: getErrorMessage(error),
                 });
                 setIsUploading(false);
                 return;
@@ -80,16 +82,20 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
         }
 
         // Filter out empty strings for optional enums to send null instead
-        const payload: any = {
+        const payload: ProjectUpdate = {
             ...formData,
-            reporting_cycle: formData.reporting_cycle || null,
-            health_status_override: formData.health_status_override || null,
+            reporting_cycle: formData.reporting_cycle
+                ? (formData.reporting_cycle as ReportingCycle)
+                : null,
+            health_status_override: formData.health_status_override
+                ? (formData.health_status_override as HealthStatus)
+                : null,
             sprint_goals: formData.sprint_goals || null,
             client_logo_url: finalLogoUrl,
         };
 
         updateProject.mutate(
-            { id: project.id, data: payload },
+            { projectId: project.id, data: payload },
             {
                 onSuccess: () => {
                     toast.success("Project updated", {
@@ -99,10 +105,9 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                     setLogoUrl(null);
                     onClose();
                 },
-                onError: (error: any) => {
+                onError: (error: unknown) => {
                     toast.error("Failed to update project", {
-                        description:
-                            error.response?.data?.detail || "An unexpected error occurred.",
+                        description: getErrorMessage(error),
                     });
                 },
             }
@@ -206,7 +211,7 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                                     onChange={(e) =>
                                         setFormData({
                                             ...formData,
-                                            reporting_cycle: e.target.value,
+                                            reporting_cycle: e.target.value as ReportingCycle,
                                         })
                                     }
                                     className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"

@@ -16,7 +16,6 @@ from permissions import (
     can_publish_project,
     can_update_risk,
     can_view_financials,
-    is_client_role,
     is_internal_user,
 )
 
@@ -71,22 +70,6 @@ class TestIsInternalUser:
     def test_client_not_internal(self, client):
         """Client role should not be considered internal."""
         assert is_internal_user(client) is False
-
-
-class TestIsClientRole:
-    """Tests for is_client_role permission check."""
-
-    def test_cogniter_not_client_role(self, cogniter):
-        """Cogniter should not be a client role."""
-        assert is_client_role(cogniter) is False
-
-    def test_client_financials_is_client_role(self, client_financials):
-        """Client + Financials should be a client role."""
-        assert is_client_role(client_financials) is True
-
-    def test_client_is_client_role(self, client):
-        """Client should be a client role."""
-        assert is_client_role(client) is True
 
 
 class TestCanViewFinancials:

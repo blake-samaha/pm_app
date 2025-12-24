@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import type { User } from "@/types";
+import type { User } from "@/lib/api/types";
 
 /**
  * Fetch stable QA personas for superuser impersonation.

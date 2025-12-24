@@ -22,9 +22,9 @@ class CommentRepository:
         """
         statement = (
             select(Comment, User)
-            .join(User, Comment.user_id == User.id)
+            .join(User, Comment.user_id == User.id)  # type: ignore[arg-type]
             .where(Comment.action_item_id == action_item_id)
-            .order_by(Comment.created_at.asc())
+            .order_by(Comment.created_at.asc())  # type: ignore[union-attr]
         )
         return list(self.session.exec(statement).all())
 
@@ -35,9 +35,9 @@ class CommentRepository:
         """
         statement = (
             select(Comment, User)
-            .join(User, Comment.user_id == User.id)
+            .join(User, Comment.user_id == User.id)  # type: ignore[arg-type]
             .where(Comment.risk_id == risk_id)
-            .order_by(Comment.created_at.asc())
+            .order_by(Comment.created_at.asc())  # type: ignore[union-attr]
         )
         return list(self.session.exec(statement).all())
 
@@ -58,7 +58,7 @@ class CommentRepository:
 
         statement = (
             select(Comment.action_item_id, func.count(Comment.id))
-            .where(Comment.action_item_id.in_(action_ids))
+            .where(Comment.action_item_id.in_(action_ids))  # type: ignore[union-attr]
             .group_by(Comment.action_item_id)
         )
         rows = self.session.exec(statement).all()

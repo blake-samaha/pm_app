@@ -1,126 +1,172 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import {
-    Risk,
-    Comment,
-    RiskResolveRequest,
-    RiskReopenRequest,
-    CommentCreateRequest,
-} from "@/types/actions-risks";
+/**
+ * Risk hooks - wraps generated API client hooks.
+ *
+ * This module provides a stable API for components while using
+ * contract-driven generated types under the hood.
+ */
+
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 
+// Import generated hooks and types
+import {
+    useReadRisksRisksGet,
+    useGetRiskRisksRiskIdGet,
+    useCreateRiskRisksPost,
+    useDeleteRiskRisksRiskIdDelete,
+    useResolveRiskRisksRiskIdResolvePost,
+    useReopenRiskRisksRiskIdReopenPost,
+    useGetRiskCommentsRisksRiskIdCommentsGet,
+    useAddRiskCommentRisksRiskIdCommentsPost,
+    getReadRisksRisksGetQueryKey,
+    getGetRiskRisksRiskIdGetQueryKey,
+    getGetRiskCommentsRisksRiskIdCommentsGetQueryKey,
+} from "@/lib/api/generated/risks/risks";
+
+// Re-export generated types for consumers
+export type {
+    RiskRead,
+    RiskCreate,
+    RiskResolve,
+    RiskReopen,
+    RiskStatus,
+    RiskImpact,
+    RiskProbability,
+    CommentRead,
+    CommentCreate,
+} from "@/lib/api/generated/models";
+
+/**
+ * Fetch all risks for a project.
+ */
 export const useRisks = (projectId: string) => {
     const { isAuthenticated } = useAuthStore();
-    return useQuery({
-        queryKey: ["risks", projectId],
-        queryFn: async () => {
-            const { data } = await api.get<Risk[]>(`/risks/?project_id=${projectId}`);
-            return data;
-        },
-        enabled: !!projectId && isAuthenticated,
-    });
+
+    return useReadRisksRisksGet(
+        { project_id: projectId },
+        {
+            query: {
+                enabled: !!projectId && isAuthenticated,
+            },
+        }
+    );
 };
 
+/**
+ * Fetch a single risk by ID.
+ */
 export const useRisk = (riskId: string) => {
     const { isAuthenticated } = useAuthStore();
-    return useQuery({
-        queryKey: ["risk", riskId],
-        queryFn: async () => {
-            const { data } = await api.get<Risk>(`/risks/${riskId}`);
-            return data;
+
+    return useGetRiskRisksRiskIdGet(riskId, {
+        query: {
+            enabled: !!riskId && isAuthenticated,
         },
-        enabled: !!riskId && isAuthenticated,
     });
 };
 
+/**
+ * Create a new risk.
+ */
 export const useCreateRisk = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (newRisk: Partial<Risk>) => {
-            const { data } = await api.post<Risk>("/risks/", newRisk);
-            return data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({
-                queryKey: ["risks", data.project_id],
-            });
+    return useCreateRiskRisksPost({
+        mutation: {
+            onSuccess: (data) => {
+                queryClient.invalidateQueries({
+                    queryKey: getReadRisksRisksGetQueryKey({ project_id: data.project_id }),
+                });
+            },
         },
     });
 };
 
+/**
+ * Resolve a risk.
+ */
 export const useResolveRisk = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ riskId, ...resolveData }: { riskId: string } & RiskResolveRequest) => {
-            const { data } = await api.post<Risk>(`/risks/${riskId}/resolve`, resolveData);
-            return data;
-        },
-        onSuccess: (data) => {
-            // Invalidate both the specific risk and the list
-            queryClient.invalidateQueries({ queryKey: ["risk", data.id] });
-            queryClient.invalidateQueries({ queryKey: ["risks", data.project_id] });
+    return useResolveRiskRisksRiskIdResolvePost({
+        mutation: {
+            onSuccess: (data) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetRiskRisksRiskIdGetQueryKey(data.id),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getReadRisksRisksGetQueryKey({ project_id: data.project_id }),
+                });
+            },
         },
     });
 };
 
+/**
+ * Reopen a resolved risk.
+ */
 export const useReopenRisk = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ riskId, ...reopenData }: { riskId: string } & RiskReopenRequest) => {
-            const { data } = await api.post<Risk>(`/risks/${riskId}/reopen`, reopenData);
-            return data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["risk", data.id] });
-            queryClient.invalidateQueries({ queryKey: ["risks", data.project_id] });
+    return useReopenRiskRisksRiskIdReopenPost({
+        mutation: {
+            onSuccess: (data) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetRiskRisksRiskIdGetQueryKey(data.id),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getReadRisksRisksGetQueryKey({ project_id: data.project_id }),
+                });
+            },
         },
     });
 };
 
+/**
+ * Fetch comments for a risk.
+ */
 export const useRiskComments = (riskId: string) => {
     const { isAuthenticated } = useAuthStore();
-    return useQuery({
-        queryKey: ["riskComments", riskId],
-        queryFn: async () => {
-            const { data } = await api.get<Comment[]>(`/risks/${riskId}/comments`);
-            return data;
+
+    return useGetRiskCommentsRisksRiskIdCommentsGet(riskId, {
+        query: {
+            enabled: !!riskId && isAuthenticated,
         },
-        enabled: !!riskId && isAuthenticated,
     });
 };
 
+/**
+ * Add a comment to a risk.
+ */
 export const useAddRiskComment = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({
-            riskId,
-            ...commentData
-        }: { riskId: string } & CommentCreateRequest) => {
-            const { data } = await api.post<Comment>(`/risks/${riskId}/comments`, commentData);
-            return data;
-        },
-        onSuccess: (data) => {
-            if (data.risk_id) {
-                queryClient.invalidateQueries({ queryKey: ["riskComments", data.risk_id] });
-            }
+    return useAddRiskCommentRisksRiskIdCommentsPost({
+        mutation: {
+            onSuccess: (data, variables) => {
+                queryClient.invalidateQueries({
+                    queryKey: getGetRiskCommentsRisksRiskIdCommentsGetQueryKey(variables.riskId),
+                });
+            },
         },
     });
 };
 
+/**
+ * Delete a risk.
+ */
 export const useDeleteRisk = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ riskId, projectId }: { riskId: string; projectId: string }) => {
-            await api.delete(`/risks/${riskId}`);
-            return { riskId, projectId };
-        },
-        onSuccess: ({ projectId }) => {
-            queryClient.invalidateQueries({ queryKey: ["risks", projectId] });
+    return useDeleteRiskRisksRiskIdDelete({
+        mutation: {
+            onSuccess: (_data, variables) => {
+                // Invalidate all risk lists (we don't have projectId in the response)
+                queryClient.invalidateQueries({
+                    predicate: (query) =>
+                        Array.isArray(query.queryKey) && query.queryKey[0] === "/risks/",
+                });
+            },
         },
     });
 };

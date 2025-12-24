@@ -7,7 +7,9 @@ import {
     useRiskComments,
     useAddRiskComment,
 } from "@/hooks/useRisks";
-import { Risk, RiskImpact, RiskProbability, RiskStatus } from "@/types/actions-risks";
+import type { Risk } from "@/lib/api/types";
+import { RiskImpact, RiskProbability, RiskStatus } from "@/lib/api/types";
+import { RISK_IMPACT, RISK_PROBABILITY, RISK_STATUS } from "@/lib/domain/enums";
 import {
     Loader2,
     ShieldAlert,
@@ -23,19 +25,20 @@ import {
 import { CommentThread } from "@/components/comments/CommentThread";
 import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import ApiErrorDisplay from "@/components/ApiErrorDisplay";
+import { getErrorMessage } from "@/lib/error";
 import { useEffect, useState, useMemo } from "react";
 import { useEffectiveUser } from "@/hooks/useEffectiveUser";
 import { isCogniter } from "@/lib/permissions";
-import { UserRole } from "@/types";
+import type { UserRole } from "@/lib/api/types";
 
 interface RiskListProps {
     projectId: string;
@@ -45,49 +48,49 @@ interface RiskListProps {
 
 const ITEMS_PER_PAGE = 25;
 
-const impactConfig = {
-    [RiskImpact.HIGH]: {
+const impactConfig: Record<RiskImpact, { borderColor: string; badge: string; value: number }> = {
+    [RISK_IMPACT.HIGH]: {
         borderColor: "border-l-red-500",
         badge: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10",
         value: 3,
     },
-    [RiskImpact.MEDIUM]: {
+    [RISK_IMPACT.MEDIUM]: {
         borderColor: "border-l-amber-500",
         badge: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10",
         value: 2,
     },
-    [RiskImpact.LOW]: {
+    [RISK_IMPACT.LOW]: {
         borderColor: "border-l-emerald-500",
         badge: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
         value: 1,
     },
 };
 
-const probabilityConfig = {
-    [RiskProbability.HIGH]: {
+const probabilityConfig: Record<RiskProbability, { style: string; value: number }> = {
+    [RISK_PROBABILITY.HIGH]: {
         style: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10",
         value: 3,
     },
-    [RiskProbability.MEDIUM]: {
+    [RISK_PROBABILITY.MEDIUM]: {
         style: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10",
         value: 2,
     },
-    [RiskProbability.LOW]: {
+    [RISK_PROBABILITY.LOW]: {
         style: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
         value: 1,
     },
 };
 
-const statusConfig = {
-    [RiskStatus.OPEN]: {
+const statusConfig: Record<RiskStatus, { badge: string; label: string }> = {
+    [RISK_STATUS.OPEN]: {
         badge: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/10",
         label: "Open",
     },
-    [RiskStatus.CLOSED]: {
+    [RISK_STATUS.CLOSED]: {
         badge: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-400/10",
         label: "Closed",
     },
-    [RiskStatus.MITIGATED]: {
+    [RISK_STATUS.MITIGATED]: {
         badge: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
         label: "Mitigated",
     },
@@ -106,22 +109,35 @@ const calculateRiskScore = (risk: Risk) => {
     return { score, percentage, colorClass };
 };
 
-// Risk Detail Dialog Component
-const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }) => {
+/**
+ * Dialog content component for risk details.
+ * Separated to allow hooks to be called only when dialog is open.
+ * This prevents N+1 comment API calls when rendering the risk list.
+ */
+const RiskDetailDialogContent = ({
+    risk,
+    projectId,
+    onClose,
+}: {
+    risk: Risk;
+    projectId: string;
+    onClose: () => void;
+}) => {
     const user = useEffectiveUser();
     const canResolve = user && isCogniter(user.role as UserRole);
-    const isResolved = risk.status !== RiskStatus.OPEN;
+    const isResolved = risk.status !== RISK_STATUS.OPEN;
 
     const [showResolveForm, setShowResolveForm] = useState(false);
     const [showReopenForm, setShowReopenForm] = useState(false);
-    const [resolveStatus, setResolveStatus] = useState<RiskStatus.CLOSED | RiskStatus.MITIGATED>(
-        RiskStatus.CLOSED
-    );
+    const [resolveStatus, setResolveStatus] = useState<
+        typeof RISK_STATUS.CLOSED | typeof RISK_STATUS.MITIGATED
+    >(RISK_STATUS.CLOSED);
     const [decisionRecord, setDecisionRecord] = useState("");
     const [reopenReason, setReopenReason] = useState("");
 
     const resolveRisk = useResolveRisk();
     const reopenRisk = useReopenRisk();
+    // Comments are only fetched when this component is rendered (dialog is open)
     const { data: comments, isLoading: commentsLoading } = useRiskComments(risk.id);
     const addComment = useAddRiskComment();
 
@@ -133,8 +149,10 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
         try {
             await resolveRisk.mutateAsync({
                 riskId: risk.id,
-                status: resolveStatus,
-                decision_record: decisionRecord,
+                data: {
+                    status: resolveStatus,
+                    decision_record: decisionRecord,
+                },
             });
             setShowResolveForm(false);
             setDecisionRecord("");
@@ -148,7 +166,9 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
         try {
             await reopenRisk.mutateAsync({
                 riskId: risk.id,
-                reason: reopenReason,
+                data: {
+                    reason: reopenReason,
+                },
             });
             setShowReopenForm(false);
             setReopenReason("");
@@ -160,7 +180,7 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
     const handleAddComment = async (content: string) => {
         await addComment.mutateAsync({
             riskId: risk.id,
-            content,
+            data: { content },
         });
     };
 
@@ -280,23 +300,23 @@ const RiskDetailDialog = ({ risk, projectId }: { risk: Risk; projectId: string }
                                 <div className="flex gap-2">
                                     <Button
                                         variant={
-                                            resolveStatus === RiskStatus.CLOSED
+                                            resolveStatus === RISK_STATUS.CLOSED
                                                 ? "default"
                                                 : "outline"
                                         }
                                         size="sm"
-                                        onClick={() => setResolveStatus(RiskStatus.CLOSED)}
+                                        onClick={() => setResolveStatus(RISK_STATUS.CLOSED)}
                                     >
                                         Closed
                                     </Button>
                                     <Button
                                         variant={
-                                            resolveStatus === RiskStatus.MITIGATED
+                                            resolveStatus === RISK_STATUS.MITIGATED
                                                 ? "default"
                                                 : "outline"
                                         }
                                         size="sm"
-                                        onClick={() => setResolveStatus(RiskStatus.MITIGATED)}
+                                        onClick={() => setResolveStatus(RISK_STATUS.MITIGATED)}
                                     >
                                         Mitigated
                                     </Button>
@@ -398,6 +418,8 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
     const { data: risks, isLoading, isError, error, refetch } = useRisks(projectId);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    // Single selected risk for dialog - prevents N+1 comment API calls
+    const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
 
     // Reset to first page when filters/search change
     useEffect(() => {
@@ -432,8 +454,8 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
     const sortedRisks = useMemo(() => {
         return [...filteredRisks].sort((a, b) => {
             // Sort resolved risks to the bottom
-            if (a.status !== RiskStatus.OPEN && b.status === RiskStatus.OPEN) return 1;
-            if (a.status === RiskStatus.OPEN && b.status !== RiskStatus.OPEN) return -1;
+            if (a.status !== RISK_STATUS.OPEN && b.status === RISK_STATUS.OPEN) return 1;
+            if (a.status === RISK_STATUS.OPEN && b.status !== RISK_STATUS.OPEN) return -1;
 
             const scoreA = calculateRiskScore(a).score;
             const scoreB = calculateRiskScore(b).score;
@@ -459,7 +481,7 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
         return (
             <ApiErrorDisplay
                 title="Failed to load risks"
-                error={(error as any)?.response?.data ?? error ?? "Unknown error"}
+                error={getErrorMessage(error)}
                 onRetry={() => refetch()}
             />
         );
@@ -550,71 +572,63 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
                     paginatedRisks.map((risk) => {
                         const style = impactConfig[risk.impact];
                         const { percentage, colorClass } = calculateRiskScore(risk);
-                        const isResolved = risk.status !== RiskStatus.OPEN;
+                        const isResolved = risk.status !== RISK_STATUS.OPEN;
 
                         return (
-                            <Dialog key={risk.id}>
-                                <DialogTrigger asChild>
-                                    <button
-                                        className={`group relative flex w-full flex-col gap-3 rounded-l-sm rounded-r-lg border-y border-l-4 border-r border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${isResolved ? "bg-slate-50 opacity-75" : "bg-white"} ${style.borderColor}`}
-                                    >
-                                        <div className="flex w-full items-start justify-between">
-                                            <div className="flex items-center gap-2">
-                                                {isResolved && (
-                                                    <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
-                                                )}
-                                                <h4
-                                                    className={`line-clamp-2 pr-4 text-sm font-semibold leading-snug transition-colors group-hover:text-indigo-600 ${isResolved ? "text-slate-500 line-through" : "text-slate-900"}`}
-                                                >
-                                                    {risk.description}
-                                                </h4>
-                                            </div>
-                                            <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 -translate-x-2 text-slate-400 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
-                                        </div>
-
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span
-                                                className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${statusConfig[risk.status].badge}`}
-                                            >
-                                                {statusConfig[risk.status].label}
-                                            </span>
-                                            <span
-                                                className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${style.badge}`}
-                                            >
-                                                {risk.impact} Impact
-                                            </span>
-                                            <span
-                                                className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${probabilityConfig[risk.probability].style}`}
-                                            >
-                                                {risk.probability} Prob
-                                            </span>
-                                        </div>
-
-                                        {!isResolved && (
-                                            <div className="w-full space-y-1.5 pt-1">
-                                                <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-slate-400">
-                                                    <span>Risk Score</span>
-                                                    <span
-                                                        className={colorClass.replace(
-                                                            "bg-",
-                                                            "text-"
-                                                        )}
-                                                    >
-                                                        {Math.round(percentage)}%
-                                                    </span>
-                                                </div>
-                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                                                    <div
-                                                        className={`h-full ${colorClass} transition-all duration-500 ease-out`}
-                                                        style={{ width: `${percentage}%` }}
-                                                    />
-                                                </div>
-                                            </div>
+                            <button
+                                key={risk.id}
+                                onClick={() => setSelectedRisk(risk)}
+                                className={`group relative flex w-full flex-col gap-3 rounded-l-sm rounded-r-lg border-y border-l-4 border-r border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${isResolved ? "bg-slate-50 opacity-75" : "bg-white"} ${style.borderColor}`}
+                            >
+                                <div className="flex w-full items-start justify-between">
+                                    <div className="flex items-center gap-2">
+                                        {isResolved && (
+                                            <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-emerald-500" />
                                         )}
-                                    </button>
-                                </DialogTrigger>
-                                <RiskDetailDialog risk={risk} projectId={projectId} />
-                            </Dialog>
+                                        <h4
+                                            className={`line-clamp-2 pr-4 text-sm font-semibold leading-snug transition-colors group-hover:text-indigo-600 ${isResolved ? "text-slate-500 line-through" : "text-slate-900"}`}
+                                        >
+                                            {risk.description}
+                                        </h4>
+                                    </div>
+                                    <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 -translate-x-2 text-slate-400 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span
+                                        className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${statusConfig[risk.status].badge}`}
+                                    >
+                                        {statusConfig[risk.status].label}
+                                    </span>
+                                    <span
+                                        className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${style.badge}`}
+                                    >
+                                        {risk.impact} Impact
+                                    </span>
+                                    <span
+                                        className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wide ${probabilityConfig[risk.probability].style}`}
+                                    >
+                                        {risk.probability} Prob
+                                    </span>
+                                </div>
+
+                                {!isResolved && (
+                                    <div className="w-full space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-slate-400">
+                                            <span>Risk Score</span>
+                                            <span className={colorClass.replace("bg-", "text-")}>
+                                                {Math.round(percentage)}%
+                                            </span>
+                                        </div>
+                                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                            <div
+                                                className={`h-full ${colorClass} transition-all duration-500 ease-out`}
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </button>
                         );
                     })
                 )}
@@ -653,6 +667,17 @@ export const RiskList = ({ projectId, filterByProbability, filterByImpact }: Ris
                     </div>
                 </CardFooter>
             )}
+
+            {/* Single Risk Detail Dialog - controlled by selectedRisk state */}
+            <Dialog open={!!selectedRisk} onOpenChange={(open) => !open && setSelectedRisk(null)}>
+                {selectedRisk && (
+                    <RiskDetailDialogContent
+                        risk={selectedRisk}
+                        projectId={projectId}
+                        onClose={() => setSelectedRisk(null)}
+                    />
+                )}
+            </Dialog>
         </Card>
     );
 };

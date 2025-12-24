@@ -3,6 +3,7 @@
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
 import { useImpersonationPresets } from "@/hooks/useImpersonationPresets";
+import { getErrorMessage } from "@/lib/error";
 import { ChevronDown, Eye, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
@@ -125,7 +126,7 @@ export function ImpersonationBar() {
                                         {presetsIsError && (
                                             <div className="px-4 py-3 text-sm text-red-600">
                                                 Failed to load presets:{" "}
-                                                {(presetsError as any)?.message || "Unknown error"}
+                                                {getErrorMessage(presetsError)}
                                             </div>
                                         )}
 
@@ -210,8 +211,7 @@ export function ImpersonationBar() {
 
                                         {usersIsError && (
                                             <div className="px-4 py-3 text-sm text-red-600">
-                                                Failed to load users:{" "}
-                                                {(usersError as any)?.message || "Unknown error"}
+                                                Failed to load users: {getErrorMessage(usersError)}
                                             </div>
                                         )}
 

@@ -1,57 +1,85 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { Project } from "@/types";
+/**
+ * Project hooks - wraps generated API client hooks.
+ *
+ * This module provides a stable API for components while using
+ * contract-driven generated types under the hood.
+ */
+
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 
+// Import generated hooks and types
+import {
+    useListProjectsProjectsGet,
+    useGetProjectProjectsProjectIdGet,
+    useCreateProjectProjectsPost,
+    useUpdateProjectProjectsProjectIdPatch,
+    getListProjectsProjectsGetQueryKey,
+    getGetProjectProjectsProjectIdGetQueryKey,
+} from "@/lib/api/generated/projects/projects";
+
+// Re-export generated types for consumers
+export type { ProjectRead, ProjectCreate, ProjectUpdate } from "@/lib/api/generated/models";
+
+/**
+ * Fetch all projects accessible to the current user.
+ */
 export const useProjects = () => {
     const { isAuthenticated } = useAuthStore();
-    return useQuery({
-        queryKey: ["projects"],
-        queryFn: async () => {
-            const { data } = await api.get<Project[]>("/projects/");
-            return data;
+
+    return useListProjectsProjectsGet({
+        query: {
+            enabled: isAuthenticated,
         },
-        enabled: isAuthenticated,
     });
 };
 
+/**
+ * Fetch a single project by ID.
+ */
 export const useProject = (id: string) => {
     const { isAuthenticated } = useAuthStore();
-    return useQuery({
-        queryKey: ["projects", id],
-        queryFn: async () => {
-            const { data } = await api.get<Project>(`/projects/${id}`);
-            return data;
+
+    return useGetProjectProjectsProjectIdGet(id, {
+        query: {
+            enabled: !!id && isAuthenticated,
         },
-        enabled: !!id && isAuthenticated,
     });
 };
 
+/**
+ * Create a new project.
+ */
 export const useCreateProject = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (newProject: Partial<Project>) => {
-            const { data } = await api.post<Project>("/projects/", newProject);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
+    return useCreateProjectProjectsPost({
+        mutation: {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: getListProjectsProjectsGetQueryKey(),
+                });
+            },
         },
     });
 };
 
+/**
+ * Update an existing project.
+ */
 export const useUpdateProject = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ id, data }: { id: string; data: Partial<Project> }) => {
-            const response = await api.patch<Project>(`/projects/${id}`, data);
-            return response.data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
-            queryClient.invalidateQueries({ queryKey: ["projects", data.id] });
+    return useUpdateProjectProjectsProjectIdPatch({
+        mutation: {
+            onSuccess: (data) => {
+                queryClient.invalidateQueries({
+                    queryKey: getListProjectsProjectsGetQueryKey(),
+                });
+                queryClient.invalidateQueries({
+                    queryKey: getGetProjectProjectsProjectIdGetQueryKey(data.id),
+                });
+            },
         },
     });
 };

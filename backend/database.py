@@ -1,5 +1,7 @@
 """Database configuration and session management."""
 
+from contextlib import contextmanager
+
 from sqlalchemy.pool import QueuePool
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -23,6 +25,26 @@ def get_session():
     """Get database session (FastAPI dependency)."""
     with Session(engine) as session:
         yield session
+
+
+@contextmanager
+def get_session_context():
+    """
+    Get a database session as a context manager.
+
+    Use this for background tasks that need their own session,
+    independent of the request lifecycle.
+
+    Example:
+        with get_session_context() as session:
+            # do work
+            session.commit()
+    """
+    session = Session(engine)
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 def create_db_and_tables():
